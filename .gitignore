@@ -1,0 +1,28 @@
+# Nuxt build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+node_modules
+
+# Env
+.env
+!.env.example
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode
+.idea
+
+# Uploads (keep directory, ignore files)
+public/uploads/*
+!public/uploads/.gitkeep

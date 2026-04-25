@@ -1,0 +1,27 @@
+import { z } from 'zod'
+
+const schema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers, hyphens'),
+  imageUrl: z.string().min(1),
+  isTrending: z.boolean().optional().default(false),
+})
+
+export default defineEventHandler(async (event) => {
+  requireAdmin(event)
+
+  const body = await readBody(event)
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) {
+    throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid data' })
+  }
+
+  try {
+    return await prisma.category.create({ data: parsed.data })
+  } catch (e) {
+    if (e.code === 'P2002') {
+      throw createError({ statusCode: 409, statusMessage: 'A category with this slug already exists' })
+    }
+    throw e
+  }
+})
