@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between gap-3 flex-wrap">
       <p class="text-sm text-zinc-500">
         {{ orders.length }} order{{ orders.length !== 1 ? 's' : '' }}
-        <span v-if="refreshing" class="inline-flex items-center gap-1 text-xs text-zinc-600 ml-2">
+        <span v-if="refreshing" class="inline-flex items-center gap-1 text-xs text-zinc-400 ml-2">
           <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -20,10 +20,10 @@
     </div>
 
     <div v-if="loading && !orders.length" class="space-y-3">
-      <div v-for="n in 3" :key="n" class="card h-36 animate-pulse bg-zinc-800" />
+      <div v-for="n in 3" :key="n" class="card h-36 animate-pulse bg-zinc-100" />
     </div>
 
-    <div v-else-if="!filteredOrders.length" class="card p-14 text-center text-zinc-500 text-sm">
+    <div v-else-if="!filteredOrders.length" class="card p-14 text-center text-zinc-400 text-sm">
       {{ statusFilter ? 'No orders with this status.' : 'No orders yet.' }}
     </div>
 

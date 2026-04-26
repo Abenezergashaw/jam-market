@@ -1,13 +1,13 @@
 <template>
   <div class="max-w-lg">
     <div class="mb-6">
-      <NuxtLink to="/admin/categories" class="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-brand-400 transition-colors">
+      <NuxtLink to="/admin/categories" class="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-brand-500 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         Back to categories
       </NuxtLink>
-      <h2 class="text-lg font-bold text-zinc-50 mt-3">{{ isNew ? 'New category' : 'Edit category' }}</h2>
+      <h2 class="text-lg font-bold text-zinc-900 mt-3">{{ isNew ? 'New category' : 'Edit category' }}</h2>
     </div>
 
     <div class="card p-5 sm:p-6">
