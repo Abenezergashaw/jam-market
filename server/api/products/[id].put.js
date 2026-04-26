@@ -8,6 +8,15 @@ const schema = z.object({
   stock: z.number().int().min(0).optional(),
   categoryId: z.number().int().positive().nullable().optional(),
   images: z.array(z.string().min(1)).optional(),
+  brand: z.string().optional().nullable(),
+  unit: z.string().optional().nullable(),
+  weight: z.string().optional().nullable(),
+  countryOfOrigin: z.string().optional().nullable(),
+  storageInstructions: z.string().optional().nullable(),
+  expiryDate: z.coerce.date().optional().nullable(),
+  costPrice: z.number().positive().optional().nullable(),
+  lowStockThreshold: z.number().int().min(0).optional(),
+  isFeatured: z.boolean().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -39,13 +48,13 @@ export default defineEventHandler(async (event) => {
       return tx.product.findUnique({
         where: { id },
         include: {
-          category: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true, slug: true } },
           images: { orderBy: { position: 'asc' } },
         },
       })
     })
 
-    return { ...product, price: product.price.toString() }
+    return { ...product, price: product.price.toString(), costPrice: product.costPrice?.toString() ?? null }
   } catch (e) {
     if (e.code === 'P2025') throw createError({ statusCode: 404, statusMessage: 'Product not found' })
     throw e

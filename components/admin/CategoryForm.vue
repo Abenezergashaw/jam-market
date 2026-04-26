@@ -8,13 +8,13 @@
     <div>
       <label class="label">Slug *</label>
       <input v-model="form.slug" type="text" class="input" placeholder="e.g. dairy-eggs" required />
-      <p class="text-xs text-zinc-600 mt-1.5">Lowercase letters, numbers, hyphens only</p>
+      <p class="text-xs text-zinc-400 mt-1.5">Lowercase letters, numbers, hyphens only</p>
     </div>
 
     <!-- Trending toggle -->
-    <div class="flex items-center justify-between p-4 bg-zinc-800/50 rounded-xl border border-zinc-700">
+    <div class="flex items-center justify-between p-4 bg-zinc-50 rounded-xl border border-zinc-200">
       <div>
-        <p class="text-sm font-medium text-zinc-200 flex items-center gap-1.5">
+        <p class="text-sm font-medium text-zinc-800 flex items-center gap-1.5">
           🔥 Mark as Trending
         </p>
         <p class="text-xs text-zinc-500 mt-0.5">Shows in the featured trending section on the homepage</p>
@@ -22,7 +22,7 @@
       <button
         type="button"
         class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none shrink-0"
-        :class="form.isTrending ? 'bg-amber-500' : 'bg-zinc-700'"
+        :class="form.isTrending ? 'bg-amber-500' : 'bg-zinc-300'"
         @click="form.isTrending = !form.isTrending"
       >
         <span
@@ -35,7 +35,7 @@
     <div>
       <label class="label">Category image</label>
       <div class="flex items-start gap-4">
-        <div class="w-20 h-20 rounded-xl bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700">
+        <div class="w-20 h-20 rounded-xl bg-zinc-100 overflow-hidden shrink-0 border border-zinc-200">
           <img
             v-if="imagePreview"
             :src="imagePreview"
@@ -43,7 +43,7 @@
             class="w-full h-full object-cover"
             @error="imagePreview = null"
           />
-          <div v-else class="w-full h-full flex items-center justify-center text-zinc-600">
+          <div v-else class="w-full h-full flex items-center justify-center text-zinc-400">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
@@ -53,16 +53,16 @@
           <input
             type="file"
             accept="image/*"
-            class="block w-full text-sm text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-500/10 file:text-brand-400 hover:file:bg-brand-500/20 cursor-pointer"
+            class="block w-full text-sm text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer"
             @change="handleFileChange"
           />
-          <p class="text-xs text-zinc-600">Or paste an image URL:</p>
+          <p class="text-xs text-zinc-400">Or paste an image URL:</p>
           <input v-model="form.imageUrl" type="text" class="input text-sm" placeholder="https://..." />
         </div>
       </div>
     </div>
 
-    <p v-if="error" class="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{{ error }}</p>
+    <p v-if="error" class="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2">{{ error }}</p>
 
     <div class="flex gap-3 pt-1">
       <button type="submit" class="btn-primary" :disabled="saving">
@@ -115,7 +115,7 @@ async function handleFileChange(e) {
   formData.append('image', file)
 
   try {
-    const result = await adminFetch('/api/upload/image', { method: 'POST', body: formData })
+    const result = await adminFetch('/api/upload/image?folder=categories', { method: 'POST', body: formData })
     form.imageUrl = result.url
     imagePreview.value = result.url
   } catch {

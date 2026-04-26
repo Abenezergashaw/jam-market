@@ -8,6 +8,15 @@ const schema = z.object({
   stock: z.number().int().min(0).default(0),
   categoryId: z.number().int().positive().nullable().optional(),
   images: z.array(z.string().min(1)).default([]),
+  brand: z.string().optional(),
+  unit: z.string().optional(),
+  weight: z.string().optional(),
+  countryOfOrigin: z.string().optional(),
+  storageInstructions: z.string().optional(),
+  expiryDate: z.coerce.date().optional().nullable(),
+  costPrice: z.number().positive().optional().nullable(),
+  lowStockThreshold: z.number().int().min(0).default(10),
+  isFeatured: z.boolean().default(false),
 })
 
 export default defineEventHandler(async (event) => {
@@ -29,10 +38,10 @@ export default defineEventHandler(async (event) => {
       },
     },
     include: {
-      category: { select: { id: true, name: true } },
+      category: { select: { id: true, name: true, slug: true } },
       images: { orderBy: { position: 'asc' } },
     },
   })
 
-  return { ...product, price: product.price.toString() }
+  return { ...product, price: product.price.toString(), costPrice: product.costPrice?.toString() ?? null }
 })

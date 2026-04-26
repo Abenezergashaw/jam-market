@@ -11,5 +11,6 @@ export default defineEventHandler(async (event) => {
 
   if (!product) throw createError({ statusCode: 404, statusMessage: 'Product not found' })
 
-  return { ...product, price: product.price.toString() }
+  const { costPrice, expiryDate, ...pub } = product
+  return { ...pub, price: pub.price.toString() }
 })

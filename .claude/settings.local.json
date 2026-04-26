@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "Bash(del \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\server\\\\utils\\\\cloudinary.js\")"
     ]
   }
 }

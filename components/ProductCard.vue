@@ -1,43 +1,44 @@
 <template>
   <NuxtLink
     :to="`/product/${product.id}`"
-    class="card overflow-hidden group flex flex-col hover:border-zinc-700 transition-all duration-200"
+    class="card overflow-hidden group flex flex-col hover:border-zinc-300 hover:shadow-sm transition-all duration-200"
   >
     <!-- Image -->
-    <div class="aspect-square overflow-hidden bg-zinc-800 shrink-0 relative">
+    <div class="aspect-square overflow-hidden bg-zinc-100 shrink-0 relative">
       <img
         :src="product.imageUrl"
         :alt="product.name"
         loading="lazy"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         @error="$event.target.src = 'https://picsum.photos/seed/' + product.id + '/400/400'"
       />
-      <!-- Out of stock overlay -->
-      <div v-if="product.stock === 0" class="absolute inset-0 bg-zinc-950/70 flex items-center justify-center">
-        <span class="text-xs font-semibold text-zinc-400 bg-zinc-900/80 px-3 py-1 rounded-full border border-zinc-700">Out of stock</span>
+      <div v-if="product.stock === 0" class="absolute inset-0 bg-white/80 flex items-center justify-center">
+        <span class="text-xs font-semibold text-zinc-600 bg-white px-3 py-1 rounded-full border border-zinc-200">Out of stock</span>
       </div>
-      <!-- Low stock badge -->
       <div v-else-if="product.stock < 10" class="absolute top-2 right-2">
         <span class="badge badge-yellow text-[10px]">{{ product.stock }} left</span>
       </div>
-      <!-- Multiple images indicator -->
       <div v-if="product.images?.length > 0" class="absolute bottom-2 right-2 flex items-center gap-0.5">
-        <span v-for="i in Math.min(product.images.length + 1, 4)" :key="i" class="w-1 h-1 rounded-full bg-white/60" />
+        <span v-for="i in Math.min(product.images.length + 1, 4)" :key="i" class="w-1 h-1 rounded-full bg-zinc-400/60" />
       </div>
     </div>
 
     <!-- Content -->
     <div class="p-3 sm:p-4 flex flex-col flex-1 gap-3">
       <div class="flex-1">
-        <h3 class="text-sm font-semibold text-zinc-100 leading-snug line-clamp-2">{{ product.name }}</h3>
-        <p class="text-xs text-zinc-500 mt-1 line-clamp-2">{{ product.description }}</p>
+        <p v-if="product.brand" class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5">{{ product.brand }}</p>
+        <h3 class="text-sm font-semibold text-zinc-900 leading-snug line-clamp-2">{{ product.name }}</h3>
+        <p class="text-xs text-zinc-400 mt-1 line-clamp-2">{{ product.description }}</p>
       </div>
 
       <div class="flex items-center justify-between gap-2">
-        <span class="text-sm font-bold text-brand-400">${{ Number(product.price).toFixed(2) }}</span>
+        <div>
+          <span class="text-sm font-bold text-zinc-800">${{ Number(product.price).toFixed(2) }}</span>
+          <span v-if="product.unit" class="text-xs text-zinc-400 ml-1">/ {{ product.unit }}</span>
+        </div>
         <button
           v-if="product.stock > 0"
-          class="text-xs bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 hover:border-brand-500/40 px-3 py-1.5 rounded-lg font-semibold transition-all active:scale-95"
+          class="text-xs bg-brand-500 hover:bg-brand-400 text-white px-3 py-1.5 rounded-lg font-semibold transition-all active:scale-95 shadow-sm shadow-brand-500/20"
           @click.prevent.stop="handleAdd"
         >
           Add
@@ -49,10 +50,7 @@
 
 <script setup>
 const props = defineProps({
-  product: {
-    type: Object,
-    required: true,
-  },
+  product: { type: Object, required: true },
 })
 
 const cartStore = useCartStore()

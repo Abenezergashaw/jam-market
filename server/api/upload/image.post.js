@@ -1,9 +1,14 @@
-import { writeFile, mkdir } from 'node:fs/promises'
-import { join, extname } from 'node:path'
-import { randomUUID } from 'node:crypto'
+import { v2 as cloudinary } from 'cloudinary'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
+
+  const config = useRuntimeConfig()
+  cloudinary.config({
+    cloud_name: config.cloudinaryCloudName,
+    api_key: config.cloudinaryApiKey,
+    api_secret: config.cloudinaryApiSecret,
+  })
 
   const parts = await readMultipartFormData(event)
   if (!parts?.length) {
@@ -20,12 +25,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Only JPEG, PNG, WebP and GIF images are allowed' })
   }
 
-  const ext = extname(file.filename ?? 'image.jpg').toLowerCase() || '.jpg'
-  const filename = `${randomUUID()}${ext}`
-  const uploadsDir = join(process.cwd(), 'public', 'uploads')
+  const query = getQuery(event)
+  const folder = query.folder === 'categories' ? 'jam-store/categories' : 'jam-store/products'
 
-  await mkdir(uploadsDir, { recursive: true })
-  await writeFile(join(uploadsDir, filename), file.data)
+  const dataUri = `data:${file.type || 'image/jpeg'};base64,${file.data.toString('base64')}`
 
-  return { url: `/uploads/${filename}` }
+  try {
+    const result = await cloudinary.uploader.upload(dataUri, { folder, resource_type: 'image' })
+    return { url: result.secure_url }
+  } catch (e) {
+    throw createError({ statusCode: 500, statusMessage: e?.message ?? 'Image upload to Cloudinary failed' })
+  }
 })

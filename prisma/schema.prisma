@@ -28,16 +28,25 @@ model Category {
 }
 
 model Product {
-  id          Int            @id @default(autoincrement())
-  name        String
-  description String         @default("")
-  price       Decimal        @db.Decimal(10, 2)
-  imageUrl    String         @map("image_url")
-  stock       Int            @default(0)
-  categoryId  Int?           @map("category_id")
-  category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  orderItems  OrderItem[]
-  images      ProductImage[]
+  id                   Int            @id @default(autoincrement())
+  name                 String
+  description          String         @default("")
+  price                Decimal        @db.Decimal(10, 2)
+  imageUrl             String         @map("image_url")
+  stock                Int            @default(0)
+  brand                String?
+  unit                 String?
+  weight               String?
+  countryOfOrigin      String?        @map("country_of_origin")
+  storageInstructions  String?        @map("storage_instructions")
+  expiryDate           DateTime?      @map("expiry_date")
+  costPrice            Decimal?       @db.Decimal(10, 2) @map("cost_price")
+  lowStockThreshold    Int            @default(10) @map("low_stock_threshold")
+  isFeatured           Boolean        @default(false) @map("is_featured")
+  categoryId           Int?           @map("category_id")
+  category             Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  orderItems           OrderItem[]
+  images               ProductImage[]
 
   @@map("products")
 }
