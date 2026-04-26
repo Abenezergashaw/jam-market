@@ -1,24 +1,107 @@
 <template>
   <div>
-    <!-- Hero -->
-    <div class="relative overflow-hidden border-b border-zinc-200 bg-white">
-      <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
-      <div class="max-w-6xl mx-auto px-4 py-16 sm:py-24 text-center relative">
-        <div class="inline-flex items-center gap-2 bg-brand-500/10 text-brand-600 border border-brand-200 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
-          <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
-          Fresh deliveries, daily
-        </div>
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-900 mb-5 leading-tight tracking-tight">
-          Fresh groceries,<br class="hidden sm:block" />
-          <span class="text-brand-500">delivered fast</span>
-        </h1>
-        <p class="text-zinc-500 text-base sm:text-lg max-w-md mx-auto leading-relaxed">
-          Shop by category and get everything you need, right to your door.
-        </p>
+    <!-- Hero Carousel -->
+    <div
+      class="relative overflow-hidden"
+      style="height: 540px;"
+      @mouseenter="pauseCarousel"
+      @mouseleave="resumeCarousel"
+    >
+      <!-- Slides -->
+      <div class="absolute inset-0">
+        <transition-group name="carousel-fade" tag="div" class="relative w-full h-full">
+          <div
+            v-for="(slide, i) in slides"
+            v-show="currentSlide === i"
+            :key="slide.id"
+            class="absolute inset-0"
+          >
+            <img
+              :src="slide.image"
+              :alt="slide.alt"
+              class="w-full h-full object-cover"
+            />
+            <!-- Gradient overlay -->
+            <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+            <!-- Slide content -->
+            <div class="absolute inset-0 flex items-center">
+              <div class="max-w-6xl mx-auto px-6 w-full">
+                <div class="max-w-xl">
+                  <span class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 text-white rounded-full px-4 py-1.5 text-xs font-semibold mb-5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
+                    {{ slide.tag }}
+                  </span>
+                  <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
+                    {{ slide.title }}
+                  </h1>
+                  <p class="text-white/80 text-base sm:text-lg mb-8 leading-relaxed max-w-sm">
+                    {{ slide.subtitle }}
+                  </p>
+                  <NuxtLink
+                    :to="slide.cta.href"
+                    class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-brand-500/30 hover:-translate-y-0.5"
+                  >
+                    {{ slide.cta.label }}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </NuxtLink>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition-group>
+      </div>
+
+      <!-- Prev / Next arrows -->
+      <button
+        class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-sm border border-white/25 text-white hover:bg-white/30 transition-all duration-200 z-10"
+        @click="prevSlide"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button
+        class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-sm border border-white/25 text-white hover:bg-white/30 transition-all duration-200 z-10"
+        @click="nextSlide"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      <!-- Dot indicators -->
+      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+        <button
+          v-for="(_, i) in slides"
+          :key="i"
+          class="transition-all duration-300 rounded-full"
+          :class="currentSlide === i ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/70'"
+          @click="goToSlide(i)"
+        />
+      </div>
+
+      <!-- Progress bar -->
+      <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 z-10">
+        <div
+          class="h-full bg-brand-400 transition-none"
+          :style="{ width: progressWidth + '%', transition: paused ? 'none' : `width ${INTERVAL}ms linear` }"
+        />
       </div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-4 py-10 sm:py-14 space-y-12 sm:space-y-16">
+    <!-- Wave divider -->
+    <div class="relative bg-white">
+      <svg class="absolute -top-px left-0 right-0 w-full" style="height:48px;" viewBox="0 0 1440 48" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 48 C360 0 1080 0 1440 48 L1440 0 L0 0 Z" fill="white" />
+      </svg>
+    </div>
+
+    <!-- Content section -->
+    <div class="max-w-6xl mx-auto px-4 pt-4 pb-10 sm:pb-14 space-y-12 sm:space-y-16">
 
       <!-- Loading -->
       <div v-if="pending">
@@ -85,6 +168,73 @@
 </template>
 
 <script setup>
+const INTERVAL = 5000
+
+const { data: slidesData } = await useFetch('/api/hero-slides')
+const slides = computed(() => (slidesData.value ?? []).map((s) => ({
+  id: s.id,
+  image: s.imageUrl,
+  alt: s.title,
+  tag: s.tag,
+  title: s.title,
+  subtitle: s.subtitle,
+  cta: { label: s.ctaLabel, href: s.ctaHref },
+})))
+
+const currentSlide = ref(0)
+const paused = ref(false)
+const progressWidth = ref(0)
+let timer = null
+let progressTimer = null
+
+function goToSlide(i) {
+  currentSlide.value = i
+  resetProgress()
+}
+
+function nextSlide() {
+  currentSlide.value = (currentSlide.value + 1) % slides.value.length
+  resetProgress()
+}
+
+function prevSlide() {
+  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length
+  resetProgress()
+}
+
+function resetProgress() {
+  progressWidth.value = 0
+  if (timer) clearInterval(timer)
+  if (!paused.value) startTimer()
+}
+
+function startTimer() {
+  progressWidth.value = 100
+  timer = setInterval(() => {
+    currentSlide.value = (currentSlide.value + 1) % slides.value.length
+    progressWidth.value = 0
+    nextTick(() => { progressWidth.value = 100 })
+  }, INTERVAL)
+}
+
+function pauseCarousel() {
+  paused.value = true
+  if (timer) clearInterval(timer)
+}
+
+function resumeCarousel() {
+  paused.value = false
+  startTimer()
+}
+
+onMounted(() => {
+  nextTick(() => startTimer())
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
+
 const { data: categories, pending, error } = await useFetch('/api/categories')
 const { data: featuredProducts } = await useFetch('/api/products?featured=true')
 
@@ -93,3 +243,16 @@ const regularCategories = computed(() => categories.value?.filter((c) => !c.isTr
 
 useHead({ title: 'Jam Store — Fresh Groceries' })
 </script>
+
+<style scoped>
+.carousel-fade-enter-active,
+.carousel-fade-leave-active {
+  transition: opacity 0.7s ease;
+  position: absolute;
+  inset: 0;
+}
+.carousel-fade-enter-from,
+.carousel-fade-leave-to {
+  opacity: 0;
+}
+</style>

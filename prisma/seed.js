@@ -35,6 +35,23 @@ async function main() {
   const cats = await prisma.category.findMany()
   const catMap = Object.fromEntries(cats.map((c) => [c.slug, c.id]))
 
+  // Hero slides
+  const slideCount = await prisma.heroSlide.count()
+  if (slideCount === 0) {
+    await prisma.heroSlide.createMany({
+      data: [
+        { title: 'Farm-Fresh Groceries at Your Door', subtitle: 'Hand-picked produce delivered from local farms straight to your home.', tag: 'Fresh daily arrivals', ctaLabel: 'Shop Now', ctaHref: '/#categories', imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80&fit=crop', position: 0 },
+        { title: 'Vibrant Fruits & Vegetables', subtitle: 'A rainbow of nutrients. Fill your cart with the freshest seasonal picks.', tag: 'Eat fresh, live well', ctaLabel: 'Browse Produce', ctaHref: '/#categories', imageUrl: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=80&fit=crop', position: 1 },
+        { title: 'Freshly Baked Every Single Day', subtitle: 'Artisan breads, pastries, and more — made with love and delivered warm.', tag: 'Baked every morning', ctaLabel: 'See Bakery', ctaHref: '/#categories', imageUrl: 'https://images.unsplash.com/photo-1608198093002-ad4e005484ec?w=1600&q=80&fit=crop', position: 2 },
+        { title: 'Organic Picks You Can Trust', subtitle: 'Certified organic dairy, eggs, and pantry staples. Good for you and the planet.', tag: 'Organic & natural', ctaLabel: 'Go Organic', ctaHref: '/#categories', imageUrl: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=1600&q=80&fit=crop', position: 3 },
+        { title: 'Big Savings on Everyday Essentials', subtitle: 'Stock up on your favourites without breaking the bank. New deals every week.', tag: "This week's deals", ctaLabel: 'View Deals', ctaHref: '/#categories', imageUrl: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=1600&q=80&fit=crop', position: 4 },
+      ],
+    })
+    console.log('Created 5 hero slides')
+  } else {
+    console.log('Hero slides already exist, skipping')
+  }
+
   // Only seed products if none exist
   const productCount = await prisma.product.count()
   if (productCount === 0) {
