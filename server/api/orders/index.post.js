@@ -1,10 +1,16 @@
 import { z } from 'zod'
 
+function stripHtml(str) {
+  return str.replace(/<[^>]*>/g, '').trim()
+}
+
 const schema = z.object({
   customerName: z.string().min(1, 'Name is required'),
   phone: z.string().min(1, 'Phone is required'),
   address: z.string().min(1, 'Address is required'),
   notes: z.string().optional().default(''),
+  lat: z.number().optional().nullable(),
+  lng: z.number().optional().nullable(),
   items: z.array(z.object({
     productId: z.number().int().positive(),
     quantity: z.number().int().positive(),
@@ -19,7 +25,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid order data' })
   }
 
-  const { customerName, phone, address, notes, items } = parsed.data
+  const { phone, lat, lng, items } = parsed.data
+  const customerName = stripHtml(parsed.data.customerName)
+  const address = stripHtml(parsed.data.address)
+  const notes = stripHtml(parsed.data.notes)
+
+  // Attach customer if logged in
+  const customer = getCustomerIfLoggedIn(event)
+  const customerId = customer ? customer.userId : null
 
   const productIds = items.map((i) => i.productId)
   const products = await prisma.product.findMany({ where: { id: { in: productIds } } })
@@ -40,6 +53,16 @@ export default defineEventHandler(async (event) => {
     return sum + Number(product.price) * item.quantity
   }, 0)
 
+  const settings = await prisma.storeSettings.findFirst()
+  let deliveryFee = 0
+  if (settings?.storeLat != null && settings?.storeLng != null && lat != null && lng != null) {
+    const distKm = haversineKm(
+      Number(settings.storeLat), Number(settings.storeLng), lat, lng
+    )
+    deliveryFee = distKm * Number(settings.costPerKm) + totalPrice * Number(settings.serviceChargePct) / 100
+  }
+  const grandTotal = totalPrice + deliveryFee
+
   const order = await prisma.$transaction(async (tx) => {
     for (const item of items) {
       await tx.product.update({
@@ -54,7 +77,11 @@ export default defineEventHandler(async (event) => {
         phone,
         address,
         notes,
-        totalPrice,
+        totalPrice: grandTotal,
+        deliveryFee,
+        customerId,
+        lat: lat ?? null,
+        lng: lng ?? null,
         items: {
           create: items.map((item) => ({
             productId: item.productId,
@@ -74,6 +101,7 @@ export default defineEventHandler(async (event) => {
   return {
     ...order,
     totalPrice: order.totalPrice.toString(),
+    deliveryFee: order.deliveryFee.toString(),
     items: order.items.map((i) => ({ ...i, price: i.price.toString() })),
   }
 })

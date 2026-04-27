@@ -8,10 +8,11 @@ datasource db {
 }
 
 model User {
-  id           Int    @id @default(autoincrement())
-  email        String @unique
-  passwordHash String @map("password_hash")
-  role         String @default("admin")
+  id           Int     @id @default(autoincrement())
+  email        String  @unique
+  passwordHash String  @map("password_hash")
+  role         String  @default("admin")
+  isActive     Boolean @default(true) @map("is_active")
 
   @@map("users")
 }
@@ -61,16 +62,37 @@ model ProductImage {
   @@map("product_images")
 }
 
+model Customer {
+  id         Int      @id @default(autoincrement())
+  telegramId BigInt   @unique @map("telegram_id")
+  firstName  String   @map("first_name")
+  lastName   String?  @map("last_name")
+  username   String?
+  phone      String?
+  photoUrl   String?  @map("photo_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+  orders     Order[]
+
+  @@map("customers")
+}
+
 model Order {
-  id           Int         @id @default(autoincrement())
-  customerName String      @map("customer_name")
-  phone        String
-  address      String
-  notes        String?
-  status       OrderStatus @default(PENDING)
-  totalPrice   Decimal     @db.Decimal(10, 2) @map("total_price")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  items        OrderItem[]
+  id            Int           @id @default(autoincrement())
+  customerName  String        @map("customer_name")
+  phone         String
+  address       String
+  notes         String?
+  status        OrderStatus   @default(PENDING)
+  paymentMethod String        @default("COD") @map("payment_method")
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  totalPrice    Decimal       @db.Decimal(10, 2) @map("total_price")
+  deliveryFee   Decimal       @default(0) @db.Decimal(10, 2) @map("delivery_fee")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  customerId    Int?          @map("customer_id")
+  customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  lat           Decimal?      @db.Decimal(10, 8)
+  lng           Decimal?      @db.Decimal(11, 8)
+  items         OrderItem[]
 
   @@map("orders")
 }
@@ -101,8 +123,42 @@ model HeroSlide {
   @@map("hero_slides")
 }
 
+model StoreSettings {
+  id                       Int      @id @default(autoincrement())
+  minOrderAmount           Decimal  @default(0) @db.Decimal(10, 2) @map("min_order_amount")
+  costPerKm                Decimal  @default(0) @db.Decimal(10, 2) @map("cost_per_km")
+  serviceChargePct         Decimal  @default(0) @db.Decimal(5, 2)  @map("service_charge_pct")
+  storeLat                 Decimal? @db.Decimal(10, 7) @map("store_lat")
+  storeLng                 Decimal? @db.Decimal(10, 7) @map("store_lng")
+  estimatedDeliveryMinutes Int      @default(45) @map("estimated_delivery_minutes")
+  storeIsOpen              Boolean  @default(true) @map("store_is_open")
+
+  @@map("store_settings")
+}
+
+model DeliveryZone {
+  id             Int     @id @default(autoincrement())
+  name           String
+  centerLat      Decimal @db.Decimal(10, 8) @map("center_lat")
+  centerLng      Decimal @db.Decimal(11, 8) @map("center_lng")
+  radiusKm       Decimal @default(10) @db.Decimal(6, 2) @map("radius_km")
+  minOrderAmount Decimal @default(0) @db.Decimal(10, 2) @map("min_order_amount")
+  deliveryFee    Decimal @default(0) @db.Decimal(10, 2) @map("delivery_fee")
+  isActive       Boolean @default(true) @map("is_active")
+
+  @@map("delivery_zones")
+}
+
 enum OrderStatus {
   PENDING
   CONFIRMED
+  OUT_FOR_DELIVERY
+  DELIVERED
   CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COLLECTED
+  FAILED
 }

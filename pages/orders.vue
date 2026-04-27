@@ -2,7 +2,11 @@
   <div class="max-w-2xl mx-auto px-4 py-8 sm:py-10">
     <h1 class="text-2xl font-bold text-zinc-900 mb-7 tracking-tight">My Orders</h1>
 
-    <div v-if="!myOrdersStore.orders.length" class="text-center py-20">
+    <div v-if="myOrdersStore.loading && !myOrdersStore.orders.length" class="space-y-4">
+      <div v-for="n in 3" :key="n" class="card p-5 h-40 animate-pulse bg-zinc-50" />
+    </div>
+
+    <div v-else-if="!myOrdersStore.orders.length" class="text-center py-20">
       <div class="w-16 h-16 bg-zinc-100 border border-zinc-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -22,14 +26,43 @@
                 class="badge"
                 :class="{
                   'badge-yellow': order.status === 'PENDING',
-                  'badge-green': order.status === 'CONFIRMED',
+                  'badge-blue': order.status === 'CONFIRMED',
+                  'badge-orange': order.status === 'OUT_FOR_DELIVERY',
+                  'badge-green': order.status === 'DELIVERED',
                   'badge-red': order.status === 'CANCELLED',
                 }"
-              >{{ order.status }}</span>
+              >{{ statusLabels[order.status] ?? order.status }}</span>
             </div>
             <p class="text-xs text-zinc-400 mt-1">{{ formatDate(order.createdAt) }}</p>
           </div>
-          <span class="text-base font-bold text-zinc-900 shrink-0">${{ Number(order.totalPrice).toFixed(2) }}</span>
+          <span class="text-base font-bold text-zinc-900 shrink-0">ETB {{ Number(order.totalPrice).toFixed(2) }}</span>
+        </div>
+
+        <!-- Status progress bar (only for non-cancelled orders) -->
+        <div v-if="order.status !== 'CANCELLED'" class="mb-4">
+          <div class="flex items-center gap-0">
+            <template v-for="(step, i) in STATUS_STEPS" :key="step.key">
+              <div class="flex flex-col items-center gap-1 flex-1 min-w-0">
+                <div
+                  class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors"
+                  :class="stepIndex(order.status) >= i
+                    ? 'bg-brand-500 text-white'
+                    : 'bg-zinc-100 text-zinc-400'"
+                >
+                  <svg v-if="stepIndex(order.status) > i" xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span v-else>{{ i + 1 }}</span>
+                </div>
+                <span class="text-[10px] text-zinc-400 text-center leading-tight hidden sm:block">{{ step.label }}</span>
+              </div>
+              <div
+                v-if="i < STATUS_STEPS.length - 1"
+                class="h-0.5 flex-1 mb-4 transition-colors"
+                :class="stepIndex(order.status) > i ? 'bg-brand-500' : 'bg-zinc-100'"
+              />
+            </template>
+          </div>
         </div>
 
         <ul class="space-y-1.5 mb-4">
@@ -40,7 +73,7 @@
           >
             <span class="font-semibold text-zinc-400">×{{ item.quantity }}</span>
             <span>{{ item.product?.name ?? 'Product' }}</span>
-            <span class="text-zinc-400 text-xs ml-auto">${{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
+            <span class="text-zinc-400 text-xs ml-auto">ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
           </li>
         </ul>
 
@@ -58,6 +91,29 @@
 
 <script setup>
 const myOrdersStore = useCustomerOrdersStore()
+const customerStore = useCustomerStore()
+
+const STATUS_STEPS = [
+  { key: 'PENDING', label: 'Placed' },
+  { key: 'CONFIRMED', label: 'Confirmed' },
+  { key: 'OUT_FOR_DELIVERY', label: 'On the way' },
+  { key: 'DELIVERED', label: 'Delivered' },
+]
+
+const STATUS_ORDER = STATUS_STEPS.map((s) => s.key)
+
+function stepIndex(status) {
+  const i = STATUS_ORDER.indexOf(status)
+  return i === -1 ? 0 : i
+}
+
+const statusLabels = {
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  OUT_FOR_DELIVERY: 'Out for Delivery',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
+}
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
@@ -65,6 +121,17 @@ function formatDate(iso) {
     hour: '2-digit', minute: '2-digit',
   })
 }
+
+let pollInterval = null
+
+onMounted(() => {
+  myOrdersStore.hydrate()
+  if (customerStore.isAuthenticated) {
+    pollInterval = setInterval(() => myOrdersStore.fetchFromServer(), 30_000)
+  }
+})
+
+onUnmounted(() => clearInterval(pollInterval))
 
 useHead({ title: 'My Orders — Jam Store' })
 </script>

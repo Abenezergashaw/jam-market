@@ -18,27 +18,74 @@
 
     <template v-else>
       <h1 class="text-2xl font-bold text-zinc-900 mb-6 tracking-tight">
-        {{ products?.[0]?.category?.name ?? 'Products' }}
+        {{ categoryName }}
       </h1>
 
-      <div v-if="!products?.length" class="text-center py-16 text-zinc-400 text-sm">
+      <div v-if="!products.length" class="text-center py-16 text-zinc-400 text-sm">
         No products in this category yet.
       </div>
 
       <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
         <ProductCard v-for="product in products" :key="product.id" :product="product" />
       </div>
+
+      <div v-if="hasMore" class="mt-8 flex justify-center">
+        <button
+          :disabled="loadingMore"
+          class="btn-primary px-8 py-2.5 text-sm disabled:opacity-60"
+          @click="loadMore"
+        >
+          <span v-if="loadingMore" class="inline-flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Loading...
+          </span>
+          <span v-else>Load more</span>
+        </button>
+      </div>
     </template>
   </div>
 </template>
 
 <script setup>
+const LIMIT = 20
+
 const route = useRoute()
 const id = computed(() => route.params.id)
 
-const { data: products, pending, error } = await useFetch(
-  () => `/api/products?category_id=${id.value}`,
+const products = ref([])
+const categoryName = ref('Products')
+const total = ref(0)
+const nextPage = ref(2)
+const loadingMore = ref(false)
+
+const hasMore = computed(() => products.value.length < total.value)
+
+const { data, pending, error } = await useFetch(
+  () => `/api/products?category_id=${id.value}&page=1&limit=${LIMIT}`,
 )
+
+watch(data, (v) => {
+  if (v) {
+    products.value = v.data
+    total.value = v.total
+    categoryName.value = v.data[0]?.category?.name ?? 'Products'
+    nextPage.value = 2
+  }
+}, { immediate: true })
+
+async function loadMore() {
+  loadingMore.value = true
+  try {
+    const result = await $fetch(`/api/products?category_id=${id.value}&page=${nextPage.value}&limit=${LIMIT}`)
+    products.value.push(...result.data)
+    nextPage.value++
+  } finally {
+    loadingMore.value = false
+  }
+}
 
 useHead({ title: 'Products — Jam Store' })
 </script>

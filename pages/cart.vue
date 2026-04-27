@@ -27,7 +27,7 @@
           />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-zinc-900 truncate">{{ item.name }}</p>
-            <p class="text-sm text-zinc-500 font-medium mt-0.5">${{ Number(item.price).toFixed(2) }}</p>
+            <p class="text-sm text-zinc-500 font-medium mt-0.5">ETB {{ Number(item.price).toFixed(2) }}</p>
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
@@ -42,8 +42,8 @@
             >+</button>
           </div>
 
-          <p class="text-sm font-bold text-zinc-900 w-16 text-right shrink-0">
-            ${{ (Number(item.price) * item.quantity).toFixed(2) }}
+          <p class="text-sm font-bold text-zinc-900 w-20 text-right shrink-0">
+            ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}
           </p>
 
           <button class="text-zinc-300 hover:text-brand-500 transition-colors shrink-0" @click="cartStore.removeItem(item.id)">
@@ -54,9 +54,45 @@
         </li>
       </ul>
 
-      <!-- Checkout form -->
-      <div v-if="!placedOrder" class="card p-5 sm:p-6 space-y-5">
-        <h2 class="font-bold text-zinc-900 text-base">Delivery details</h2>
+      <!-- Login gate -->
+      <div v-if="!customerStore.isAuthenticated && !placedOrder" class="card p-8 text-center">
+        <div class="w-12 h-12 rounded-2xl bg-[#229ED9]/10 flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#229ED9]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12 12-5.373 12-12S18.628 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.31 13.9l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.838.659z"/>
+          </svg>
+        </div>
+        <h2 class="font-bold text-zinc-900 mb-1.5">Sign in to place your order</h2>
+        <p class="text-zinc-500 text-sm mb-5">Your cart is saved. Sign in with Telegram to continue — it only takes a second.</p>
+        <NuxtLink to="/login?redirect=/cart" class="btn-primary inline-flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12 12-5.373 12-12S18.628 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.31 13.9l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.838.659z"/>
+          </svg>
+          Continue with Telegram
+        </NuxtLink>
+      </div>
+
+      <!-- Checkout form (authenticated) -->
+      <div v-else-if="!placedOrder" class="card p-5 sm:p-6 space-y-5">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <img
+              v-if="customerStore.user?.photoUrl"
+              :src="customerStore.user.photoUrl"
+              :alt="customerStore.fullName"
+              class="w-8 h-8 rounded-full object-cover"
+            />
+            <div v-else class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-600">
+              {{ customerStore.user?.firstName?.[0] ?? '?' }}
+            </div>
+            <div>
+              <h2 class="font-bold text-zinc-900 text-sm">Delivery details</h2>
+              <p class="text-xs text-zinc-400">Signed in as {{ customerStore.fullName }}</p>
+            </div>
+          </div>
+          <button class="text-xs text-zinc-400 hover:text-red-500 transition-colors font-medium" @click="customerStore.logout()">
+            Sign out
+          </button>
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -65,13 +101,20 @@
           </div>
           <div>
             <label class="label">Phone *</label>
-            <input v-model="form.phone" type="tel" class="input" placeholder="+1 555 0100" required />
+            <input v-model="form.phone" type="tel" class="input" placeholder="+254 700 000000" required />
           </div>
         </div>
 
+        <!-- Map picker -->
         <div>
-          <label class="label">Delivery address *</label>
-          <input v-model="form.address" type="text" class="input" placeholder="Street, city, postcode" required />
+          <label class="label">
+            Delivery location *
+            <span v-if="location.address" class="text-brand-500 font-normal normal-case tracking-normal text-xs ml-1">✓ location set</span>
+          </label>
+          <MapPicker
+            :model-value="location"
+            @update:model-value="Object.assign(location, $event)"
+          />
         </div>
 
         <div>
@@ -79,19 +122,46 @@
           <input v-model="form.notes" type="text" class="input" placeholder="Leave at door, ring bell, etc." />
         </div>
 
-        <div class="border-t border-zinc-200 pt-4 flex items-center justify-between gap-4">
-          <div>
-            <p class="text-xs text-zinc-400">{{ cartStore.totalItems }} item{{ cartStore.totalItems !== 1 ? 's' : '' }}</p>
-            <p class="text-xl font-bold text-zinc-900 mt-0.5">${{ cartStore.totalPrice.toFixed(2) }}</p>
+        <!-- Fee breakdown -->
+        <div class="border-t border-zinc-200 pt-4 space-y-2">
+          <div class="flex justify-between text-sm text-zinc-500">
+            <span>Subtotal ({{ cartStore.totalItems }} item{{ cartStore.totalItems !== 1 ? 's' : '' }})</span>
+            <span>ETB {{ feeBreakdown.subtotal.toFixed(2) }}</span>
           </div>
-          <button
-            class="btn-primary shrink-0 px-6"
-            :disabled="placing || !form.customerName || !form.phone || !form.address"
-            @click="placeOrder"
-          >
-            {{ placing ? 'Placing...' : 'Place Order' }}
-          </button>
+
+          <template v-if="feeBreakdown.distanceKm != null">
+            <div class="flex justify-between text-sm text-zinc-500">
+              <span>Delivery ({{ feeBreakdown.distanceKm.toFixed(1) }} km)</span>
+              <span>ETB {{ feeBreakdown.distanceFee.toFixed(2) }}</span>
+            </div>
+            <div v-if="feeBreakdown.serviceCharge > 0" class="flex justify-between text-sm text-zinc-500">
+              <span>Service charge ({{ Number(settings?.serviceChargePct ?? 0).toFixed(1) }}%)</span>
+              <span>ETB {{ feeBreakdown.serviceCharge.toFixed(2) }}</span>
+            </div>
+          </template>
+          <p v-else-if="location.lat" class="text-xs text-zinc-400 italic">Delivery fee calculated on dispatch.</p>
+
+          <div class="flex items-center justify-between gap-4 pt-2 border-t border-zinc-100">
+            <div>
+              <p class="text-xs text-zinc-400">Total</p>
+              <p class="text-xl font-bold text-zinc-900 mt-0.5">ETB {{ feeBreakdown.total.toFixed(2) }}</p>
+            </div>
+            <button
+              class="btn-primary shrink-0 px-6"
+              :disabled="placing || !form.customerName || !form.phone || !location.address || belowMinOrder"
+              @click="placeOrder"
+            >
+              {{ placing ? 'Placing...' : 'Place Order' }}
+            </button>
+          </div>
         </div>
+
+        <p v-if="!location.address" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          Please drop a pin on the map or click "Use my location" to set your delivery address.
+        </p>
+        <p v-if="belowMinOrder && settings" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          Minimum order is ETB {{ Number(settings.minOrderAmount).toFixed(2) }}. Add more items to continue.
+        </p>
 
         <p v-if="orderError" class="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2">{{ orderError }}</p>
       </div>
@@ -116,28 +186,115 @@
 </template>
 
 <script setup>
+definePageMeta({ ssr: false })
+
 const cartStore = useCartStore()
+const customerStore = useCustomerStore()
 const myOrdersStore = useCustomerOrdersStore()
 
-const form = reactive({ customerName: '', phone: '', address: '', notes: '' })
+const location = reactive({ lat: null, lng: null, address: '' })
+
+const form = reactive({
+  customerName: '',
+  phone: '',
+  notes: '',
+})
+
 const placing = ref(false)
 const orderError = ref('')
 const placedOrder = ref(null)
+const settings = ref(null)
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+const feeBreakdown = computed(() => {
+  const subtotal = cartStore.totalPrice
+  const s = settings.value
+  const storeLat = s?.storeLat != null ? Number(s.storeLat) : null
+  const storeLng = s?.storeLng != null ? Number(s.storeLng) : null
+
+  if (!s || location.lat == null || location.lng == null || storeLat == null || storeLng == null) {
+    return { subtotal, distanceKm: null, distanceFee: 0, serviceCharge: 0, deliveryFee: 0, total: subtotal }
+  }
+
+  const distanceKm = haversineKm(storeLat, storeLng, location.lat, location.lng)
+  const distanceFee = distanceKm * Number(s.costPerKm)
+  const serviceCharge = subtotal * Number(s.serviceChargePct) / 100
+  const deliveryFee = distanceFee + serviceCharge
+  return { subtotal, distanceKm, distanceFee, serviceCharge, deliveryFee, total: subtotal + deliveryFee }
+})
+
+const belowMinOrder = computed(() =>
+  settings.value ? feeBreakdown.value.total < Number(settings.value.minOrderAmount) : false
+)
+
+function savedPrefsKey() {
+  return customerStore.user?.id ? `jam_prefs_${customerStore.user.id}` : null
+}
+
+function loadSavedPrefs() {
+  const key = savedPrefsKey()
+  if (!key) return
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) ?? 'null')
+    if (!saved) return
+    if (saved.phone) form.phone = saved.phone
+    if (saved.address) {
+      location.lat = saved.lat ?? null
+      location.lng = saved.lng ?? null
+      location.address = saved.address
+    }
+  } catch {}
+}
+
+function savePrefs() {
+  const key = savedPrefsKey()
+  if (!key) return
+  localStorage.setItem(key, JSON.stringify({
+    phone: form.phone,
+    address: location.address,
+    lat: location.lat,
+    lng: location.lng,
+  }))
+}
+
+onMounted(async () => {
+  customerStore.hydrate()
+  if (customerStore.user) {
+    form.customerName = [customerStore.user.firstName, customerStore.user.lastName].filter(Boolean).join(' ')
+    loadSavedPrefs()
+  }
+  settings.value = await $fetch('/api/settings').catch(() => null)
+})
 
 async function placeOrder() {
   placing.value = true
   orderError.value = ''
   try {
+    const headers = customerStore.token ? { Authorization: `Bearer ${customerStore.token}` } : {}
     const order = await $fetch('/api/orders', {
       method: 'POST',
+      headers,
       body: {
         customerName: form.customerName,
         phone: form.phone,
-        address: form.address,
+        address: location.address,
         notes: form.notes,
+        lat: location.lat,
+        lng: location.lng,
         items: cartStore.items.map((i) => ({ productId: i.id, quantity: i.quantity })),
       },
     })
+    savePrefs()
     myOrdersStore.addOrder(order)
     cartStore.clear()
     placedOrder.value = order

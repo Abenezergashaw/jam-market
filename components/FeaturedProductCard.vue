@@ -29,7 +29,7 @@
       <p v-if="product.brand" class="text-[10px] font-semibold text-brand-300 uppercase tracking-wider mb-0.5">{{ product.brand }}</p>
       <h3 class="text-sm sm:text-base font-bold text-white leading-snug line-clamp-2">{{ product.name }}</h3>
       <div class="flex items-center justify-between gap-2 mt-2">
-        <span class="text-base font-bold text-white">${{ Number(product.price).toFixed(2) }}</span>
+        <span class="text-base font-bold text-white">ETB {{ Number(product.price).toFixed(2) }}</span>
         <button
           v-if="product.stock > 0"
           class="text-xs bg-brand-500 hover:bg-brand-400 text-white px-3 py-1.5 rounded-lg font-semibold transition-all active:scale-95 shadow-lg shadow-brand-500/30"

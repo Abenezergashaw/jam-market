@@ -113,7 +113,7 @@
 
         <!-- Price -->
         <div class="flex items-center gap-3 flex-wrap">
-          <span class="text-3xl font-black text-zinc-900">${{ Number(product.price).toFixed(2) }}</span>
+          <span class="text-3xl font-black text-zinc-900">ETB {{ Number(product.price).toFixed(2) }}</span>
           <span v-if="product.unit" class="text-sm text-zinc-400">/ {{ product.unit }}</span>
           <span v-if="product.stock === 0" class="badge badge-red">Out of stock</span>
           <span v-else-if="product.stock < 10" class="badge badge-yellow">Only {{ product.stock }} left</span>

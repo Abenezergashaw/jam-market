@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <div class="flex items-center justify-between gap-3 flex-wrap">
       <p class="text-sm text-zinc-500">
-        {{ orders.length }} order{{ orders.length !== 1 ? 's' : '' }}
+        {{ total }} order{{ total !== 1 ? 's' : '' }}
         <span v-if="refreshing" class="inline-flex items-center gap-1 text-xs text-zinc-400 ml-2">
           <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -11,10 +11,12 @@
           Refreshing
         </span>
       </p>
-      <select v-model="statusFilter" class="input text-sm py-1.5 w-auto min-w-[140px]">
+      <select v-model="statusFilter" class="input text-sm py-1.5 w-auto min-w-[160px]">
         <option value="">All statuses</option>
         <option value="PENDING">Pending</option>
         <option value="CONFIRMED">Confirmed</option>
+        <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+        <option value="DELIVERED">Delivered</option>
         <option value="CANCELLED">Cancelled</option>
       </select>
     </div>
@@ -23,18 +25,35 @@
       <div v-for="n in 3" :key="n" class="card h-36 animate-pulse bg-zinc-100" />
     </div>
 
-    <div v-else-if="!filteredOrders.length" class="card p-14 text-center text-zinc-400 text-sm">
+    <div v-else-if="!orders.length" class="card p-14 text-center text-zinc-400 text-sm">
       {{ statusFilter ? 'No orders with this status.' : 'No orders yet.' }}
     </div>
 
     <AdminOrderRow
-      v-for="order in filteredOrders"
+      v-for="order in orders"
       :key="order.id"
       :order="order"
       :loading="updatingId === order.id"
-      @confirm="updateStatus(order.id, 'CONFIRMED')"
-      @cancel="updateStatus(order.id, 'CANCELLED')"
+      @change-status="updateStatus"
     />
+
+    <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
+      <button
+        :disabled="page === 1"
+        class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
+        @click="changePage(page - 1)"
+      >
+        ← Previous
+      </button>
+      <span class="text-sm text-zinc-400">Page {{ page }} of {{ totalPages }}</span>
+      <button
+        :disabled="page === totalPages"
+        class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
+        @click="changePage(page + 1)"
+      >
+        Next →
+      </button>
+    </div>
   </div>
 </template>
 
@@ -48,19 +67,21 @@ const loading = ref(true)
 const refreshing = ref(false)
 const updatingId = ref(null)
 const statusFilter = ref('')
+const page = ref(1)
+const total = ref(0)
+const totalPages = ref(1)
 let pollInterval = null
-
-const filteredOrders = computed(() =>
-  statusFilter.value
-    ? orders.value.filter((o) => o.status === statusFilter.value)
-    : orders.value
-)
 
 async function fetchOrders(silent = false) {
   if (!silent) loading.value = true
   else refreshing.value = true
   try {
-    orders.value = await adminFetch('/api/orders')
+    const params = new URLSearchParams({ page: page.value, limit: 20 })
+    if (statusFilter.value) params.set('status', statusFilter.value)
+    const result = await adminFetch(`/api/orders?${params}`)
+    orders.value = result.data
+    total.value = result.total
+    totalPages.value = result.totalPages
   } catch {
     // silently fail on poll errors
   } finally {
@@ -68,6 +89,16 @@ async function fetchOrders(silent = false) {
     refreshing.value = false
   }
 }
+
+function changePage(p) {
+  page.value = p
+  fetchOrders()
+}
+
+watch(statusFilter, () => {
+  page.value = 1
+  fetchOrders()
+})
 
 async function updateStatus(id, status) {
   updatingId.value = id

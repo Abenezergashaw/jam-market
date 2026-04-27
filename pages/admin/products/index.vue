@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-4">
     <div class="flex items-center justify-between gap-3">
-      <p class="text-xs text-zinc-500 font-medium">{{ products?.length ?? 0 }} products</p>
+      <p class="text-xs text-zinc-500 font-medium">{{ total }} product{{ total !== 1 ? 's' : '' }}</p>
       <NuxtLink to="/admin/products/new" class="btn-primary text-xs py-2 px-4">+ Add product</NuxtLink>
     </div>
 
-    <div v-if="pending" class="card p-8 text-center text-zinc-400 text-sm animate-pulse">Loading...</div>
+    <div v-if="loading" class="card p-8 text-center text-zinc-400 text-sm animate-pulse">Loading...</div>
 
-    <div v-else-if="!products?.length" class="card p-14 text-center">
+    <div v-else-if="!products.length" class="card p-14 text-center">
       <p class="text-zinc-400 text-sm mb-3">No products yet.</p>
       <NuxtLink to="/admin/products/new" class="text-brand-500 hover:text-brand-600 text-sm transition-colors font-semibold">Create the first one →</NuxtLink>
     </div>
@@ -36,7 +36,7 @@
                 </div>
               </td>
               <td class="px-4 py-3 text-zinc-400 text-xs">{{ product.category?.name ?? '—' }}</td>
-              <td class="px-4 py-3 font-semibold text-zinc-700">${{ Number(product.price).toFixed(2) }}</td>
+              <td class="px-4 py-3 font-semibold text-zinc-700">ETB {{ Number(product.price).toFixed(2) }}</td>
               <td class="px-4 py-3">
                 <span :class="product.stock === 0 ? 'badge-red' : product.stock < 10 ? 'badge-yellow' : 'badge-green'" class="badge">
                   {{ product.stock }}
@@ -53,6 +53,24 @@
         </table>
       </div>
     </div>
+
+    <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
+      <button
+        :disabled="page === 1"
+        class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
+        @click="changePage(page - 1)"
+      >
+        ← Previous
+      </button>
+      <span class="text-sm text-zinc-400">Page {{ page }} of {{ totalPages }}</span>
+      <button
+        :disabled="page === totalPages"
+        class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
+        @click="changePage(page + 1)"
+      >
+        Next →
+      </button>
+    </div>
   </div>
 </template>
 
@@ -60,17 +78,41 @@
 definePageMeta({ middleware: ['admin'], layout: 'admin', ssr: false })
 
 const { adminFetch } = useAdminFetch()
-const { data: products, pending, refresh } = useAsyncData('products', () => adminFetch('/api/products'))
+
+const products = ref([])
+const loading = ref(true)
+const page = ref(1)
+const total = ref(0)
+const totalPages = ref(1)
+
+async function fetchProducts() {
+  loading.value = true
+  try {
+    const result = await adminFetch(`/api/products?page=${page.value}&limit=20`)
+    products.value = result.data
+    total.value = result.total
+    totalPages.value = result.totalPages
+  } finally {
+    loading.value = false
+  }
+}
+
+function changePage(p) {
+  page.value = p
+  fetchProducts()
+}
 
 async function deleteProduct(product) {
   if (!confirm(`Delete "${product.name}"? This cannot be undone.`)) return
   try {
     await adminFetch(`/api/products/${product.id}`, { method: 'DELETE' })
-    await refresh()
+    await fetchProducts()
   } catch (e) {
     alert(e?.data?.statusMessage ?? 'Could not delete product')
   }
 }
+
+onMounted(() => fetchProducts())
 
 useHead({ title: 'Products — Admin' })
 </script>

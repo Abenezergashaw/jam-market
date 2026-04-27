@@ -4,7 +4,8 @@
       "Bash(npm install *)",
       "Bash(npx prisma *)",
       "Bash(del \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\server\\\\utils\\\\cloudinary.js\")",
-      "Bash(node prisma/seed.js)"
+      "Bash(node prisma/seed.js)",
+      "Bash(xargs grep *)"
     ]
   }
 }

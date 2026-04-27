@@ -23,12 +23,12 @@
         </div>
         <div class="card p-4 hover:border-zinc-300 hover:shadow-sm transition-all">
           <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Revenue</p>
-          <p class="text-2xl font-bold text-brand-500 mt-1.5">${{ Number(stats?.revenue ?? 0).toFixed(2) }}</p>
-          <p class="text-xs text-zinc-400 mt-0.5">Confirmed only</p>
+          <p class="text-2xl font-bold text-brand-500 mt-1.5">ETB {{ Number(stats?.revenue ?? 0).toFixed(2) }}</p>
+          <p class="text-xs text-zinc-400 mt-0.5">Excl. pending &amp; cancelled</p>
         </div>
         <div class="card p-4 hover:border-zinc-300 hover:shadow-sm transition-all">
           <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Today Revenue</p>
-          <p class="text-2xl font-bold text-brand-500 mt-1.5">${{ Number(stats?.todayRevenue ?? 0).toFixed(2) }}</p>
+          <p class="text-2xl font-bold text-brand-500 mt-1.5">ETB {{ Number(stats?.todayRevenue ?? 0).toFixed(2) }}</p>
           <p class="text-xs text-zinc-400 mt-0.5">Confirmed today</p>
         </div>
       </div>
@@ -70,13 +70,19 @@
                 <td class="px-4 py-3 text-zinc-400 text-xs font-mono">#{{ order.id }}</td>
                 <td class="px-4 py-3 font-medium text-zinc-800">{{ order.customerName }}</td>
                 <td class="px-4 py-3 text-zinc-400 text-xs">{{ order.itemCount }} item{{ order.itemCount !== 1 ? 's' : '' }}</td>
-                <td class="px-4 py-3 font-semibold text-zinc-800">${{ Number(order.totalPrice).toFixed(2) }}</td>
+                <td class="px-4 py-3 font-semibold text-zinc-800">ETB {{ Number(order.totalPrice).toFixed(2) }}</td>
                 <td class="px-4 py-3">
                   <span
                     class="badge text-[10px]"
-                    :class="order.status === 'CONFIRMED' ? 'badge-green' : order.status === 'CANCELLED' ? 'badge-red' : 'badge-yellow'"
+                    :class="{
+                      'badge-yellow': order.status === 'PENDING',
+                      'badge-blue': order.status === 'CONFIRMED',
+                      'badge-orange': order.status === 'OUT_FOR_DELIVERY',
+                      'badge-green': order.status === 'DELIVERED',
+                      'badge-red': order.status === 'CANCELLED',
+                    }"
                   >
-                    {{ order.status.toLowerCase() }}
+                    {{ { PENDING: 'Pending', CONFIRMED: 'Confirmed', OUT_FOR_DELIVERY: 'Out for Delivery', DELIVERED: 'Delivered', CANCELLED: 'Cancelled' }[order.status] ?? order.status }}
                   </span>
                 </td>
                 <td class="px-4 py-3 text-zinc-400 text-xs">{{ new Date(order.createdAt).toLocaleDateString() }}</td>

@@ -33,7 +33,7 @@
 
       <div class="flex items-center justify-between gap-2">
         <div>
-          <span class="text-sm font-bold text-zinc-800">${{ Number(product.price).toFixed(2) }}</span>
+          <span class="text-sm font-bold text-zinc-800">ETB {{ Number(product.price).toFixed(2) }}</span>
           <span v-if="product.unit" class="text-xs text-zinc-400 ml-1">/ {{ product.unit }}</span>
         </div>
         <button

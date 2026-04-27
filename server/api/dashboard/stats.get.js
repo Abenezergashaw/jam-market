@@ -21,10 +21,10 @@ export default defineEventHandler(async (event) => {
   ] = await Promise.all([
     prisma.order.count(),
     prisma.order.count({ where: { status: 'PENDING' } }),
-    prisma.order.findMany({ where: { status: 'CONFIRMED' }, select: { totalPrice: true } }),
+    prisma.order.findMany({ where: { status: { in: ['CONFIRMED', 'OUT_FOR_DELIVERY', 'DELIVERED'] } }, select: { totalPrice: true } }),
     prisma.order.count({ where: { createdAt: { gte: today, lt: tomorrow } } }),
     prisma.order.findMany({
-      where: { status: 'CONFIRMED', createdAt: { gte: today, lt: tomorrow } },
+      where: { status: { in: ['CONFIRMED', 'OUT_FOR_DELIVERY', 'DELIVERED'] }, createdAt: { gte: today, lt: tomorrow } },
       select: { totalPrice: true },
     }),
     prisma.product.count(),

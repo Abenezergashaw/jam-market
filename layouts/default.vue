@@ -21,6 +21,35 @@
             My Orders
           </NuxtLink>
 
+          <!-- Account / Login -->
+          <template v-if="customerStore.isAuthenticated">
+            <div class="flex items-center gap-1 pl-1 border-l border-zinc-200 ml-1">
+              <NuxtLink to="/account" class="flex items-center gap-1.5 px-1.5 py-1 rounded-lg hover:bg-zinc-100 transition-colors">
+                <img
+                  v-if="customerStore.user?.photoUrl"
+                  :src="customerStore.user.photoUrl"
+                  class="w-6 h-6 rounded-full object-cover shrink-0"
+                  :alt="customerStore.fullName"
+                />
+                <span v-else class="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+                  {{ customerStore.user?.firstName?.[0] ?? '?' }}
+                </span>
+                <span class="text-sm font-medium text-zinc-700">{{ customerStore.user?.firstName }}</span>
+              </NuxtLink>
+              <button
+                class="text-xs font-semibold text-zinc-400 hover:text-red-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-50"
+                @click="customerStore.logout()"
+              >
+                Sign out
+              </button>
+            </div>
+          </template>
+          <template v-else>
+            <NuxtLink to="/login" class="flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors px-3 py-2 rounded-xl hover:bg-brand-50 border border-brand-200">
+              Sign in
+            </NuxtLink>
+          </template>
+
           <NuxtLink
             to="/cart"
             class="relative flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors px-3 py-2 rounded-xl hover:bg-zinc-100"
@@ -68,9 +97,54 @@
       </div>
     </footer>
 
+    <!-- Mobile account sheet -->
+    <Transition name="sheet">
+      <div v-if="mobileAccountOpen" class="sm:hidden fixed inset-0 z-50 flex flex-col justify-end" @click.self="mobileAccountOpen = false">
+        <div class="absolute inset-0 bg-black/30" @click="mobileAccountOpen = false" />
+        <div class="relative bg-white rounded-t-2xl px-5 pt-5 pb-10 space-y-4 shadow-xl">
+          <div class="w-10 h-1 rounded-full bg-zinc-200 mx-auto mb-2" />
+          <div class="flex items-center gap-3">
+            <img
+              v-if="customerStore.user?.photoUrl"
+              :src="customerStore.user.photoUrl"
+              class="w-12 h-12 rounded-full object-cover"
+            />
+            <div v-else class="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-lg font-bold text-brand-600">
+              {{ customerStore.user?.firstName?.[0] ?? '?' }}
+            </div>
+            <div>
+              <p class="font-bold text-zinc-900">{{ customerStore.fullName }}</p>
+              <p v-if="customerStore.user?.username" class="text-sm text-zinc-400">@{{ customerStore.user.username }}</p>
+            </div>
+          </div>
+          <NuxtLink to="/account" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-50 transition-colors" @click="mobileAccountOpen = false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span class="text-sm font-medium text-zinc-700">My Account</span>
+          </NuxtLink>
+          <NuxtLink to="/orders" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-50 transition-colors" @click="mobileAccountOpen = false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span class="text-sm font-medium text-zinc-700">My Orders</span>
+          </NuxtLink>
+          <button
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors text-left"
+            @click="customerStore.logout(); mobileAccountOpen = false"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="text-sm font-medium text-red-500">Sign out</span>
+          </button>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Mobile bottom nav -->
     <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-xl border-t border-zinc-200">
-      <div class="grid grid-cols-3 h-16">
+      <div class="grid grid-cols-4 h-16">
         <NuxtLink
           to="/"
           class="flex flex-col items-center justify-center gap-1 transition-colors"
@@ -91,6 +165,35 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           <span class="text-[10px] font-medium">Orders</span>
+        </NuxtLink>
+
+        <!-- Account / Login -->
+        <button
+          v-if="customerStore.isAuthenticated"
+          class="flex flex-col items-center justify-center gap-1 transition-colors text-brand-500"
+          @click="mobileAccountOpen = true"
+        >
+          <img
+            v-if="customerStore.user?.photoUrl"
+            :src="customerStore.user.photoUrl"
+            class="w-5 h-5 rounded-full object-cover ring-2 ring-brand-400"
+            :alt="customerStore.fullName"
+          />
+          <span v-else class="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center text-[9px] font-bold text-white">
+            {{ customerStore.user?.firstName?.[0] ?? '?' }}
+          </span>
+          <span class="text-[10px] font-medium">{{ customerStore.user?.firstName }}</span>
+        </button>
+        <NuxtLink
+          v-else
+          to="/login"
+          class="flex flex-col items-center justify-center gap-1 transition-colors"
+          :class="$route.path === '/login' ? 'text-brand-500' : 'text-zinc-400'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span class="text-[10px] font-medium">Sign in</span>
         </NuxtLink>
 
         <NuxtLink
@@ -119,4 +222,13 @@
 <script setup>
 const cartStore = useCartStore()
 const myOrdersStore = useCustomerOrdersStore()
+const customerStore = useCustomerStore()
+const mobileAccountOpen = ref(false)
+
+onMounted(() => customerStore.hydrate())
 </script>
+
+<style scoped>
+.sheet-enter-active, .sheet-leave-active { transition: opacity 0.2s ease; }
+.sheet-enter-from, .sheet-leave-to { opacity: 0; }
+</style>
