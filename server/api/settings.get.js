@@ -9,8 +9,6 @@ export default defineEventHandler(async () => {
     minOrderAmount: settings.minOrderAmount.toString(),
     costPerKm: settings.costPerKm.toString(),
     serviceChargePct: settings.serviceChargePct.toString(),
-    storeLat: settings.storeLat?.toString() ?? null,
-    storeLng: settings.storeLng?.toString() ?? null,
     estimatedDeliveryMinutes: settings.estimatedDeliveryMinutes,
     storeIsOpen: settings.storeIsOpen,
   }

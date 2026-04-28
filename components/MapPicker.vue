@@ -28,7 +28,7 @@
       </svg>
       <span>{{ modelValue.address }}</span>
     </div>
-    <p v-else class="text-xs text-zinc-400 italic">Drop the pin on your delivery location</p>
+    <p v-else class="text-xs text-zinc-400 italic">{{ placeholder }}</p>
 
     <p v-if="geoError" class="text-xs text-red-500">{{ geoError }}</p>
   </div>
@@ -39,6 +39,10 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({ lat: null, lng: null, address: '' }),
+  },
+  placeholder: {
+    type: String,
+    default: 'Drop the pin on your delivery location',
   },
 })
 const emit = defineEmits(['update:modelValue'])

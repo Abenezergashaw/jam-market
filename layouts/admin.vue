@@ -68,6 +68,18 @@
         <p class="px-3 pt-4 pb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Storefront</p>
 
         <NuxtLink
+          to="/admin/stores"
+          class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150"
+          :class="$route.path.startsWith('/admin/stores') ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Stores
+        </NuxtLink>
+
+        <NuxtLink
           to="/admin/settings"
           class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150"
           :class="$route.path === '/admin/settings' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'"
@@ -182,12 +194,12 @@
           <span class="text-[9px] font-medium">Cats</span>
         </NuxtLink>
 
-        <NuxtLink to="/admin/settings" class="flex flex-col items-center justify-center gap-0.5 transition-colors" :class="$route.path === '/admin/settings' ? 'text-brand-500' : 'text-zinc-400'">
+        <NuxtLink to="/admin/stores" class="flex flex-col items-center justify-center gap-0.5 transition-colors" :class="$route.path.startsWith('/admin/stores') ? 'text-brand-500' : 'text-zinc-400'">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span class="text-[9px] font-medium">Settings</span>
+          <span class="text-[9px] font-medium">Stores</span>
         </NuxtLink>
       </div>
     </nav>
@@ -206,6 +218,7 @@ const pageTitle = computed(() => {
   if (route.path.startsWith('/admin/categories')) return 'Categories'
   if (route.path.startsWith('/admin/hero')) return 'Hero Slides'
   if (route.path === '/admin/settings') return 'Settings'
+  if (route.path.startsWith('/admin/stores')) return 'Stores'
   return 'Admin'
 })
 </script>

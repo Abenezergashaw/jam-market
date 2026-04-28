@@ -11,7 +11,6 @@ const schema = z.object({
   notes: z.string().optional().default(''),
   lat: z.number().optional().nullable(),
   lng: z.number().optional().nullable(),
-  storeId: z.number().int().positive().optional().nullable(),
   items: z.array(z.object({
     productId: z.number().int().positive(),
     quantity: z.number().int().positive(),
@@ -26,11 +25,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid order data' })
   }
 
-  const { phone, lat, lng, storeId, items } = parsed.data
+  const { phone, lat, lng, items } = parsed.data
   const customerName = stripHtml(parsed.data.customerName)
   const address = stripHtml(parsed.data.address)
   const notes = stripHtml(parsed.data.notes)
 
+  // Attach customer if logged in
   const customer = getCustomerIfLoggedIn(event)
   const customerId = customer ? customer.userId : null
 
@@ -55,21 +55,12 @@ export default defineEventHandler(async (event) => {
 
   const settings = await prisma.storeSettings.findFirst()
   let deliveryFee = 0
-
-  if (storeId != null && lat != null && lng != null) {
-    const store = await prisma.store.findUnique({ where: { id: storeId } })
-    if (store && store.lat != null && store.lng != null) {
-      const effectiveCostPerKm = store.costPerKm != null
-        ? Number(store.costPerKm)
-        : Number(settings?.costPerKm ?? 0)
-      const effectiveServiceChargePct = store.serviceChargePct != null
-        ? Number(store.serviceChargePct)
-        : Number(settings?.serviceChargePct ?? 0)
-      const distKm = haversineKm(Number(store.lat), Number(store.lng), lat, lng)
-      deliveryFee = distKm * effectiveCostPerKm + totalPrice * effectiveServiceChargePct / 100
-    }
+  if (settings?.storeLat != null && settings?.storeLng != null && lat != null && lng != null) {
+    const distKm = haversineKm(
+      Number(settings.storeLat), Number(settings.storeLng), lat, lng
+    )
+    deliveryFee = distKm * Number(settings.costPerKm) + totalPrice * Number(settings.serviceChargePct) / 100
   }
-
   const grandTotal = totalPrice + deliveryFee
 
   const order = await prisma.$transaction(async (tx) => {
@@ -89,7 +80,6 @@ export default defineEventHandler(async (event) => {
         totalPrice: grandTotal,
         deliveryFee,
         customerId,
-        storeId: storeId ?? null,
         lat: lat ?? null,
         lng: lng ?? null,
         items: {

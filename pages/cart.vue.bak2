@@ -94,46 +94,6 @@
           </button>
         </div>
 
-        <!-- Store selector -->
-        <div>
-          <label class="label">Order from *</label>
-
-          <div v-if="storesLoading" class="text-xs text-zinc-400 italic py-2">Loading stores…</div>
-
-          <div v-else-if="stores.length === 0" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-            No stores available. Please check back later.
-          </div>
-
-          <div v-else class="space-y-2 mt-1.5">
-            <button
-              v-for="store in stores"
-              :key="store.id"
-              type="button"
-              class="w-full text-left rounded-2xl border-2 px-4 py-3 transition-all"
-              :class="selectedStoreId === store.id
-                ? 'border-brand-500 bg-brand-50'
-                : 'border-zinc-200 bg-white hover:border-zinc-300'"
-              @click="selectedStoreId = store.id"
-            >
-              <div class="flex items-start gap-3">
-                <div
-                  class="w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors"
-                  :class="selectedStoreId === store.id ? 'border-brand-500' : 'border-zinc-300'"
-                >
-                  <div v-if="selectedStoreId === store.id" class="w-2 h-2 rounded-full bg-brand-500" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-zinc-900">{{ store.name }}</p>
-                  <p v-if="store.address" class="text-xs text-zinc-500 mt-0.5 truncate">{{ store.address }}</p>
-                  <p v-if="storeDeliveryEstimate(store)" class="text-xs text-zinc-400 mt-1">
-                    {{ storeDeliveryEstimate(store) }}
-                  </p>
-                </div>
-              </div>
-            </button>
-          </div>
-        </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="label">Full name *</label>
@@ -141,7 +101,7 @@
           </div>
           <div>
             <label class="label">Phone *</label>
-            <input v-model="form.phone" type="tel" class="input" placeholder="+251 900 000000" required />
+            <input v-model="form.phone" type="tel" class="input" placeholder="+254 700 000000" required />
           </div>
         </div>
 
@@ -175,11 +135,11 @@
               <span>ETB {{ feeBreakdown.distanceFee.toFixed(2) }}</span>
             </div>
             <div v-if="feeBreakdown.serviceCharge > 0" class="flex justify-between text-sm text-zinc-500">
-              <span>Service charge ({{ feeBreakdown.serviceChargePct.toFixed(1) }}%)</span>
+              <span>Service charge ({{ Number(settings?.serviceChargePct ?? 0).toFixed(1) }}%)</span>
               <span>ETB {{ feeBreakdown.serviceCharge.toFixed(2) }}</span>
             </div>
           </template>
-          <p v-else-if="location.lat && selectedStore" class="text-xs text-zinc-400 italic">Delivery fee calculated on dispatch.</p>
+          <p v-else-if="location.lat" class="text-xs text-zinc-400 italic">Delivery fee calculated on dispatch.</p>
 
           <div class="flex items-center justify-between gap-4 pt-2 border-t border-zinc-100">
             <div>
@@ -188,7 +148,7 @@
             </div>
             <button
               class="btn-primary shrink-0 px-6"
-              :disabled="placing || !form.customerName || !form.phone || !location.address || !selectedStoreId || belowMinOrder"
+              :disabled="placing || !form.customerName || !form.phone || !location.address || belowMinOrder"
               @click="placeOrder"
             >
               {{ placing ? 'Placing...' : 'Place Order' }}
@@ -196,9 +156,6 @@
           </div>
         </div>
 
-        <p v-if="!selectedStoreId && stores.length > 0" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          Please select a store to order from.
-        </p>
         <p v-if="!location.address" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
           Please drop a pin on the map or click "Use my location" to set your delivery address.
         </p>
@@ -247,9 +204,6 @@ const placing = ref(false)
 const orderError = ref('')
 const placedOrder = ref(null)
 const settings = ref(null)
-const stores = ref([])
-const storesLoading = ref(true)
-const selectedStoreId = ref(null)
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371
@@ -262,43 +216,26 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-const selectedStore = computed(() => stores.value.find(s => s.id === selectedStoreId.value) ?? null)
-
 const feeBreakdown = computed(() => {
   const subtotal = cartStore.totalPrice
   const s = settings.value
-  const store = selectedStore.value
+  const storeLat = s?.storeLat != null ? Number(s.storeLat) : null
+  const storeLng = s?.storeLng != null ? Number(s.storeLng) : null
 
-  if (!store || store.lat == null || store.lng == null || location.lat == null || location.lng == null) {
-    return { subtotal, distanceKm: null, distanceFee: 0, serviceCharge: 0, serviceChargePct: 0, deliveryFee: 0, total: subtotal }
+  if (!s || location.lat == null || location.lng == null || storeLat == null || storeLng == null) {
+    return { subtotal, distanceKm: null, distanceFee: 0, serviceCharge: 0, deliveryFee: 0, total: subtotal }
   }
 
-  const effectiveCostPerKm = store.costPerKm != null
-    ? Number(store.costPerKm)
-    : Number(s?.costPerKm ?? 0)
-  const effectiveServiceChargePct = store.serviceChargePct != null
-    ? Number(store.serviceChargePct)
-    : Number(s?.serviceChargePct ?? 0)
-
-  const distanceKm = haversineKm(Number(store.lat), Number(store.lng), location.lat, location.lng)
-  const distanceFee = distanceKm * effectiveCostPerKm
-  const serviceCharge = subtotal * effectiveServiceChargePct / 100
+  const distanceKm = haversineKm(storeLat, storeLng, location.lat, location.lng)
+  const distanceFee = distanceKm * Number(s.costPerKm)
+  const serviceCharge = subtotal * Number(s.serviceChargePct) / 100
   const deliveryFee = distanceFee + serviceCharge
-  return { subtotal, distanceKm, distanceFee, serviceCharge, serviceChargePct: effectiveServiceChargePct, deliveryFee, total: subtotal + deliveryFee }
+  return { subtotal, distanceKm, distanceFee, serviceCharge, deliveryFee, total: subtotal + deliveryFee }
 })
 
 const belowMinOrder = computed(() =>
   settings.value ? feeBreakdown.value.total < Number(settings.value.minOrderAmount) : false
 )
-
-function storeDeliveryEstimate(store) {
-  if (!location.lat || !location.lng || store.lat == null || store.lng == null) return null
-  const s = settings.value
-  const effectiveCostPerKm = store.costPerKm != null ? Number(store.costPerKm) : Number(s?.costPerKm ?? 0)
-  const distKm = haversineKm(Number(store.lat), Number(store.lng), location.lat, location.lng)
-  const fee = distKm * effectiveCostPerKm
-  return `~${distKm.toFixed(1)} km · ETB ${fee.toFixed(2)} delivery`
-}
 
 function savedPrefsKey() {
   return customerStore.user?.id ? `jam_prefs_${customerStore.user.id}` : null
@@ -316,7 +253,6 @@ function loadSavedPrefs() {
       location.lng = saved.lng ?? null
       location.address = saved.address
     }
-    if (saved.storeId) selectedStoreId.value = saved.storeId
   } catch {}
 }
 
@@ -328,7 +264,6 @@ function savePrefs() {
     address: location.address,
     lat: location.lat,
     lng: location.lng,
-    storeId: selectedStoreId.value,
   }))
 }
 
@@ -338,17 +273,7 @@ onMounted(async () => {
     form.customerName = [customerStore.user.firstName, customerStore.user.lastName].filter(Boolean).join(' ')
     loadSavedPrefs()
   }
-  const [fetchedSettings, fetchedStores] = await Promise.all([
-    $fetch('/api/settings').catch(() => null),
-    $fetch('/api/stores').catch(() => []),
-  ])
-  settings.value = fetchedSettings
-  stores.value = fetchedStores
-  storesLoading.value = false
-
-  if (fetchedStores.length === 1 && !selectedStoreId.value) {
-    selectedStoreId.value = fetchedStores[0].id
-  }
+  settings.value = await $fetch('/api/settings').catch(() => null)
 })
 
 async function placeOrder() {
@@ -366,7 +291,6 @@ async function placeOrder() {
         notes: form.notes,
         lat: location.lat,
         lng: location.lng,
-        storeId: selectedStoreId.value ?? null,
         items: cartStore.items.map((i) => ({ productId: i.id, quantity: i.quantity })),
       },
     })
