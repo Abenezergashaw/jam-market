@@ -120,6 +120,12 @@
           <span v-else class="badge badge-green">In stock</span>
         </div>
 
+        <!-- Rating summary -->
+        <div v-if="product.reviewCount > 0" class="flex items-center gap-2 -mt-1">
+          <StarRating :model-value="product.avgRating" readonly size="sm" />
+          <span class="text-xs text-zinc-500">{{ product.avgRating }} ({{ product.reviewCount }} {{ product.reviewCount === 1 ? 'review' : 'reviews' }})</span>
+        </div>
+
         <!-- Description -->
         <p v-if="product.description" class="text-zinc-600 leading-relaxed text-sm sm:text-base">
           {{ product.description }}
@@ -201,6 +207,11 @@
           </NuxtLink>
         </div>
       </div>
+    </div>
+
+    <!-- Reviews section -->
+    <div v-if="product" class="mt-12 border-t border-zinc-100 pt-10">
+      <ProductReviews :product-id="product.id" />
     </div>
   </div>
 </template>

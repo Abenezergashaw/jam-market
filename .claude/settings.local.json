@@ -14,7 +14,9 @@
       "Bash(curl -s \"http://localhost:3000/api/products/search?q=ch\")",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('products:', len\\(d['products']\\), '| categories:', len\\(d['categories']\\), '| total:', d['total']\\); print\\('cats:', [c['name'] for c in d['categories']]\\); print\\('prods:', [p['name'] for p in d['products'][:3]]\\)\")",
       "Bash(curl -s \"http://localhost:3000/api/products/search?q=veg\")",
-      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('products:', len\\(d['products']\\), '| categories:', len\\(d['categories']\\)\\); print\\('cats:', [c['name'] for c in d['categories']]\\)\")"
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('products:', len\\(d['products']\\), '| categories:', len\\(d['categories']\\)\\); print\\('cats:', [c['name'] for c in d['categories']]\\)\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\server\" -Recurse -File)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

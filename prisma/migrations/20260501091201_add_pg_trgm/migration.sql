@@ -1,8 +1,2 @@
--- DropIndex
-DROP INDEX "categories_name_trgm_idx";
-
--- DropIndex
-DROP INDEX "products_brand_trgm_idx";
-
--- DropIndex
-DROP INDEX "products_name_trgm_idx";
+-- This migration is intentionally empty.
+-- trgm indexes are managed by 20260502000000_add_pg_trgm
