@@ -28,11 +28,19 @@
           <p v-if="order.notes" class="text-zinc-400 text-xs italic">{{ order.notes }}</p>
         </div>
 
-        <ul class="space-y-1">
-          <li v-for="item in order.items" :key="item.id" class="flex items-center gap-2 text-xs text-zinc-500">
-            <span class="font-semibold text-zinc-400">×{{ item.quantity }}</span>
-            <span>{{ item.product?.name ?? 'Unknown product' }}</span>
-            <span class="text-zinc-400 ml-auto">ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
+        <ul class="space-y-2">
+          <li v-for="item in order.items" :key="item.id" class="flex items-center gap-2">
+            <img
+              :src="item.product?.imageUrl"
+              :alt="item.product?.name"
+              class="w-8 h-8 rounded-lg object-cover bg-zinc-100 shrink-0"
+              @error="$event.target.src = 'https://picsum.photos/32/32'"
+            />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-zinc-700 truncate">{{ item.product?.name ?? 'Unknown product' }}</p>
+              <p class="text-[11px] text-zinc-400">×{{ item.quantity }}</p>
+            </div>
+            <span class="text-xs text-zinc-400 shrink-0">ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
           </li>
         </ul>
       </div>

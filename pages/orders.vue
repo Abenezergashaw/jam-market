@@ -98,15 +98,23 @@
           </div>
         </div>
 
-        <ul class="space-y-1.5 mb-4">
+        <ul class="space-y-2 mb-4">
           <li
             v-for="item in order.items"
             :key="item.id"
-            class="flex items-center gap-2 text-sm text-zinc-500"
+            class="flex items-center gap-3"
           >
-            <span class="font-semibold text-zinc-400">×{{ item.quantity }}</span>
-            <span>{{ item.product?.name ?? 'Product' }}</span>
-            <span class="text-zinc-400 text-xs ml-auto">ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
+            <img
+              :src="item.product?.imageUrl"
+              :alt="item.product?.name"
+              class="w-10 h-10 rounded-xl object-cover bg-zinc-100 shrink-0"
+              @error="$event.target.src = 'https://picsum.photos/40/40'"
+            />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-zinc-900 truncate">{{ item.product?.name ?? 'Product' }}</p>
+              <p class="text-xs text-zinc-400">×{{ item.quantity }}</p>
+            </div>
+            <span class="text-sm font-semibold text-zinc-700 shrink-0">ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
           </li>
         </ul>
 

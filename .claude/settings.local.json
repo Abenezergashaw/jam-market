@@ -16,7 +16,8 @@
       "Bash(curl -s \"http://localhost:3000/api/products/search?q=veg\")",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('products:', len\\(d['products']\\), '| categories:', len\\(d['categories']\\)\\); print\\('cats:', [c['name'] for c in d['categories']]\\)\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\server\" -Recurse -File)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\" -Recurse -Filter \"*order*\")"
     ]
   }
 }
