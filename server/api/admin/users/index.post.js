@@ -4,7 +4,10 @@ import bcrypt from 'bcryptjs'
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(['admin', 'super_admin']).default('admin'),
+  name: z.string().default(''),
+  role: z.enum(['admin', 'cashier', 'delivery']).default('admin'),
+  storeId: z.number().int().positive().nullable().optional(),
+  permissions: z.array(z.string()).default([]),
 })
 
 export default defineEventHandler(async (event) => {
@@ -23,9 +26,12 @@ export default defineEventHandler(async (event) => {
       data: {
         email: parsed.data.email,
         passwordHash,
+        name: parsed.data.name,
         role: parsed.data.role,
+        storeId: parsed.data.storeId ?? null,
+        permissions: parsed.data.permissions,
       },
-      select: { id: true, email: true, role: true, isActive: true },
+      select: { id: true, email: true, role: true, name: true, isActive: true, storeId: true, permissions: true },
     })
     return user
   } catch (e) {

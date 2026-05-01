@@ -11,5 +11,11 @@ export default defineEventHandler(async () => {
     serviceChargePct: settings.serviceChargePct.toString(),
     estimatedDeliveryMinutes: settings.estimatedDeliveryMinutes,
     storeIsOpen: settings.storeIsOpen,
+    telebirrAccountNumber: settings.telebirrAccountNumber ?? '',
+    telebirrAccountName: settings.telebirrAccountName ?? '',
+    cbeAccountNumber: settings.cbeAccountNumber ?? '',
+    cbeAccountName: settings.cbeAccountName ?? '',
+    boaAccountNumber: settings.boaAccountNumber ?? '',
+    boaAccountName: settings.boaAccountName ?? '',
   }
 })

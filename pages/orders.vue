@@ -65,6 +65,39 @@
           </div>
         </div>
 
+        <!-- Payment status — only shown for online payment orders -->
+        <div
+          v-if="order.paymentMethod && order.paymentMethod !== 'CASH' && order.paymentMethod !== 'COD'"
+          class="mb-4 flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-medium"
+          :class="{
+            'bg-amber-50 border border-amber-200 text-amber-700': order.paymentStatus === 'PENDING',
+            'bg-green-50 border border-green-200 text-green-700': order.paymentStatus === 'COLLECTED',
+            'bg-red-50 border border-red-200 text-red-700': order.paymentStatus === 'FAILED',
+          }"
+        >
+          <!-- Icon -->
+          <svg v-if="order.paymentStatus === 'COLLECTED'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg v-else-if="order.paymentStatus === 'FAILED'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <span v-if="order.paymentStatus === 'COLLECTED'">
+              {{ PM_LABEL[order.paymentMethod] }} payment verified
+            </span>
+            <span v-else-if="order.paymentStatus === 'FAILED'">
+              {{ PM_LABEL[order.paymentMethod] }} payment failed — please contact us
+            </span>
+            <span v-else>
+              {{ PM_LABEL[order.paymentMethod] }} payment pending verification
+            </span>
+          </div>
+        </div>
+
         <ul class="space-y-1.5 mb-4">
           <li
             v-for="item in order.items"
@@ -106,6 +139,8 @@ function stepIndex(status) {
   const i = STATUS_ORDER.indexOf(status)
   return i === -1 ? 0 : i
 }
+
+const PM_LABEL = { TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
 
 const statusLabels = {
   PENDING: 'Pending',

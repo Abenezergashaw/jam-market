@@ -20,7 +20,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  const payload = requireCashier(event, 'products:create')
 
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
@@ -28,11 +28,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid data' })
   }
 
-  const { images, ...productData } = parsed.data
+  const { images, costPrice, ...productData } = parsed.data
+
+  // Only admins can set cost price
+  const dataToWrite = {
+    ...productData,
+    ...(payload.role === 'admin' && costPrice != null ? { costPrice } : {}),
+  }
 
   const product = await prisma.product.create({
     data: {
-      ...productData,
+      ...dataToWrite,
       images: {
         create: images.map((url, position) => ({ url, position })),
       },
@@ -43,5 +49,7 @@ export default defineEventHandler(async (event) => {
     },
   })
 
-  return { ...product, price: product.price.toString(), costPrice: product.costPrice?.toString() ?? null }
+  const result = { ...product, price: product.price.toString() }
+  if (payload.role === 'admin') result.costPrice = product.costPrice?.toString() ?? null
+  return result
 })

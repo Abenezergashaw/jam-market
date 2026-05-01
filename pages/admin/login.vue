@@ -7,7 +7,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <h1 class="text-xl font-bold text-zinc-900">Admin Login</h1>
+        <h1 class="text-xl font-bold text-zinc-900">Staff Login</h1>
         <p class="text-sm text-zinc-400 mt-1">Jam Store management</p>
       </div>
 
@@ -37,7 +37,12 @@ definePageMeta({ layout: false })
 const adminStore = useAdminStore()
 const router = useRouter()
 
-if (adminStore.isAuthenticated) await navigateTo('/admin')
+if (adminStore.isAuthenticated) {
+  const role = adminStore.user?.role
+  if (role === 'cashier') await navigateTo('/cashier')
+  else if (role === 'delivery') await navigateTo('/delivery')
+  else await navigateTo('/admin')
+}
 
 const form = reactive({ email: '', password: '' })
 const loading = ref(false)
@@ -48,7 +53,10 @@ async function handleLogin() {
   error.value = ''
   try {
     await adminStore.login(form.email, form.password)
-    router.push('/admin')
+    const role = adminStore.user?.role
+    if (role === 'cashier') router.push('/cashier')
+    else if (role === 'delivery') router.push('/delivery')
+    else router.push('/admin')
   } catch (e) {
     error.value = e?.data?.statusMessage ?? 'Invalid credentials'
   } finally {

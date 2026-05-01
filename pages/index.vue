@@ -1,13 +1,32 @@
 <template>
   <div>
+
+    <!-- Desktop green category nav bar -->
+    <div class="hidden sm:block sticky top-14 z-30 bg-[#3b5323] shadow-sm">
+      <div class="max-w-6xl mx-auto px-4">
+        <div v-if="!pending" class="flex items-center gap-0.5 h-11 overflow-x-auto scrollbar-none">
+          <NuxtLink
+            v-for="cat in categories"
+            :key="cat.id"
+            :to="`/category/${cat.id}`"
+            class="shrink-0 text-white/70 hover:text-white text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-white/10 transition-all whitespace-nowrap"
+          >
+            {{ cat.name }}
+          </NuxtLink>
+        </div>
+        <div v-else class="flex items-center gap-3 h-11 px-1">
+          <div v-for="i in 7" :key="i" class="h-3 bg-white/20 rounded-full animate-pulse" :style="`width:${55 + i * 7}px`" />
+        </div>
+      </div>
+    </div>
+
     <!-- Hero Carousel -->
     <div
       class="relative overflow-hidden"
-      style="height: 540px;"
+      style="height: 460px;"
       @mouseenter="pauseCarousel"
       @mouseleave="resumeCarousel"
     >
-      <!-- Slides -->
       <div class="absolute inset-0">
         <transition-group name="carousel-fade" tag="div" class="relative w-full h-full">
           <div
@@ -16,32 +35,23 @@
             :key="slide.id"
             class="absolute inset-0"
           >
-            <img
-              :src="slide.image"
-              :alt="slide.alt"
-              class="w-full h-full object-cover"
-            />
-            <!-- Gradient overlay -->
-            <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <img :src="slide.image" :alt="slide.alt" class="w-full h-full object-cover" />
+            <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-            <!-- Slide content -->
             <div class="absolute inset-0 flex items-center">
               <div class="max-w-6xl mx-auto px-6 w-full">
-                <div class="max-w-xl">
-                  <span class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 text-white rounded-full px-4 py-1.5 text-xs font-semibold mb-5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-                    {{ slide.tag }}
-                  </span>
-                  <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
+                <div class="max-w-lg">
+                  <p class="text-[10px] font-bold text-white/50 uppercase tracking-[0.25em] mb-3">JAM Supermarket</p>
+                  <h1 class="text-3xl sm:text-4xl lg:text-[2.75rem] font-black text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
                     {{ slide.title }}
                   </h1>
-                  <p class="text-white/80 text-base sm:text-lg mb-8 leading-relaxed max-w-sm">
+                  <p class="text-white/70 text-sm sm:text-base mb-8 max-w-sm leading-relaxed">
                     {{ slide.subtitle }}
                   </p>
                   <NuxtLink
                     :to="slide.cta.href"
-                    class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-brand-500/30 hover:-translate-y-0.5"
+                    class="inline-flex items-center gap-2 bg-[#3b5323] hover:bg-[#2c3e1a] text-white font-bold px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-xl hover:-translate-y-0.5 uppercase tracking-wide"
                   >
                     {{ slide.cta.label }}
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -55,88 +65,146 @@
         </transition-group>
       </div>
 
-      <!-- Prev / Next arrows -->
       <button
-        class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-sm border border-white/25 text-white hover:bg-white/30 transition-all duration-200 z-10"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white transition-all z-10 backdrop-blur-sm"
         @click="prevSlide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
       </button>
       <button
-        class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-sm border border-white/25 text-white hover:bg-white/30 transition-all duration-200 z-10"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white transition-all z-10 backdrop-blur-sm"
         @click="nextSlide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
       </button>
 
-      <!-- Dot indicators -->
-      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+      <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
         <button
           v-for="(_, i) in slides"
           :key="i"
           class="transition-all duration-300 rounded-full"
-          :class="currentSlide === i ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/70'"
+          :class="currentSlide === i ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/70'"
           @click="goToSlide(i)"
         />
       </div>
 
-      <!-- Progress bar -->
       <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 z-10">
         <div
-          class="h-full bg-brand-400 transition-none"
+          class="h-full bg-[#3b5323] transition-none"
           :style="{ width: progressWidth + '%', transition: paused ? 'none' : `width ${INTERVAL}ms linear` }"
         />
       </div>
     </div>
 
-    <!-- Wave divider -->
-    <div class="relative bg-white">
-      <svg class="absolute -top-px left-0 right-0 w-full" style="height:48px;" viewBox="0 0 1440 48" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 48 C360 0 1080 0 1440 48 L1440 0 L0 0 Z" fill="white" />
-      </svg>
-    </div>
+    <!-- Main content -->
+    <div class="max-w-6xl mx-auto px-4 pt-8 pb-14 space-y-12 sm:space-y-14">
 
-    <!-- Content section -->
-    <div class="max-w-6xl mx-auto px-4 pt-4 pb-10 sm:pb-14 space-y-12 sm:space-y-16">
-
-      <!-- Loading -->
-      <div v-if="pending">
-        <div class="h-4 w-32 bg-zinc-100 rounded animate-pulse mb-5" />
-        <div class="flex gap-3 overflow-hidden">
-          <div v-for="n in 2" :key="n" class="shrink-0 w-[280px] sm:w-full aspect-[5/3] rounded-2xl bg-zinc-100 animate-pulse" />
+      <!-- Loading skeleton -->
+      <div v-if="pending" class="space-y-10">
+        <div>
+          <div class="h-4 w-36 bg-zinc-200 rounded animate-pulse mb-5" />
+          <div class="flex gap-5 overflow-hidden">
+            <div v-for="n in 7" :key="n" class="shrink-0 flex flex-col items-center gap-2">
+              <div class="w-16 h-16 rounded-full bg-zinc-200 animate-pulse" />
+              <div class="h-2.5 w-14 bg-zinc-200 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="h-4 w-48 bg-zinc-200 rounded animate-pulse mb-5" />
+          <div class="flex gap-3 overflow-hidden">
+            <div v-for="n in 4" :key="n" class="shrink-0 w-44 rounded-2xl bg-zinc-200 animate-pulse" style="height:270px" />
+          </div>
         </div>
       </div>
 
-      <div v-else-if="error" class="text-center py-16">
-        <p class="text-brand-600 text-sm">Failed to load. Please refresh.</p>
+      <div v-else-if="error" class="text-center py-20">
+        <p class="text-sm text-zinc-500">Failed to load. Please refresh.</p>
       </div>
 
       <template v-else>
-        <!-- Featured Products -->
-        <section v-if="featuredProducts?.length">
-          <div class="flex items-center justify-between gap-3 mb-6">
-            <div class="flex items-center gap-3">
-              <h2 class="text-lg font-bold text-zinc-900 tracking-tight">Staff Picks</h2>
-              <span class="badge badge-red">Featured</span>
-            </div>
-          </div>
-          <div class="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto sm:overflow-visible">
-            <div class="flex gap-3 sm:gap-4 pb-2 sm:pb-0 snap-x snap-mandatory sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:flex-none">
-              <div v-for="product in featuredProducts" :key="product.id" class="shrink-0 w-[260px] sm:w-auto sm:min-w-0">
-                <FeaturedProductCard :product="product" />
+
+        <!-- Shop by Category — circles -->
+        <section v-if="categories?.length">
+          <h2 class="text-lg font-bold text-zinc-900 mb-5">Shop by Category</h2>
+          <div class="flex gap-5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 scrollbar-none sm:flex-wrap">
+            <NuxtLink
+              v-for="cat in categories"
+              :key="cat.id"
+              :to="`/category/${cat.id}`"
+              class="shrink-0 flex flex-col items-center gap-2 group"
+            >
+              <div class="w-[62px] h-[62px] rounded-full overflow-hidden bg-zinc-100 ring-2 ring-transparent group-hover:ring-[#3b5323] transition-all duration-200 shadow-sm">
+                <img
+                  :src="cat.imageUrl"
+                  :alt="cat.name"
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  @error="$event.target.src = 'https://picsum.photos/seed/' + cat.id + '/80/80'"
+                />
               </div>
-            </div>
+              <span class="text-[11px] font-medium text-zinc-600 text-center line-clamp-2 leading-tight w-[70px] group-hover:text-[#3b5323] transition-colors">{{ cat.name }}</span>
+            </NuxtLink>
           </div>
         </section>
 
-        <!-- Trending -->
+        <!-- Top Picks This Week — featured products -->
+        <section v-if="featuredProducts?.length">
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <div>
+              <h2 class="text-lg font-bold text-zinc-900">Top Picks This Week</h2>
+              <p class="text-xs text-zinc-400 mt-0.5">Handpicked for you</p>
+            </div>
+            <NuxtLink to="/search" class="text-xs font-semibold text-[#3b5323] hover:underline whitespace-nowrap shrink-0">See All</NuxtLink>
+          </div>
+
+          <!-- Mobile: vertical list -->
+          <div class="sm:hidden space-y-3">
+            <NuxtLink
+              v-for="(product, i) in featuredProducts.slice(0, 5)"
+              :key="product.id"
+              :to="`/product/${product.id}`"
+              class="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-sm border border-zinc-100 hover:shadow-md transition-all"
+            >
+              <div class="relative w-[72px] h-[72px] rounded-xl overflow-hidden bg-zinc-100 shrink-0">
+                <img
+                  :src="product.imageUrl"
+                  :alt="product.name"
+                  class="w-full h-full object-cover"
+                  @error="$event.target.src = 'https://picsum.photos/seed/' + product.id + '/80/80'"
+                />
+                <div class="absolute top-1 left-1 w-5 h-5 rounded-full bg-[#3b5323] text-white text-[9px] font-black flex items-center justify-center shadow">{{ i + 1 }}</div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p v-if="product.brand" class="text-[10px] text-zinc-400 uppercase tracking-wide truncate">{{ product.brand }}</p>
+                <h3 class="text-sm font-semibold text-zinc-900 line-clamp-2 leading-snug">{{ product.name }}</h3>
+                <p class="text-sm font-bold text-zinc-900 mt-1">ETB {{ Number(product.price).toFixed(0) }}</p>
+              </div>
+              <button
+                v-if="product.stock > 0"
+                class="shrink-0 bg-[#1d72b8] hover:bg-[#155f9c] active:scale-95 text-white text-[11px] font-bold px-3 py-2 rounded-xl transition-colors shadow-sm"
+                @click.prevent.stop="addToCart(product)"
+              >
+                Add
+              </button>
+            </NuxtLink>
+          </div>
+
+          <!-- Desktop: horizontal card scroll -->
+          <div class="hidden sm:flex gap-4 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 scrollbar-none">
+            <FeaturedProductCard
+              v-for="(product, i) in featuredProducts"
+              :key="product.id"
+              :product="product"
+              :index="i"
+            />
+          </div>
+        </section>
+
+        <!-- Trending Now -->
         <section v-if="trendingCategories.length">
-          <div class="flex items-center gap-3 mb-6">
-            <h2 class="text-lg font-bold text-zinc-900 tracking-tight">Trending Now</h2>
+          <div class="flex items-center gap-3 mb-5">
+            <h2 class="text-lg font-bold text-zinc-900">Trending Now</h2>
             <span class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-full px-2.5 py-0.5 text-xs font-semibold">
               <span class="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
               Hot this week
@@ -149,17 +217,15 @@
           </div>
         </section>
 
-        <!-- All categories -->
+        <!-- Browse All Categories grid -->
         <section v-if="regularCategories.length">
-          <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">
-            {{ trendingCategories.length ? 'All Categories' : 'Shop by Category' }}
-          </h2>
+          <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-5">Browse All Categories</h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             <CategoryCard v-for="cat in regularCategories" :key="cat.id" :category="cat" />
           </div>
         </section>
 
-        <div v-if="!trendingCategories.length && !regularCategories.length && !featuredProducts?.length" class="text-center py-16 text-zinc-400 text-sm">
+        <div v-if="!categories?.length && !featuredProducts?.length" class="text-center py-16 text-zinc-400 text-sm">
           No products yet. Check back soon!
         </div>
       </template>
@@ -185,7 +251,6 @@ const currentSlide = ref(0)
 const paused = ref(false)
 const progressWidth = ref(0)
 let timer = null
-let progressTimer = null
 
 function goToSlide(i) {
   currentSlide.value = i
@@ -241,6 +306,11 @@ const { data: featuredProducts } = await useFetch('/api/products?featured=true')
 const trendingCategories = computed(() => categories.value?.filter((c) => c.isTrending) ?? [])
 const regularCategories = computed(() => categories.value?.filter((c) => !c.isTrending) ?? [])
 
+const cartStore = useCartStore()
+function addToCart(product) {
+  cartStore.addItem({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl })
+}
+
 useHead({ title: 'Jam Store — Fresh Groceries' })
 </script>
 
@@ -254,5 +324,11 @@ useHead({ title: 'Jam Store — Fresh Groceries' })
 .carousel-fade-enter-from,
 .carousel-fade-leave-to {
   opacity: 0;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 </style>

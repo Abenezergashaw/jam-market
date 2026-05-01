@@ -16,9 +16,17 @@ export default defineEventHandler(async (event) => {
 
   const { email, password } = parsed.data
 
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, passwordHash: true, role: true, isActive: true, name: true, storeId: true, permissions: true },
+  })
+
   if (!user) {
     throw createError({ statusCode: 401, statusMessage: 'Invalid credentials' })
+  }
+
+  if (!user.isActive) {
+    throw createError({ statusCode: 401, statusMessage: 'Account disabled' })
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash)
@@ -26,10 +34,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Invalid credentials' })
   }
 
-  const token = signToken({ userId: user.id, email: user.email, role: user.role })
+  const token = signToken({
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    storeId: user.storeId ?? null,
+    permissions: user.permissions ?? [],
+  })
 
   return {
     token,
-    user: { id: user.id, email: user.email, role: user.role },
+    user: { id: user.id, email: user.email, role: user.role, name: user.name, storeId: user.storeId ?? null, permissions: user.permissions ?? [] },
   }
 })

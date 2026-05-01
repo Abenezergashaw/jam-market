@@ -84,7 +84,7 @@
         <span class="badge badge-yellow text-[9px] px-1.5 py-0.5">Not shown to customers</span>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
+        <div v-if="showCostPrice">
           <label class="label">Cost price ($) <span class="text-zinc-400 font-normal">(optional)</span></label>
           <input v-model="form.costPrice" type="number" step="0.01" min="0.01" class="input" placeholder="Purchase price" />
         </div>
@@ -206,7 +206,7 @@
       <button type="submit" class="btn-primary" :disabled="saving">
         {{ saving ? 'Saving...' : (isEdit ? 'Update product' : 'Create product') }}
       </button>
-      <NuxtLink to="/admin/products" class="btn-secondary">Cancel</NuxtLink>
+      <NuxtLink :to="cancelTo" class="btn-secondary">Cancel</NuxtLink>
     </div>
   </form>
 </template>
@@ -215,6 +215,8 @@
 const props = defineProps({
   initial: { type: Object, default: null },
   isEdit: { type: Boolean, default: false },
+  showCostPrice: { type: Boolean, default: true },
+  cancelTo: { type: String, default: '/admin/products' },
 })
 
 const emit = defineEmits(['submit'])

@@ -11,14 +11,22 @@
           Refreshing
         </span>
       </p>
-      <select v-model="statusFilter" class="input text-sm py-1.5 w-auto min-w-[160px]">
-        <option value="">All statuses</option>
-        <option value="PENDING">Pending</option>
-        <option value="CONFIRMED">Confirmed</option>
-        <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-        <option value="DELIVERED">Delivered</option>
-        <option value="CANCELLED">Cancelled</option>
-      </select>
+      <div class="flex gap-2 flex-wrap">
+        <select v-model="paymentFilter" class="input text-sm py-1.5 w-auto min-w-[180px]">
+          <option value="">All payments</option>
+          <option value="PENDING">Awaiting verification</option>
+          <option value="COLLECTED">Verified</option>
+          <option value="FAILED">Payment failed</option>
+        </select>
+        <select v-model="statusFilter" class="input text-sm py-1.5 w-auto min-w-[160px]">
+          <option value="">All statuses</option>
+          <option value="PENDING">Pending</option>
+          <option value="CONFIRMED">Confirmed</option>
+          <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+          <option value="DELIVERED">Delivered</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </div>
     </div>
 
     <div v-if="loading && !orders.length" class="space-y-3">
@@ -67,6 +75,7 @@ const loading = ref(true)
 const refreshing = ref(false)
 const updatingId = ref(null)
 const statusFilter = ref('')
+const paymentFilter = ref('')
 const page = ref(1)
 const total = ref(0)
 const totalPages = ref(1)
@@ -78,6 +87,7 @@ async function fetchOrders(silent = false) {
   try {
     const params = new URLSearchParams({ page: page.value, limit: 20 })
     if (statusFilter.value) params.set('status', statusFilter.value)
+    if (paymentFilter.value) params.set('paymentStatus', paymentFilter.value)
     const result = await adminFetch(`/api/orders?${params}`)
     orders.value = result.data
     total.value = result.total
@@ -95,7 +105,7 @@ function changePage(p) {
   fetchOrders()
 }
 
-watch(statusFilter, () => {
+watch([statusFilter, paymentFilter], () => {
   page.value = 1
   fetchOrders()
 })

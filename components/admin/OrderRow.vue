@@ -5,6 +5,17 @@
         <div class="flex items-center gap-2 flex-wrap mb-2.5">
           <span class="text-sm font-bold text-zinc-900 font-mono">#{{ order.id }}</span>
           <span :class="statusClass">{{ statusLabel }}</span>
+          <span
+            v-if="order.paymentMethod && order.paymentMethod !== 'CASH' && order.paymentMethod !== 'COD'"
+            class="badge text-[10px]"
+            :class="{
+              'badge-yellow': order.paymentStatus === 'PENDING',
+              'badge-green': order.paymentStatus === 'COLLECTED',
+              'badge-red': order.paymentStatus === 'FAILED',
+            }"
+          >
+            {{ PM_LABEL[order.paymentMethod] ?? order.paymentMethod }} · {{ order.paymentStatus === 'COLLECTED' ? 'Verified' : order.paymentStatus === 'FAILED' ? 'Failed' : 'Unverified' }}
+          </span>
           <span class="text-xs text-zinc-400">{{ formatDate(order.createdAt) }}</span>
         </div>
 
@@ -54,6 +65,8 @@ const props = defineProps({
 })
 
 defineEmits(['change-status'])
+
+const PM_LABEL = { TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
 
 const statusMap = {
   PENDING: { label: 'Pending', cls: 'badge-yellow' },

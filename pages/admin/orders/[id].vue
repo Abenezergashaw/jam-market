@@ -40,10 +40,25 @@
             :key="t.to"
             :class="[t.style === 'primary' ? 'btn-primary' : t.style === 'danger' ? 'btn-danger' : 'btn-secondary', 'text-sm px-4']"
             :disabled="updating"
-            @click="updateStatus(t.to)"
+            @click="handleTransitionClick(t.to)"
           >
             {{ updating && pendingStatus === t.to ? '…' : t.label }}
           </button>
+        </div>
+      </div>
+
+      <!-- Dispatch: assign delivery person -->
+      <div v-if="showDispatchModal" class="card p-5 border-brand-200 bg-brand-50/50 space-y-3">
+        <h3 class="text-sm font-semibold text-zinc-800">Assign Delivery Person (optional)</h3>
+        <select v-model="selectedDeliveryPerson" class="input text-sm">
+          <option :value="null">— No assignment —</option>
+          <option v-for="dp in deliveryPersons" :key="dp.id" :value="dp.id">{{ dp.name || dp.email }}</option>
+        </select>
+        <div class="flex gap-2">
+          <button class="btn-primary text-sm px-4" :disabled="updating" @click="confirmDispatch">
+            {{ updating ? '…' : 'Confirm Dispatch' }}
+          </button>
+          <button class="btn-secondary text-sm px-4" @click="showDispatchModal = false">Cancel</button>
         </div>
       </div>
 
@@ -84,6 +99,108 @@
           <div v-if="order.notes" class="card p-4">
             <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Order Notes</h2>
             <p class="text-sm text-zinc-700 italic">{{ order.notes }}</p>
+          </div>
+
+          <!-- Payment -->
+          <div class="card p-5 space-y-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wider">Payment</h2>
+              <div class="flex items-center gap-2">
+                <span
+                  class="badge text-xs"
+                  :class="order.paymentMethod === 'CASH' || order.paymentMethod === 'COD' ? 'badge-green' : 'badge-blue'"
+                >
+                  {{ PM_LABEL[order.paymentMethod] ?? order.paymentMethod }}
+                </span>
+                <span
+                  class="badge text-xs"
+                  :class="order.paymentStatus === 'COLLECTED' ? 'badge-green' : order.paymentStatus === 'FAILED' ? 'badge-red' : 'badge-yellow'"
+                >
+                  {{ order.paymentStatus === 'COLLECTED' ? 'Collected' : order.paymentStatus === 'FAILED' ? 'Failed' : 'Pending' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Audit trail -->
+            <div v-if="order.paymentVerifiedAt" class="text-xs text-zinc-400 bg-zinc-50 border border-zinc-100 rounded-xl px-3 py-2 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>
+                {{ order.paymentStatus === 'COLLECTED' ? 'Collected' : 'Failed' }} by
+                <span class="font-medium text-zinc-600">{{ order.paymentVerifiedBy?.name || order.paymentVerifiedBy?.email || 'Admin' }}</span>
+                · {{ formatDate(order.paymentVerifiedAt) }}
+              </span>
+            </div>
+
+            <!-- Receipt -->
+            <div v-if="order.receiptImageUrl">
+              <p class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Payment Receipt</p>
+              <a :href="order.receiptImageUrl" target="_blank" rel="noopener" class="block w-full">
+                <img
+                  :src="order.receiptImageUrl"
+                  alt="Payment receipt"
+                  class="w-full max-h-56 object-contain rounded-xl border border-zinc-200 bg-zinc-50 hover:opacity-90 transition-opacity cursor-zoom-in"
+                />
+              </a>
+              <p class="text-[10px] text-zinc-400 mt-1.5 text-center">Click to open full size</p>
+            </div>
+            <p v-else class="text-xs text-zinc-400 bg-zinc-50 border border-zinc-100 rounded-xl px-3 py-2.5">
+              No receipt uploaded.
+            </p>
+
+            <!-- Reference code display -->
+            <div v-if="order.paymentReferenceCode" class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <div>
+                <p class="text-[10px] text-green-600 font-semibold uppercase tracking-wider">Verified via reference code</p>
+                <p class="text-xs font-mono text-zinc-700 mt-0.5">{{ order.paymentReferenceCode }}</p>
+              </div>
+            </div>
+
+            <!-- Payment status actions -->
+            <div v-if="order.paymentStatus === 'PENDING'" class="space-y-2 pt-1">
+              <div>
+                <label class="label text-xs">Note <span class="text-zinc-400 font-normal normal-case tracking-normal">(optional — amount mismatch, dispute, etc.)</span></label>
+                <input
+                  v-model="paymentNoteInput"
+                  type="text"
+                  maxlength="300"
+                  class="input text-sm"
+                  placeholder="e.g. Amount sent was ETB 450, expected 500"
+                  :disabled="!!updatingPayment"
+                />
+              </div>
+              <div class="flex gap-2">
+                <button
+                  class="btn-primary text-sm px-4 flex-1"
+                  :disabled="!!updatingPayment"
+                  @click="updatePaymentStatus('COLLECTED')"
+                >
+                  {{ updatingPayment === 'COLLECTED' ? '…' : 'Mark Collected' }}
+                </button>
+                <button
+                  class="btn-danger text-sm px-4 flex-1"
+                  :disabled="!!updatingPayment"
+                  @click="updatePaymentStatus('FAILED')"
+                >
+                  {{ updatingPayment === 'FAILED' ? '…' : 'Mark Failed' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Payment note (after action) -->
+            <div v-if="order.paymentNote" class="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-3 py-2.5">
+              <span class="font-semibold">Note: </span>{{ order.paymentNote }}
+            </div>
+            <p v-else-if="order.paymentStatus === 'COLLECTED'" class="text-xs text-green-600 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+              Payment confirmed as collected.
+            </p>
+            <p v-else-if="order.paymentStatus === 'FAILED'" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+              Payment marked as failed.
+            </p>
           </div>
         </div>
 
@@ -129,6 +246,21 @@
                 <span class="text-zinc-700">{{ order.address }}</span>
               </div>
             </div>
+
+            <!-- Assigned delivery person -->
+            <div v-if="order.deliveryPerson" class="mt-4 pt-4 border-t border-zinc-100 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-600 shrink-0">
+                {{ (order.deliveryPerson.name || order.deliveryPerson.email)?.[0]?.toUpperCase() }}
+              </div>
+              <div>
+                <p class="text-xs text-zinc-400">Assigned delivery</p>
+                <p class="text-sm font-medium text-zinc-800">{{ order.deliveryPerson.name || order.deliveryPerson.email }}</p>
+              </div>
+              <span class="ml-auto badge badge-orange text-[10px]">Delivery</span>
+            </div>
+            <div v-else-if="['CONFIRMED', 'OUT_FOR_DELIVERY'].includes(order.status)" class="mt-4 pt-4 border-t border-zinc-100">
+              <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">No delivery person assigned</p>
+            </div>
           </div>
 
           <!-- Delivery map -->
@@ -169,8 +301,15 @@ const loading = ref(true)
 const updating = ref(false)
 const pendingStatus = ref(null)
 const updateError = ref('')
+const updatingPayment = ref(null)
+const paymentNoteInput = ref('')
 const mapEl = ref(null)
+const showDispatchModal = ref(false)
+const selectedDeliveryPerson = ref(null)
+const deliveryPersons = ref([])
 let map = null
+
+const PM_LABEL = { CASH: 'Cash', COD: 'Cash', TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
 
 const statusMap = {
   PENDING: { label: 'Pending', cls: 'badge-yellow' },
@@ -224,6 +363,52 @@ async function fetchOrder() {
   }
 }
 
+async function updatePaymentStatus(status) {
+  updatingPayment.value = status
+  updateError.value = ''
+  try {
+    const updated = await adminFetch(`/api/orders/${order.value.id}/payment`, {
+      method: 'PATCH',
+      body: { paymentStatus: status, note: paymentNoteInput.value.trim() || undefined },
+    })
+    order.value = { ...order.value, paymentStatus: status, paymentNote: updated.paymentNote, paymentVerifiedAt: updated.paymentVerifiedAt, paymentVerifiedById: updated.paymentVerifiedById, paymentVerifiedBy: updated.paymentVerifiedBy }
+    paymentNoteInput.value = ''
+  } catch (e) {
+    updateError.value = e?.data?.statusMessage ?? 'Failed to update payment status.'
+  } finally {
+    updatingPayment.value = null
+  }
+}
+
+async function handleTransitionClick(status) {
+  if (status === 'OUT_FOR_DELIVERY') {
+    try {
+      // Admin sees ALL delivery staff — no store filter
+      deliveryPersons.value = await adminFetch('/api/admin/users?role=delivery')
+    } catch { deliveryPersons.value = [] }
+    selectedDeliveryPerson.value = order.value?.deliveryPersonId ?? null
+    showDispatchModal.value = true
+    return
+  }
+  await updateStatus(status)
+}
+
+async function confirmDispatch() {
+  if (selectedDeliveryPerson.value) {
+    try {
+      await adminFetch(`/api/admin/orders/${order.value.id}/assign`, {
+        method: 'PATCH',
+        body: { deliveryPersonId: selectedDeliveryPerson.value },
+      })
+    } catch (e) {
+      updateError.value = e?.data?.statusMessage ?? 'Failed to assign delivery person.'
+      return
+    }
+  }
+  showDispatchModal.value = false
+  await updateStatus('OUT_FOR_DELIVERY')
+}
+
 async function updateStatus(status) {
   updating.value = true
   pendingStatus.value = status
@@ -245,8 +430,8 @@ async function updateStatus(status) {
 async function initMap() {
   if (!order.value?.lat || !order.value?.lng || !mapEl.value) return
 
-  const L = await import('leaflet')
-  await import('leaflet/dist/leaflet.css')
+  const mod = await import('leaflet')
+  const L = mod.default ?? mod
 
   delete L.Icon.Default.prototype._getIconUrl
   L.Icon.Default.mergeOptions({
@@ -271,11 +456,12 @@ async function initMap() {
     .openPopup()
 }
 
-onMounted(async () => {
-  await fetchOrder()
-  await nextTick()
+watch(mapEl, async (el) => {
+  if (!el || !order.value?.lat || !order.value?.lng || map) return
   await initMap()
-})
+}, { flush: 'post' })
+
+onMounted(fetchOrder)
 
 onUnmounted(() => {
   if (map) map.remove()

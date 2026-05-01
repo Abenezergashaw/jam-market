@@ -8,22 +8,41 @@ export default defineEventHandler(async (event) => {
   since.setDate(since.getDate() - days)
   since.setHours(0, 0, 0, 0)
 
-  // Revenue per day
-  const revenueOrders = await prisma.order.findMany({
-    where: {
-      createdAt: { gte: since },
-      status: { in: ['CONFIRMED', 'OUT_FOR_DELIVERY', 'DELIVERED'] },
-    },
-    select: { totalPrice: true, createdAt: true },
-  })
+  // Revenue + COGS orders in parallel
+  const [revenueOrders, cogsOrders] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        createdAt: { gte: since },
+        status: { in: ['CONFIRMED', 'OUT_FOR_DELIVERY', 'DELIVERED'] },
+      },
+      select: { totalPrice: true, createdAt: true },
+    }),
+    prisma.order.findMany({
+      where: {
+        createdAt: { gte: since },
+        status: { in: ['CONFIRMED', 'OUT_FOR_DELIVERY', 'DELIVERED'] },
+      },
+      select: {
+        createdAt: true,
+        items: {
+          select: {
+            quantity: true,
+            product: { select: { costPrice: true } },
+          },
+        },
+      },
+    }),
+  ])
 
-  // Build day map
+  // Build day maps
   const dayMap = {}
+  const cogsMap = {}
   for (let i = 0; i < days; i++) {
     const d = new Date(since)
     d.setDate(d.getDate() + i)
     const key = d.toISOString().slice(0, 10)
     dayMap[key] = 0
+    cogsMap[key] = 0
   }
 
   for (const o of revenueOrders) {
@@ -31,7 +50,22 @@ export default defineEventHandler(async (event) => {
     if (key in dayMap) dayMap[key] += Number(o.totalPrice)
   }
 
-  const revenueByDay = Object.entries(dayMap).map(([date, revenue]) => ({ date, revenue: parseFloat(revenue.toFixed(2)) }))
+  let totalCogs = 0
+  for (const o of cogsOrders) {
+    const key = new Date(o.createdAt).toISOString().slice(0, 10)
+    const cogs = o.items.reduce((sum, i) => {
+      return sum + (i.product?.costPrice ? Number(i.product.costPrice) * i.quantity : 0)
+    }, 0)
+    if (key in cogsMap) cogsMap[key] += cogs
+    totalCogs += cogs
+  }
+
+  const revenueByDay = Object.entries(dayMap).map(([date, revenue]) => ({
+    date,
+    revenue: parseFloat(revenue.toFixed(2)),
+    cogs: parseFloat((cogsMap[date] ?? 0).toFixed(2)),
+    profit: parseFloat((revenue - (cogsMap[date] ?? 0)).toFixed(2)),
+  }))
 
   // Top products by quantity sold
   const topItems = await prisma.orderItem.groupBy({
@@ -75,6 +109,8 @@ export default defineEventHandler(async (event) => {
     deliveredOrders,
     cancelledOrders,
     totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+    totalCogs: parseFloat(totalCogs.toFixed(2)),
+    totalProfit: parseFloat((totalRevenue - totalCogs).toFixed(2)),
     revenueByDay,
     topProducts,
   }

@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ["~/assets/css/main.css"],
+  css: ["~/assets/css/main.css", "leaflet/dist/leaflet.css"],
 
   runtimeConfig: {
     jwtSecret: process.env.JWT_SECRET || "dev-secret-change-in-prod",

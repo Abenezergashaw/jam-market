@@ -16,7 +16,8 @@ export const useCartStore = defineStore('cart', {
     addItem(product) {
       const existing = this.items.find((i) => i.id === product.id)
       if (existing) {
-        existing.quantity++
+        const max = existing.stock ?? Infinity
+        if (existing.quantity < max) existing.quantity++
       } else {
         this.items.push({ ...product, quantity: 1 })
       }
@@ -35,7 +36,7 @@ export const useCartStore = defineStore('cart', {
       }
       const item = this.items.find((i) => i.id === productId)
       if (item) {
-        item.quantity = qty
+        item.quantity = item.stock != null ? Math.min(qty, item.stock) : qty
         this._persist()
       }
     },

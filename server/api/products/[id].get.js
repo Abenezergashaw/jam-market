@@ -11,6 +11,15 @@ export default defineEventHandler(async (event) => {
 
   if (!product) throw createError({ statusCode: 404, statusMessage: 'Product not found' })
 
-  const { costPrice, expiryDate, ...pub } = product
-  return { ...pub, price: pub.price.toString() }
+  // Check if the caller is an admin — admins get costPrice, everyone else does not
+  let isAdmin = false
+  try {
+    const p = requireStaff(event)
+    isAdmin = p.role === 'admin'
+  } catch {}
+
+  const { costPrice, ...pub } = product
+  const result = { ...pub, price: pub.price.toString(), expiryDate: pub.expiryDate?.toISOString() ?? null }
+  if (isAdmin) result.costPrice = costPrice?.toString() ?? null
+  return result
 })

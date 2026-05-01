@@ -1,0 +1,48 @@
+<template>
+  <div class="max-w-lg">
+    <div class="mb-6">
+      <NuxtLink to="/cashier/categories" class="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-brand-500 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to categories
+      </NuxtLink>
+      <h2 class="text-lg font-bold text-zinc-900 mt-3">{{ isNew ? 'New category' : 'Edit category' }}</h2>
+    </div>
+
+    <div class="card p-5 sm:p-6">
+      <AdminCategoryForm
+        :initial="category"
+        :is-edit="!isNew"
+        @submit="handleSubmit"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup>
+definePageMeta({ middleware: ['cashier'], layout: 'cashier', ssr: false })
+
+const route = useRoute()
+const router = useRouter()
+const { adminFetch } = useAdminFetch()
+
+const isNew = computed(() => route.params.id === 'new')
+const category = ref(null)
+
+if (!isNew.value) {
+  const cats = await $fetch('/api/categories')
+  category.value = cats.find(c => c.id === parseInt(route.params.id)) ?? null
+}
+
+async function handleSubmit(data) {
+  if (isNew.value) {
+    await adminFetch('/api/categories', { method: 'POST', body: data })
+  } else {
+    await adminFetch(`/api/categories/${route.params.id}`, { method: 'PUT', body: data })
+  }
+  router.push('/cashier/categories')
+}
+
+useHead({ title: isNew.value ? 'New Category — Cashier' : 'Edit Category — Cashier' })
+</script>

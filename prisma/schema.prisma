@@ -8,11 +8,18 @@ datasource db {
 }
 
 model User {
-  id           Int     @id @default(autoincrement())
-  email        String  @unique
-  passwordHash String  @map("password_hash")
-  role         String  @default("admin")
-  isActive     Boolean @default(true) @map("is_active")
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  passwordHash   String   @map("password_hash")
+  role           String   @default("admin")
+  name           String   @default("")
+  isActive       Boolean  @default(true) @map("is_active")
+  storeId        Int?     @map("store_id")
+  store          Store?   @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  permissions    String[] @default([])
+  assignedOrders   Order[]  @relation("DeliveryPerson")
+  verifiedPayments Order[]  @relation("PaymentVerifier")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   @@map("users")
 }
@@ -83,8 +90,14 @@ model Order {
   address       String
   notes         String?
   status        OrderStatus   @default(PENDING)
-  paymentMethod String        @default("COD") @map("payment_method")
-  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  paymentMethod        String        @default("COD") @map("payment_method")
+  paymentStatus        PaymentStatus @default(PENDING) @map("payment_status")
+  receiptImageUrl      String?       @map("receipt_image_url")
+  paymentReferenceCode String?       @map("payment_reference_code")
+  paymentNote          String?       @map("payment_note")
+  paymentVerifiedAt    DateTime?     @map("payment_verified_at")
+  paymentVerifiedById  Int?          @map("payment_verified_by_id")
+  paymentVerifiedBy    User?         @relation("PaymentVerifier", fields: [paymentVerifiedById], references: [id], onDelete: SetNull)
   totalPrice    Decimal       @db.Decimal(10, 2) @map("total_price")
   deliveryFee   Decimal       @default(0) @db.Decimal(10, 2) @map("delivery_fee")
   createdAt     DateTime      @default(now()) @map("created_at")
@@ -92,9 +105,11 @@ model Order {
   customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   lat           Decimal?      @db.Decimal(10, 8)
   lng           Decimal?      @db.Decimal(11, 8)
-  storeId       Int?          @map("store_id")
-  store         Store?        @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  items         OrderItem[]
+  storeId            Int?          @map("store_id")
+  store              Store?        @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  deliveryPersonId   Int?          @map("delivery_person_id")
+  deliveryPerson     User?         @relation("DeliveryPerson", fields: [deliveryPersonId], references: [id], onDelete: SetNull)
+  items              OrderItem[]
 
   @@map("orders")
 }
@@ -136,6 +151,7 @@ model Store {
   serviceChargePct Decimal? @db.Decimal(5, 2)  @map("service_charge_pct")
   createdAt        DateTime @default(now()) @map("created_at")
   orders           Order[]
+  users            User[]
 
   @@map("stores")
 }
@@ -145,8 +161,14 @@ model StoreSettings {
   minOrderAmount           Decimal @default(0) @db.Decimal(10, 2) @map("min_order_amount")
   costPerKm                Decimal @default(0) @db.Decimal(10, 2) @map("cost_per_km")
   serviceChargePct         Decimal @default(0) @db.Decimal(5, 2)  @map("service_charge_pct")
-  estimatedDeliveryMinutes Int     @default(45) @map("estimated_delivery_minutes")
-  storeIsOpen              Boolean @default(true) @map("store_is_open")
+  estimatedDeliveryMinutes  Int     @default(45) @map("estimated_delivery_minutes")
+  storeIsOpen               Boolean @default(true) @map("store_is_open")
+  telebirrAccountNumber     String  @default("") @map("telebirr_account_number")
+  telebirrAccountName       String  @default("") @map("telebirr_account_name")
+  cbeAccountNumber          String  @default("") @map("cbe_account_number")
+  cbeAccountName            String  @default("") @map("cbe_account_name")
+  boaAccountNumber          String  @default("") @map("boa_account_number")
+  boaAccountName            String  @default("") @map("boa_account_name")
 
   @@map("store_settings")
 }

@@ -5,7 +5,16 @@
       "Bash(npx prisma *)",
       "Bash(del \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\server\\\\utils\\\\cloudinary.js\")",
       "Bash(node prisma/seed.js)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(grep -E \"\\\\.\\(js|ts\\)$\")",
+      "Bash(rm \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\server\\\\api\\\\admin\\\\orders\\\\[id].assign.patch.js\")",
+      "Bash(rm \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\server\\\\api\\\\delivery\\\\orders\\\\[id].status.patch.js\")",
+      "Bash(curl -s \"http://localhost:3000/api/products/search?q=milk\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('products:', len\\(d['products']\\), '| categories:', len\\(d['categories']\\), '| total:', d['total'], '| page:', d['page']\\)\")",
+      "Bash(curl -s \"http://localhost:3000/api/products/search?q=ch\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('products:', len\\(d['products']\\), '| categories:', len\\(d['categories']\\), '| total:', d['total']\\); print\\('cats:', [c['name'] for c in d['categories']]\\); print\\('prods:', [p['name'] for p in d['products'][:3]]\\)\")",
+      "Bash(curl -s \"http://localhost:3000/api/products/search?q=veg\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('products:', len\\(d['products']\\), '| categories:', len\\(d['categories']\\)\\); print\\('cats:', [c['name'] for c in d['categories']]\\)\")"
     ]
   }
 }

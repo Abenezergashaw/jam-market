@@ -2,10 +2,11 @@ import { z } from 'zod'
 
 const schema = z.object({
   paymentStatus: z.enum(['COLLECTED', 'FAILED']),
+  note: z.string().max(300).optional(),
 })
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  const staff = requireCashier(event, null)
 
   const id = parseInt(getRouterParam(event, 'id'))
   const body = await readBody(event)
@@ -15,12 +16,27 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid payment status' })
   }
 
+  // Cashiers can only update orders from their assigned store
+  if (staff.role === 'cashier' && staff.storeId) {
+    const existing = await prisma.order.findUnique({ where: { id }, select: { storeId: true } })
+    if (!existing) throw createError({ statusCode: 404, statusMessage: 'Order not found' })
+    if (existing.storeId !== staff.storeId) {
+      throw createError({ statusCode: 403, statusMessage: 'This order belongs to a different store' })
+    }
+  }
+
   try {
     const order = await prisma.order.update({
       where: { id },
-      data: { paymentStatus: parsed.data.paymentStatus },
+      data: {
+        paymentStatus: parsed.data.paymentStatus,
+        paymentNote: parsed.data.note ?? null,
+        paymentVerifiedAt: new Date(),
+        paymentVerifiedById: staff.userId,
+      },
       include: {
         customer: { select: { telegramId: true } },
+        paymentVerifiedBy: { select: { id: true, name: true, email: true } },
         items: { include: { product: { select: { id: true, name: true } } } },
       },
     })

@@ -5,16 +5,19 @@ function stripHtml(str) {
 }
 
 const schema = z.object({
-  customerName: z.string().min(1, 'Name is required'),
-  phone: z.string().min(1, 'Phone is required'),
-  address: z.string().min(1, 'Address is required'),
-  notes: z.string().optional().default(''),
-  lat: z.number().optional().nullable(),
-  lng: z.number().optional().nullable(),
-  storeId: z.number().int().positive().optional().nullable(),
+  customerName:   z.string().min(1, 'Name is required'),
+  phone:          z.string().min(1, 'Phone is required'),
+  address:        z.string().min(1, 'Address is required'),
+  notes:          z.string().optional().default(''),
+  lat:            z.number().optional().nullable(),
+  lng:            z.number().optional().nullable(),
+  storeId:        z.number().int().positive().optional().nullable(),
+  paymentMethod:        z.enum(['CASH', 'TELEBIRR', 'CBE', 'BOA']).default('CASH'),
+  receiptImageUrl:      z.string().url().optional(),
+  paymentReferenceCode: z.string().max(100).optional(),
   items: z.array(z.object({
     productId: z.number().int().positive(),
-    quantity: z.number().int().positive(),
+    quantity:  z.number().int().positive(),
   })).min(1, 'Order must have at least one item'),
 })
 
@@ -26,7 +29,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid order data' })
   }
 
-  const { phone, lat, lng, storeId, items } = parsed.data
+  const { phone, lat, lng, storeId, items, paymentMethod, receiptImageUrl, paymentReferenceCode } = parsed.data
   const customerName = stripHtml(parsed.data.customerName)
   const address = stripHtml(parsed.data.address)
   const notes = stripHtml(parsed.data.notes)
@@ -55,6 +58,7 @@ export default defineEventHandler(async (event) => {
 
   const settings = await prisma.storeSettings.findFirst()
   let deliveryFee = 0
+  let distKm = null
 
   if (storeId != null && lat != null && lng != null) {
     const store = await prisma.store.findUnique({ where: { id: storeId } })
@@ -65,9 +69,16 @@ export default defineEventHandler(async (event) => {
       const effectiveServiceChargePct = store.serviceChargePct != null
         ? Number(store.serviceChargePct)
         : Number(settings?.serviceChargePct ?? 0)
-      const distKm = haversineKm(Number(store.lat), Number(store.lng), lat, lng)
+      distKm = haversineKm(Number(store.lat), Number(store.lng), lat, lng)
       deliveryFee = distKm * effectiveCostPerKm + totalPrice * effectiveServiceChargePct / 100
     }
+  }
+
+  if (paymentMethod === 'CASH' && distKm !== null && distKm > 15) {
+    throw createError({ statusCode: 400, statusMessage: 'Cash payment is only available within 15 km of the store' })
+  }
+  if (paymentMethod !== 'CASH' && !receiptImageUrl && !paymentReferenceCode) {
+    throw createError({ statusCode: 400, statusMessage: 'A payment receipt or reference code is required for online payment orders' })
   }
 
   const grandTotal = totalPrice + deliveryFee
@@ -92,6 +103,9 @@ export default defineEventHandler(async (event) => {
         storeId: storeId ?? null,
         lat: lat ?? null,
         lng: lng ?? null,
+        paymentMethod,
+        receiptImageUrl: receiptImageUrl ?? null,
+        paymentReferenceCode: paymentReferenceCode ?? null,
         items: {
           create: items.map((item) => ({
             productId: item.productId,

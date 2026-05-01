@@ -30,16 +30,21 @@
             <p class="text-sm text-zinc-500 font-medium mt-0.5">ETB {{ Number(item.price).toFixed(2) }}</p>
           </div>
 
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button
-              class="w-7 h-7 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors text-lg leading-none"
-              @click="cartStore.updateQty(item.id, item.quantity - 1)"
-            >−</button>
-            <span class="w-6 text-center text-sm font-semibold text-zinc-900">{{ item.quantity }}</span>
-            <button
-              class="w-7 h-7 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors text-lg leading-none"
-              @click="cartStore.updateQty(item.id, item.quantity + 1)"
-            >+</button>
+          <div class="flex flex-col items-center gap-0.5 shrink-0">
+            <div class="flex items-center gap-1.5">
+              <button
+                class="w-7 h-7 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors text-lg leading-none"
+                @click="cartStore.updateQty(item.id, item.quantity - 1)"
+              >−</button>
+              <span class="w-6 text-center text-sm font-semibold text-zinc-900">{{ item.quantity }}</span>
+              <button
+                class="w-7 h-7 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center transition-colors text-lg leading-none"
+                :class="item.stock != null && item.quantity >= item.stock ? 'opacity-30 cursor-not-allowed text-zinc-400' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200'"
+                :disabled="item.stock != null && item.quantity >= item.stock"
+                @click="cartStore.updateQty(item.id, item.quantity + 1)"
+              >+</button>
+            </div>
+            <span v-if="item.stock != null && item.quantity >= item.stock" class="text-[10px] text-amber-500 font-medium">max stock</span>
           </div>
 
           <p class="text-sm font-bold text-zinc-900 w-20 text-right shrink-0">
@@ -162,6 +167,151 @@
           <input v-model="form.notes" type="text" class="input" placeholder="Leave at door, ring bell, etc." />
         </div>
 
+        <!-- Payment method -->
+        <div>
+          <label class="label">Payment method *</label>
+          <div class="space-y-2 mt-1.5">
+            <button
+              type="button"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 transition-all"
+              :class="[
+                paymentMethod === 'CASH' ? 'border-brand-500 bg-brand-50' : 'border-zinc-200 bg-white',
+                !cashAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:border-zinc-300'
+              ]"
+              :disabled="!cashAvailable"
+              @click="paymentMethod = 'CASH'"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
+                  :class="paymentMethod === 'CASH' ? 'border-brand-500' : 'border-zinc-300'">
+                  <div v-if="paymentMethod === 'CASH'" class="w-2 h-2 rounded-full bg-brand-500" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-zinc-900">Cash on Delivery</p>
+                  <p v-if="!cashAvailable" class="text-xs text-zinc-400 mt-0.5">Available within 15 km of the store</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              v-for="bank in onlineMethods"
+              :key="bank.key"
+              type="button"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 transition-all hover:border-zinc-300"
+              :class="paymentMethod === bank.key ? 'border-brand-500 bg-brand-50' : 'border-zinc-200 bg-white'"
+              @click="paymentMethod = bank.key"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors"
+                  :class="paymentMethod === bank.key ? 'border-brand-500' : 'border-zinc-300'">
+                  <div v-if="paymentMethod === bank.key" class="w-2 h-2 rounded-full bg-brand-500" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-zinc-900">{{ bank.label }}</p>
+                  <p class="text-xs text-zinc-400 mt-0.5">Pay before placing your order</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Online payment instructions + verification -->
+        <div v-if="selectedOnlineMethod" class="rounded-2xl bg-blue-50 border border-blue-200 p-4 space-y-4">
+          <p class="text-sm font-semibold text-blue-900">Pay via {{ selectedOnlineMethod.label }}</p>
+          <p class="text-sm text-blue-700">
+            Send <span class="font-bold">ETB {{ feeBreakdown.total.toFixed(2) }}</span> to:
+          </p>
+          <div class="bg-white rounded-xl border border-blue-100 px-4 py-3 space-y-0.5">
+            <p class="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-1">Account Details</p>
+            <p class="text-base font-bold text-zinc-900 font-mono tracking-wide">
+              {{ selectedOnlineAccountNumber || '—' }}
+            </p>
+            <p class="text-sm text-zinc-500">{{ selectedOnlineAccountName || '—' }}</p>
+          </div>
+
+          <!-- Already verified -->
+          <div v-if="referenceVerified" class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <p class="text-xs font-semibold text-green-700 flex-1">Payment verified</p>
+            <button class="text-[10px] text-zinc-400 hover:text-red-500 transition-colors" @click="referenceVerified = false; referenceCode = ''">
+              Change
+            </button>
+          </div>
+
+          <!-- Receipt already uploaded -->
+          <div v-else-if="receiptUrl" class="flex items-center gap-3 bg-white rounded-xl border border-blue-100 p-3">
+            <a :href="receiptUrl" target="_blank" rel="noopener">
+              <img :src="receiptUrl" class="w-14 h-14 rounded-lg object-cover border border-zinc-200 shrink-0" alt="Receipt" />
+            </a>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-green-700 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Receipt attached
+              </p>
+              <button class="text-xs text-zinc-400 hover:text-red-500 transition-colors mt-0.5" @click="receiptUrl = ''">
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <!-- Verification options -->
+          <template v-else>
+            <!-- Option A: Reference code -->
+            <div class="space-y-2">
+              <p class="text-xs font-semibold text-blue-800">Option 1 — Enter reference code</p>
+              <div class="flex gap-2">
+                <input
+                  v-model="referenceCode"
+                  type="text"
+                  class="input text-sm flex-1"
+                  placeholder="Telebirr reference code"
+                  :disabled="verifyingCode"
+                  @keydown.enter.prevent="verifyReferenceCode"
+                />
+                <button
+                  type="button"
+                  class="btn-primary text-sm px-4 shrink-0"
+                  :disabled="!referenceCode.trim() || verifyingCode"
+                  @click="verifyReferenceCode"
+                >
+                  {{ verifyingCode ? '…' : 'Verify' }}
+                </button>
+              </div>
+              <p v-if="verifyError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                {{ verifyError }}
+              </p>
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px bg-blue-200" />
+              <span class="text-xs text-blue-400 font-medium">or</span>
+              <div class="flex-1 h-px bg-blue-200" />
+            </div>
+
+            <!-- Option B: Upload receipt -->
+            <div class="space-y-1.5">
+              <p class="text-xs font-semibold text-blue-800">Option 2 — Upload payment screenshot</p>
+              <input ref="receiptFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadReceipt" />
+              <button
+                type="button"
+                class="w-full btn-secondary text-sm py-2.5 flex items-center justify-center gap-2"
+                :disabled="uploadingReceipt"
+                @click="receiptFileInput.click()"
+              >
+                <svg v-if="!uploadingReceipt" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>{{ uploadingReceipt ? 'Uploading…' : 'Attach Payment Screenshot' }}</span>
+              </button>
+            </div>
+          </template>
+        </div>
+
         <!-- Fee breakdown -->
         <div class="border-t border-zinc-200 pt-4 space-y-2">
           <div class="flex justify-between text-sm text-zinc-500">
@@ -188,7 +338,7 @@
             </div>
             <button
               class="btn-primary shrink-0 px-6"
-              :disabled="placing || !form.customerName || !form.phone || !location.address || !selectedStoreId || belowMinOrder"
+              :disabled="placing || !form.customerName || !form.phone || !location.address || !selectedStoreId || belowMinOrder || (selectedOnlineMethod && !receiptUrl && !referenceVerified)"
               @click="placeOrder"
             >
               {{ placing ? 'Placing...' : 'Place Order' }}
@@ -250,6 +400,32 @@ const settings = ref(null)
 const stores = ref([])
 const storesLoading = ref(true)
 const selectedStoreId = ref(null)
+const paymentMethod = ref('CASH')
+const receiptUrl = ref('')
+const uploadingReceipt = ref(false)
+const receiptFileInput = ref(null)
+const referenceCode = ref('')
+const referenceVerified = ref(false)
+const verifyingCode = ref(false)
+const verifyError = ref('')
+
+const onlineMethods = [
+  { key: 'TELEBIRR', label: 'Telebirr', acctKey: 'telebirr' },
+  { key: 'CBE', label: 'CBE (Commercial Bank)', acctKey: 'cbe' },
+  { key: 'BOA', label: 'BOA (Bank of Abyssinia)', acctKey: 'boa' },
+]
+
+const selectedOnlineMethod = computed(() => onlineMethods.find(m => m.key === paymentMethod.value) ?? null)
+
+const selectedOnlineAccountNumber = computed(() => {
+  const k = selectedOnlineMethod.value?.acctKey
+  return k ? (settings.value?.[`${k}AccountNumber`] || '') : ''
+})
+
+const selectedOnlineAccountName = computed(() => {
+  const k = selectedOnlineMethod.value?.acctKey
+  return k ? (settings.value?.[`${k}AccountName`] || '') : ''
+})
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371
@@ -290,6 +466,22 @@ const feeBreakdown = computed(() => {
 const belowMinOrder = computed(() =>
   settings.value ? feeBreakdown.value.total < Number(settings.value.minOrderAmount) : false
 )
+
+const cashAvailable = computed(() => {
+  const dist = feeBreakdown.value.distanceKm
+  return dist == null || dist <= 15
+})
+
+watch(cashAvailable, (ok) => {
+  if (!ok && paymentMethod.value === 'CASH') paymentMethod.value = 'TELEBIRR'
+})
+
+watch(paymentMethod, () => {
+  referenceCode.value = ''
+  referenceVerified.value = false
+  verifyError.value = ''
+  receiptUrl.value = ''
+})
 
 function storeDeliveryEstimate(store) {
   if (!location.lat || !location.lng || store.lat == null || store.lng == null) return null
@@ -337,6 +529,10 @@ onMounted(async () => {
   if (customerStore.user) {
     form.customerName = [customerStore.user.firstName, customerStore.user.lastName].filter(Boolean).join(' ')
     loadSavedPrefs()
+    // Fall back to profile phone if no saved preference
+    if (!form.phone && customerStore.user.phone) {
+      form.phone = customerStore.user.phone
+    }
   }
   const [fetchedSettings, fetchedStores] = await Promise.all([
     $fetch('/api/settings').catch(() => null),
@@ -350,6 +546,50 @@ onMounted(async () => {
     selectedStoreId.value = fetchedStores[0].id
   }
 })
+
+async function verifyReferenceCode() {
+  if (!referenceCode.value.trim()) return
+  verifyingCode.value = true
+  verifyError.value = ''
+  try {
+    await $fetch('/api/payment/verify', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerStore.token}` },
+      body: { referenceCode: referenceCode.value.trim() },
+    })
+    referenceVerified.value = true
+  } catch (e) {
+    verifyError.value = e?.data?.statusMessage ?? 'Verification failed. Please upload your receipt instead.'
+  } finally {
+    verifyingCode.value = false
+  }
+}
+
+async function uploadReceipt(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+  uploadingReceipt.value = true
+  orderError.value = ''
+  try {
+    const formData = new FormData()
+    formData.append('image', file)
+    const result = await $fetch('/api/upload/receipt', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerStore.token}` },
+      body: formData,
+      timeout: 15000,
+    })
+    receiptUrl.value = result.url
+  } catch (e) {
+    const isTimeout = e?.name === 'TimeoutError' || e?.cause?.name === 'TimeoutError'
+    orderError.value = isTimeout
+      ? 'Upload timed out. Check your connection and try again.'
+      : (e?.data?.statusMessage ?? 'Failed to upload receipt. Please try again.')
+  } finally {
+    uploadingReceipt.value = false
+    if (receiptFileInput.value) receiptFileInput.value.value = ''
+  }
+}
 
 async function placeOrder() {
   placing.value = true
@@ -367,6 +607,9 @@ async function placeOrder() {
         lat: location.lat,
         lng: location.lng,
         storeId: selectedStoreId.value ?? null,
+        paymentMethod: paymentMethod.value,
+        receiptImageUrl: receiptUrl.value || undefined,
+        paymentReferenceCode: referenceVerified.value ? referenceCode.value : undefined,
         items: cartStore.items.map((i) => ({ productId: i.id, quantity: i.quantity })),
       },
     })

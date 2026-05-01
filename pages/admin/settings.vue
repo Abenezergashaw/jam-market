@@ -61,6 +61,32 @@
           {{ saving ? 'Saving…' : 'Save Settings' }}
         </button>
       </div>
+
+      <!-- Online Payment Accounts -->
+      <div class="card p-5 sm:p-6 space-y-5">
+        <div>
+          <h3 class="text-sm font-semibold text-zinc-700">Online Payment Accounts</h3>
+          <p class="text-xs text-zinc-400 mt-0.5">Account details shown to customers at checkout for each payment method.</p>
+        </div>
+
+        <div v-for="bank in paymentBanks" :key="bank.key" class="space-y-2">
+          <p class="text-xs font-semibold text-zinc-600 uppercase tracking-wider">{{ bank.label }}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="label">Account Number</label>
+              <input v-model="form[bank.numField]" type="text" maxlength="50" class="input" :placeholder="bank.numPlaceholder" />
+            </div>
+            <div>
+              <label class="label">Account Holder Name</label>
+              <input v-model="form[bank.nameField]" type="text" maxlength="100" class="input" placeholder="e.g. Jam Supermarket" />
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary w-full" :disabled="saving" @click="handleSave">
+          {{ saving ? 'Saving…' : 'Save Settings' }}
+        </button>
+      </div>
     </template>
   </div>
 </template>
@@ -75,12 +101,24 @@ const saving = ref(false)
 const saved = ref(false)
 const error = ref('')
 
+const paymentBanks = [
+  { key: 'telebirr', label: 'Telebirr', numField: 'telebirrAccountNumber', nameField: 'telebirrAccountName', numPlaceholder: 'e.g. 0912345678' },
+  { key: 'cbe', label: 'CBE (Commercial Bank of Ethiopia)', numField: 'cbeAccountNumber', nameField: 'cbeAccountName', numPlaceholder: 'e.g. 1000012345678' },
+  { key: 'boa', label: 'BOA (Bank of Abyssinia)', numField: 'boaAccountNumber', nameField: 'boaAccountName', numPlaceholder: 'e.g. 01234567890' },
+]
+
 const form = reactive({
   storeIsOpen: true,
   minOrderAmount: 0,
   costPerKm: 0,
   serviceChargePct: 0,
   estimatedDeliveryMinutes: 45,
+  telebirrAccountNumber: '',
+  telebirrAccountName: '',
+  cbeAccountNumber: '',
+  cbeAccountName: '',
+  boaAccountNumber: '',
+  boaAccountName: '',
 })
 
 onMounted(async () => {
@@ -91,6 +129,12 @@ onMounted(async () => {
     form.costPerKm = Number(s.costPerKm)
     form.serviceChargePct = Number(s.serviceChargePct)
     form.estimatedDeliveryMinutes = s.estimatedDeliveryMinutes
+    form.telebirrAccountNumber = s.telebirrAccountNumber ?? ''
+    form.telebirrAccountName = s.telebirrAccountName ?? ''
+    form.cbeAccountNumber = s.cbeAccountNumber ?? ''
+    form.cbeAccountName = s.cbeAccountName ?? ''
+    form.boaAccountNumber = s.boaAccountNumber ?? ''
+    form.boaAccountName = s.boaAccountName ?? ''
   } catch {
     error.value = 'Failed to load settings.'
   } finally {
@@ -111,6 +155,12 @@ async function handleSave() {
         costPerKm: form.costPerKm,
         serviceChargePct: form.serviceChargePct,
         estimatedDeliveryMinutes: form.estimatedDeliveryMinutes,
+        telebirrAccountNumber: form.telebirrAccountNumber,
+        telebirrAccountName: form.telebirrAccountName,
+        cbeAccountNumber: form.cbeAccountNumber,
+        cbeAccountName: form.cbeAccountName,
+        boaAccountNumber: form.boaAccountNumber,
+        boaAccountName: form.boaAccountName,
       },
     })
     saved.value = true

@@ -18,6 +18,8 @@ export const useCustomerOrdersStore = defineStore('customerOrders', {
           customerName: order.customerName,
           address: order.address,
           items: order.items,
+          paymentMethod: order.paymentMethod ?? 'CASH',
+          paymentStatus: order.paymentStatus ?? 'PENDING',
         })
       }
       this._persist()

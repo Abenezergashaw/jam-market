@@ -20,7 +20,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  const payload = requireCashier(event, 'products:edit')
 
   const id = parseInt(getRouterParam(event, 'id'))
   const body = await readBody(event)
@@ -30,11 +30,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid data' })
   }
 
-  const { images, ...productData } = parsed.data
+  const { images, costPrice, ...productData } = parsed.data
+
+  // Only admins can update cost price
+  const dataToWrite = {
+    ...productData,
+    ...(payload.role === 'admin' && costPrice !== undefined ? { costPrice } : {}),
+  }
 
   try {
     const product = await prisma.$transaction(async (tx) => {
-      await tx.product.update({ where: { id }, data: productData })
+      await tx.product.update({ where: { id }, data: dataToWrite })
 
       if (images !== undefined) {
         await tx.productImage.deleteMany({ where: { productId: id } })
@@ -54,7 +60,9 @@ export default defineEventHandler(async (event) => {
       })
     })
 
-    return { ...product, price: product.price.toString(), costPrice: product.costPrice?.toString() ?? null }
+    const result = { ...product, price: product.price.toString() }
+    if (payload.role === 'admin') result.costPrice = product.costPrice?.toString() ?? null
+    return result
   } catch (e) {
     if (e.code === 'P2025') throw createError({ statusCode: 404, statusMessage: 'Product not found' })
     throw e

@@ -6,6 +6,12 @@ const schema = z.object({
   serviceChargePct:         z.number().min(0).max(100).optional(),
   estimatedDeliveryMinutes: z.number().int().min(1).optional(),
   storeIsOpen:              z.boolean().optional(),
+  telebirrAccountNumber:    z.string().max(50).optional(),
+  telebirrAccountName:      z.string().max(100).optional(),
+  cbeAccountNumber:         z.string().max(50).optional(),
+  cbeAccountName:           z.string().max(100).optional(),
+  boaAccountNumber:         z.string().max(50).optional(),
+  boaAccountName:           z.string().max(100).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -34,5 +40,11 @@ export default defineEventHandler(async (event) => {
     serviceChargePct:         settings.serviceChargePct.toString(),
     estimatedDeliveryMinutes: settings.estimatedDeliveryMinutes,
     storeIsOpen:              settings.storeIsOpen,
+    telebirrAccountNumber:    settings.telebirrAccountNumber ?? '',
+    telebirrAccountName:      settings.telebirrAccountName ?? '',
+    cbeAccountNumber:         settings.cbeAccountNumber ?? '',
+    cbeAccountName:           settings.cbeAccountName ?? '',
+    boaAccountNumber:         settings.boaAccountNumber ?? '',
+    boaAccountName:           settings.boaAccountName ?? '',
   }
 })
