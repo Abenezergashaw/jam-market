@@ -49,6 +49,13 @@ export default defineEventHandler(async (event) => {
     },
   })
 
+  await logAudit(payload, event, {
+    action: 'PRODUCT_CREATED',
+    entity: 'product',
+    entityId: product.id,
+    meta: { name: product.name, price: product.price.toString(), stock: product.stock },
+  })
+
   const result = { ...product, price: product.price.toString() }
   if (payload.role === 'admin') result.costPrice = product.costPrice?.toString() ?? null
   return result

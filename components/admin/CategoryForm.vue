@@ -62,6 +62,20 @@
       </div>
     </div>
 
+    <!-- Reason for change — edit only -->
+    <div v-if="isEdit" class="border-t border-zinc-200 pt-5">
+      <label class="label">Reason for change <span class="text-brand-500">*</span></label>
+      <textarea
+        v-model="form.reason"
+        class="input resize-none"
+        rows="2"
+        maxlength="300"
+        placeholder="e.g. Updated image to new branding, marked as trending for seasonal promotion…"
+        required
+      />
+      <p class="text-xs text-zinc-400 mt-1.5">Required — shown in the audit log so the team knows why this was changed.</p>
+    </div>
+
     <p v-if="error" class="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2">{{ error }}</p>
 
     <div class="flex gap-3 pt-1">
@@ -88,6 +102,7 @@ const form = reactive({
   slug: props.initial?.slug ?? '',
   imageUrl: props.initial?.imageUrl ?? '',
   isTrending: props.initial?.isTrending ?? false,
+  reason: '',
 })
 
 const imagePreview = ref(props.initial?.imageUrl ?? null)
@@ -127,7 +142,9 @@ async function handleSubmit() {
   error.value = ''
   saving.value = true
   try {
-    await emit('submit', { ...form })
+    const payload = { name: form.name, slug: form.slug, imageUrl: form.imageUrl, isTrending: form.isTrending }
+    if (props.isEdit && form.reason) payload.reason = form.reason
+    await emit('submit', payload)
   } catch (e) {
     error.value = e?.data?.statusMessage ?? 'Something went wrong'
   } finally {

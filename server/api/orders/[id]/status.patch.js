@@ -81,6 +81,13 @@ export default defineEventHandler(async (event) => {
       await sendTelegramMessage(telegramId, message(order.id))
     }
 
+    await logAudit(payload, event, {
+      action: 'ORDER_STATUS_CHANGED',
+      entity: 'order',
+      entityId: id,
+      meta: { from: current.status, to: newStatus },
+    })
+
     return {
       ...order,
       totalPrice: order.totalPrice.toString(),

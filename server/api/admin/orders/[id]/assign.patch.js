@@ -39,5 +39,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Order not found' })
   })
 
+  await logAudit(payload, event, {
+    action: 'DELIVERY_ASSIGNED',
+    entity: 'order',
+    entityId: id,
+    meta: { deliveryPersonId: parsed.data.deliveryPersonId },
+  })
+
   return updated
 })

@@ -9,7 +9,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  const payload = requireAdmin(event)
 
   const id = Number(getRouterParam(event, 'id'))
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Invalid user ID' })
@@ -26,6 +26,13 @@ export default defineEventHandler(async (event) => {
     select: { id: true, email: true, role: true, name: true, isActive: true, storeId: true, permissions: true },
   }).catch(() => {
     throw createError({ statusCode: 404, statusMessage: 'User not found' })
+  })
+
+  await logAudit(payload, event, {
+    action: 'USER_UPDATED',
+    entity: 'user',
+    entityId: id,
+    meta: { fields: Object.keys(parsed.data) },
   })
 
   return user

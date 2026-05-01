@@ -41,6 +41,13 @@ export default defineEventHandler(async (event) => {
       },
     })
 
+    await logAudit(staff, event, {
+      action: 'PAYMENT_VERIFIED',
+      entity: 'order',
+      entityId: id,
+      meta: { paymentStatus: parsed.data.paymentStatus, note: parsed.data.note ?? null },
+    })
+
     return {
       ...order,
       totalPrice: order.totalPrice.toString(),

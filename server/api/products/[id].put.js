@@ -17,6 +17,7 @@ const schema = z.object({
   costPrice: z.number().positive().optional().nullable(),
   lowStockThreshold: z.number().int().min(0).optional(),
   isFeatured: z.boolean().optional(),
+  reason: z.string().max(300).optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -30,7 +31,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid data' })
   }
 
-  const { images, costPrice, ...productData } = parsed.data
+  const { images, costPrice, reason, ...productData } = parsed.data
 
   // Only admins can update cost price
   const dataToWrite = {
@@ -58,6 +59,13 @@ export default defineEventHandler(async (event) => {
           images: { orderBy: { position: 'asc' } },
         },
       })
+    })
+
+    await logAudit(payload, event, {
+      action: 'PRODUCT_UPDATED',
+      entity: 'product',
+      entityId: id,
+      meta: { reason: reason ?? null },
     })
 
     const result = { ...product, price: product.price.toString() }

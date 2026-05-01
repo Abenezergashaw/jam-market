@@ -200,6 +200,20 @@
       </div>
     </div>
 
+    <!-- Reason for change — edit only -->
+    <div v-if="isEdit" class="border-t border-zinc-200 pt-5">
+      <label class="label">Reason for change <span class="text-brand-500">*</span></label>
+      <textarea
+        v-model="form.reason"
+        class="input resize-none"
+        rows="2"
+        maxlength="300"
+        placeholder="e.g. Price corrected after new supplier invoice, added expiry date, fixed typo in description…"
+        required
+      />
+      <p class="text-xs text-zinc-400 mt-1.5">Required — shown in the audit log so the team knows why this was changed.</p>
+    </div>
+
     <p v-if="error" class="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2">{{ error }}</p>
 
     <div class="flex gap-3 pt-1">
@@ -242,6 +256,7 @@ const form = reactive({
   costPrice: props.initial?.costPrice ?? '',
   lowStockThreshold: props.initial?.lowStockThreshold ?? 10,
   isFeatured: props.initial?.isFeatured ?? false,
+  reason: '',
 })
 
 const primaryPreview = ref(props.initial?.imageUrl ?? null)
@@ -319,6 +334,7 @@ async function handleSubmit() {
       costPrice: form.costPrice ? Number(form.costPrice) : null,
       lowStockThreshold: Number(form.lowStockThreshold),
       isFeatured: form.isFeatured,
+      ...(props.isEdit && form.reason ? { reason: form.reason } : {}),
     })
   } catch (e) {
     error.value = e?.data?.statusMessage ?? 'Something went wrong'

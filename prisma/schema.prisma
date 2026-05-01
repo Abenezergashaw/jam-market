@@ -204,6 +204,23 @@ model DeliveryZone {
   @@map("delivery_zones")
 }
 
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  userEmail String?  @map("user_email")
+  userRole  String?  @map("user_role")
+  action    String
+  entity    String
+  entityId  Int?     @map("entity_id")
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
 enum OrderStatus {
   PENDING
   CONFIRMED

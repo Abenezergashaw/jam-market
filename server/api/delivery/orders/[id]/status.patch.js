@@ -43,5 +43,12 @@ export default defineEventHandler(async (event) => {
     )
   }
 
+  await logAudit(p, event, {
+    action: 'ORDER_STATUS_CHANGED',
+    entity: 'order',
+    entityId: id,
+    meta: { from: 'OUT_FOR_DELIVERY', to: 'DELIVERED' },
+  })
+
   return updated
 })

@@ -11,7 +11,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  const adminPayload = requireAdmin(event)
 
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
@@ -33,6 +33,14 @@ export default defineEventHandler(async (event) => {
       },
       select: { id: true, email: true, role: true, name: true, isActive: true, storeId: true, permissions: true },
     })
+
+    await logAudit(adminPayload, event, {
+      action: 'USER_CREATED',
+      entity: 'user',
+      entityId: user.id,
+      meta: { email: user.email, role: user.role },
+    })
+
     return user
   } catch (e) {
     if (e.code === 'P2002') throw createError({ statusCode: 409, statusMessage: 'Email already exists' })
