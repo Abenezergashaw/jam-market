@@ -62,6 +62,36 @@
         </button>
       </div>
 
+      <!-- Telegram Bot Webhook -->
+      <div class="card p-5 sm:p-6 space-y-4">
+        <div>
+          <h3 class="text-sm font-semibold text-zinc-700">Telegram Bot — Login Webhook</h3>
+          <p class="text-xs text-zinc-400 mt-0.5">Register the bot webhook so customers can sign in by sending a code to <span class="font-medium text-zinc-600">@{{ botUsername }}</span>. Run this once after every deploy.</p>
+        </div>
+
+        <div>
+          <label class="label">Site URL</label>
+          <input
+            v-model="webhookSiteUrl"
+            type="url"
+            class="input"
+            placeholder="https://your-domain.com"
+          />
+          <p class="text-xs text-zinc-400 mt-1.5">
+            The public HTTPS address of this app. On <strong>Vercel/Railway</strong>: copy the deployment URL.
+            On <strong>localhost</strong>: use an <a href="https://ngrok.com" target="_blank" class="text-brand-500 underline">ngrok</a> tunnel URL.
+          </p>
+        </div>
+
+        <p v-if="webhookResult" class="text-xs px-3 py-2 rounded-xl border" :class="webhookResult.ok ? 'text-green-700 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200'">
+          {{ webhookResult.ok ? '✓ ' : '✗ ' }}{{ webhookResult.message }}
+        </p>
+
+        <button class="btn-primary w-full" :disabled="registeringWebhook || !webhookSiteUrl" @click="registerWebhook">
+          {{ registeringWebhook ? 'Registering…' : 'Register Webhook' }}
+        </button>
+      </div>
+
       <!-- Online Payment Accounts -->
       <div class="card p-5 sm:p-6 space-y-5">
         <div>
@@ -95,11 +125,33 @@
 definePageMeta({ middleware: ['admin'], layout: 'admin', ssr: false })
 
 const { adminFetch } = useAdminFetch()
+const config = useRuntimeConfig()
 
 const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
 const error = ref('')
+
+const botUsername = config.public.telegramBotUsername || 'jamsupermarketbot'
+const webhookSiteUrl = ref('')
+const registeringWebhook = ref(false)
+const webhookResult = ref(null)
+
+async function registerWebhook() {
+  registeringWebhook.value = true
+  webhookResult.value = null
+  try {
+    const res = await adminFetch('/api/admin/telegram/setup-webhook', {
+      method: 'POST',
+      body: { siteUrl: webhookSiteUrl.value },
+    })
+    webhookResult.value = { ok: true, message: `Webhook registered → ${res.webhookUrl}` }
+  } catch (e) {
+    webhookResult.value = { ok: false, message: e?.data?.statusMessage ?? 'Registration failed.' }
+  } finally {
+    registeringWebhook.value = false
+  }
+}
 
 const paymentBanks = [
   { key: 'telebirr', label: 'Telebirr', numField: 'telebirrAccountNumber', nameField: 'telebirrAccountName', numPlaceholder: 'e.g. 0912345678' },
