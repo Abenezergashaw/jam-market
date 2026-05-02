@@ -15,17 +15,19 @@ export const useCustomerStore = defineStore('customer', {
   },
 
   actions: {
-    async loginWithTelegram(telegramData) {
-      const res = await $fetch('/api/auth/customer/telegram', {
+    async loginWithOtp(otp) {
+      const res = await $fetch('/api/auth/customer/otp/verify', {
         method: 'POST',
-        body: telegramData,
+        body: { otp },
       })
+      if (!res.verified) return false
       this.token = res.token
       this.user = res.user
       if (import.meta.client) {
         localStorage.setItem('customer_token', res.token)
         localStorage.setItem('customer_user', JSON.stringify(res.user))
       }
+      return true
     },
 
     logout() {
