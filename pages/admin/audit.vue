@@ -19,6 +19,8 @@
         <option value="">All actions</option>
         <optgroup label="Orders">
           <option value="ORDER_STATUS_CHANGED">Status changed</option>
+          <option value="ORDER_CANCELLED">Order cancelled</option>
+          <option value="ORDER_REFUNDED">Order refunded</option>
           <option value="PAYMENT_VERIFIED">Payment verified</option>
           <option value="DELIVERY_ASSIGNED">Delivery assigned</option>
         </optgroup>
@@ -29,7 +31,9 @@
           <option value="STOCK_UPDATED">Stock updated</option>
         </optgroup>
         <optgroup label="Categories">
+          <option value="CATEGORY_CREATED">Category created</option>
           <option value="CATEGORY_UPDATED">Category updated</option>
+          <option value="CATEGORY_DELETED">Category deleted</option>
         </optgroup>
         <optgroup label="Users">
           <option value="USER_CREATED">User created</option>
@@ -170,13 +174,17 @@ function clearFilters() {
 
 const ACTION_META = {
   ORDER_STATUS_CHANGED: { label: 'Status changed',     cls: 'bg-blue-50 text-blue-600' },
+  ORDER_CANCELLED:      { label: 'Order cancelled',    cls: 'bg-red-50 text-red-600' },
+  ORDER_REFUNDED:       { label: 'Order refunded',     cls: 'bg-emerald-50 text-emerald-600' },
   PAYMENT_VERIFIED:     { label: 'Payment verified',   cls: 'bg-green-50 text-green-600' },
   DELIVERY_ASSIGNED:    { label: 'Delivery assigned',  cls: 'bg-purple-50 text-purple-600' },
   PRODUCT_CREATED:      { label: 'Product created',    cls: 'bg-emerald-50 text-emerald-600' },
   PRODUCT_UPDATED:      { label: 'Product updated',    cls: 'bg-amber-50 text-amber-600' },
   PRODUCT_DELETED:      { label: 'Product deleted',    cls: 'bg-red-50 text-red-600' },
   STOCK_UPDATED:        { label: 'Stock updated',      cls: 'bg-orange-50 text-orange-600' },
+  CATEGORY_CREATED:     { label: 'Category created',   cls: 'bg-emerald-50 text-emerald-600' },
   CATEGORY_UPDATED:     { label: 'Category updated',   cls: 'bg-amber-50 text-amber-600' },
+  CATEGORY_DELETED:     { label: 'Category deleted',   cls: 'bg-red-50 text-red-600' },
   USER_CREATED:         { label: 'User created',       cls: 'bg-sky-50 text-sky-600' },
   USER_UPDATED:         { label: 'User updated',       cls: 'bg-zinc-100 text-zinc-600' },
   USER_DEACTIVATED:     { label: 'User deactivated',   cls: 'bg-red-50 text-red-500' },
@@ -197,13 +205,17 @@ function entityLink(log) {
 function formatMeta(action, meta) {
   if (!meta) return '—'
   if (action === 'ORDER_STATUS_CHANGED') return `${meta.from} → ${meta.to}`
+  if (action === 'ORDER_CANCELLED')     return `${meta.from} → CANCELLED${meta.reason ? ` · "${meta.reason}"` : ''}${meta.refundStatus === 'PENDING' ? ' · refund pending' : ''}`
+  if (action === 'ORDER_REFUNDED')      return `ETB ${meta.amount}${meta.note ? ` · "${meta.note}"` : ''}`
   if (action === 'PAYMENT_VERIFIED')     return `${meta.paymentStatus}${meta.note ? ` · "${meta.note}"` : ''}`
   if (action === 'DELIVERY_ASSIGNED')    return meta.deliveryPersonId ? `Assigned to #${meta.deliveryPersonId}` : 'Unassigned'
   if (action === 'PRODUCT_CREATED')      return `${meta.name} · ETB ${meta.price} · stock ${meta.stock}`
   if (action === 'PRODUCT_UPDATED')      return meta.reason ?? '—'
   if (action === 'PRODUCT_DELETED')      return meta.name ?? '—'
   if (action === 'STOCK_UPDATED')        return `${meta.from} → ${meta.to}`
+  if (action === 'CATEGORY_CREATED')     return `${meta.name} (${meta.slug})`
   if (action === 'CATEGORY_UPDATED')     return meta.reason ?? '—'
+  if (action === 'CATEGORY_DELETED')     return meta.name ?? '—'
   if (action === 'USER_CREATED')         return `${meta.email} (${meta.role})`
   if (action === 'USER_UPDATED')         return `Fields: ${Array.isArray(meta.fields) ? meta.fields.join(', ') : '—'}`
   if (action === 'USER_DEACTIVATED')     return `${meta.email ?? ''} (${meta.role ?? ''})`

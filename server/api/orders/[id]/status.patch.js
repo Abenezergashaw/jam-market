@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nuxt'
 
 const schema = z.object({
   status: z.enum(['PENDING', 'CONFIRMED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']),
+  cancelReason: z.string().max(300).optional(),
 })
 
 const notificationMessages = {
@@ -23,12 +24,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid status value' })
   }
 
-  const newStatus = parsed.data.status
+  const { status: newStatus, cancelReason } = parsed.data
 
-  // Fetch current order for role-based gate checks
   const current = await prisma.order.findUnique({
     where: { id },
-    select: { status: true, storeId: true, deliveryPersonId: true },
+    select: { status: true, storeId: true, deliveryPersonId: true, paymentStatus: true },
   })
   if (!current) throw createError({ statusCode: 404, statusMessage: 'Order not found' })
 
@@ -45,7 +45,6 @@ export default defineEventHandler(async (event) => {
     if (!needed || !payload.permissions?.includes(needed)) {
       throw createError({ statusCode: 403, statusMessage: 'Permission denied' })
     }
-    // Reversions (PENDING, DELIVERED) are admin-only
     if (newStatus === 'DELIVERED' || newStatus === 'PENDING') {
       throw createError({ statusCode: 403, statusMessage: 'Permission denied' })
     }
@@ -60,20 +59,63 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const include = {
+    customer: {
+      select: { id: true, telegramId: true, firstName: true, lastName: true, username: true, photoUrl: true },
+    },
+    deliveryPerson: { select: { id: true, name: true, email: true } },
+    items: {
+      include: { product: { select: { id: true, name: true, imageUrl: true } } },
+    },
+  }
+
   try {
-    const order = await prisma.order.update({
-      where: { id },
-      data: { status: newStatus },
-      include: {
-        customer: {
-          select: { id: true, telegramId: true, firstName: true, lastName: true, username: true, photoUrl: true },
-        },
-        deliveryPerson: { select: { id: true, name: true, email: true } },
-        items: {
-          include: { product: { select: { id: true, name: true, imageUrl: true } } },
-        },
-      },
-    })
+    let order
+
+    if (newStatus === 'CANCELLED') {
+      const refundStatus = current.paymentStatus === 'COLLECTED' ? 'PENDING' : 'NONE'
+
+      order = await prisma.$transaction(async (tx) => {
+        const orderItems = await tx.orderItem.findMany({ where: { orderId: id } })
+        for (const item of orderItems) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          })
+        }
+
+        return tx.order.update({
+          where: { id },
+          data: {
+            status: 'CANCELLED',
+            cancelReason: cancelReason ?? null,
+            cancelledAt: new Date(),
+            refundStatus,
+          },
+          include,
+        })
+      })
+
+      await logAudit(payload, event, {
+        action: 'ORDER_CANCELLED',
+        entity: 'order',
+        entityId: id,
+        meta: { from: current.status, reason: cancelReason ?? null, refundStatus },
+      })
+    } else {
+      order = await prisma.order.update({
+        where: { id },
+        data: { status: newStatus },
+        include,
+      })
+
+      await logAudit(payload, event, {
+        action: 'ORDER_STATUS_CHANGED',
+        entity: 'order',
+        entityId: id,
+        meta: { from: current.status, to: newStatus },
+      })
+    }
 
     const telegramId = order.customer?.telegramId
     const message = notificationMessages[newStatus]
@@ -81,19 +123,13 @@ export default defineEventHandler(async (event) => {
       await sendTelegramMessage(telegramId, message(order.id))
     }
 
-    await logAudit(payload, event, {
-      action: 'ORDER_STATUS_CHANGED',
-      entity: 'order',
-      entityId: id,
-      meta: { from: current.status, to: newStatus },
-    })
-
     return {
       ...order,
       totalPrice: order.totalPrice.toString(),
       deliveryFee: order.deliveryFee.toString(),
       lat: order.lat?.toString() ?? null,
       lng: order.lng?.toString() ?? null,
+      refundAmount: order.refundAmount?.toString() ?? null,
       customer: order.customer
         ? { ...order.customer, telegramId: order.customer.telegramId.toString() }
         : null,

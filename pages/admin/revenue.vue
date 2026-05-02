@@ -31,6 +31,7 @@
       <div class="grid grid-cols-2 lg:grid-cols-6 gap-3">
         <div v-for="n in 6" :key="n" class="card h-20 animate-pulse bg-zinc-100" />
       </div>
+      <div class="card h-28 animate-pulse bg-zinc-100" />
       <div class="card h-48 animate-pulse bg-zinc-100" />
       <div class="card h-64 animate-pulse bg-zinc-100" />
     </div>
@@ -68,6 +69,40 @@
           <p class="text-[10px] font-semibold text-green-600 uppercase tracking-wider mb-1">Gross Profit</p>
           <p class="text-xl font-bold text-green-700 truncate">ETB {{ fmt(data.totals.grossProfit) }}</p>
           <p class="text-xs text-green-500 mt-0.5">{{ margin }}% margin</p>
+        </div>
+      </div>
+
+      <!-- Cancellations & Refunds -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between gap-4 flex-wrap mb-4">
+          <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Cancellations & Refunds</h2>
+          <span v-if="data.refunds.pendingCount > 0" class="badge badge-yellow text-xs">
+            {{ data.refunds.pendingCount }} refund{{ data.refunds.pendingCount !== 1 ? 's' : '' }} pending
+          </span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 rounded-xl bg-red-50 border border-red-100 text-center">
+            <p class="text-2xl font-bold text-red-700">{{ data.counts.cancelled }}</p>
+            <p class="text-xs text-red-500 mt-0.5">Cancelled orders</p>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-100 text-center">
+            <p class="text-2xl font-bold text-amber-700">{{ data.refunds.pendingCount }}</p>
+            <p class="text-xs text-amber-500 mt-0.5">Refund pending</p>
+          </div>
+          <div class="p-3 rounded-xl bg-zinc-50 border border-zinc-100 text-center">
+            <p class="text-2xl font-bold text-zinc-700">{{ data.refunds.refundedCount }}</p>
+            <p class="text-xs text-zinc-500 mt-0.5">Refunded</p>
+          </div>
+          <div class="p-3 rounded-xl bg-red-50 border border-red-100 text-center">
+            <p class="text-lg font-bold text-red-700 truncate">ETB {{ fmt(data.refunds.refundedTotal) }}</p>
+            <p class="text-xs text-red-500 mt-0.5">Total refunded</p>
+          </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between gap-4 flex-wrap">
+          <span class="text-xs text-zinc-500">Gross profit after refunds</span>
+          <span class="text-sm font-bold" :class="netAfterRefunds >= 0 ? 'text-green-600' : 'text-red-500'">
+            ETB {{ fmt(netAfterRefunds) }}
+          </span>
         </div>
       </div>
 
@@ -299,6 +334,11 @@ async function fetchRevenue() {
 const margin = computed(() => {
   if (!data.value?.totals?.revenue || data.value.totals.revenue === 0) return '0.0'
   return ((data.value.totals.grossProfit / data.value.totals.revenue) * 100).toFixed(1)
+})
+
+const netAfterRefunds = computed(() => {
+  if (!data.value) return 0
+  return data.value.totals.grossProfit - Number(data.value.refunds.refundedTotal)
 })
 
 const filteredDays = computed(() => {

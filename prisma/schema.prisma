@@ -111,6 +111,11 @@ model Order {
   store              Store?        @relation(fields: [storeId], references: [id], onDelete: SetNull)
   deliveryPersonId   Int?          @map("delivery_person_id")
   deliveryPerson     User?         @relation("DeliveryPerson", fields: [deliveryPersonId], references: [id], onDelete: SetNull)
+  cancelReason       String?       @map("cancel_reason")
+  cancelledAt        DateTime?     @map("cancelled_at")
+  refundStatus       String?       @map("refund_status")
+  refundAmount       Decimal?      @db.Decimal(10, 2) @map("refund_amount")
+  refundNote         String?       @map("refund_note")
   items              OrderItem[]
 
   @@map("orders")

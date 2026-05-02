@@ -62,6 +62,24 @@
         </div>
       </div>
 
+      <!-- Cancel modal -->
+      <div v-if="showCancelModal" class="card p-5 border-red-200 bg-red-50/30 space-y-3">
+        <h3 class="text-sm font-semibold text-zinc-800">Cancel this order?</h3>
+        <div>
+          <label class="label text-xs">Reason for cancellation <span class="text-zinc-400 font-normal">(optional)</span></label>
+          <textarea v-model="cancelReasonInput" class="input resize-none text-sm" rows="2" maxlength="300" placeholder="e.g. Customer requested cancellation, item out of stock…" />
+        </div>
+        <p v-if="order.paymentStatus === 'COLLECTED'" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          Payment was already collected — a refund will be marked as pending after cancellation.
+        </p>
+        <div class="flex gap-2">
+          <button class="btn-danger text-sm px-4" :disabled="updating" @click="confirmCancel">
+            {{ updating ? '…' : 'Confirm Cancellation' }}
+          </button>
+          <button class="btn-secondary text-sm px-4" @click="showCancelModal = false">Back</button>
+        </div>
+      </div>
+
       <!-- Error banner -->
       <p v-if="updateError" class="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-4 py-2.5">{{ updateError }}</p>
 
@@ -161,7 +179,7 @@
             </div>
 
             <!-- Payment status actions -->
-            <div v-if="order.paymentStatus === 'PENDING'" class="space-y-2 pt-1">
+            <div v-if="canVerifyPayment" class="space-y-2 pt-1">
               <div>
                 <label class="label text-xs">Note <span class="text-zinc-400 font-normal normal-case tracking-normal">(optional — amount mismatch, dispute, etc.)</span></label>
                 <input
@@ -201,6 +219,54 @@
             <p v-else-if="order.paymentStatus === 'FAILED'" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
               Payment marked as failed.
             </p>
+          </div>
+
+          <!-- Refund card — only for cancelled orders -->
+          <div v-if="order.status === 'CANCELLED'" class="card p-5 space-y-4">
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wider">Refund</h2>
+              <span v-if="order.refundStatus === 'REFUNDED'" class="badge badge-green text-xs">Refunded</span>
+              <span v-else-if="order.refundStatus === 'PENDING'" class="badge badge-yellow text-xs">Refund Pending</span>
+              <span v-else class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-500">No Refund</span>
+            </div>
+
+            <div v-if="order.cancelReason" class="text-xs text-zinc-600 bg-zinc-50 border border-zinc-100 rounded-xl px-3 py-2.5">
+              <span class="font-semibold">Cancellation reason: </span>{{ order.cancelReason }}
+            </div>
+
+            <!-- Pending: show action form -->
+            <template v-if="order.refundStatus === 'PENDING'">
+              <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                Payment was collected. Process the refund then mark it as done below.
+              </p>
+              <div class="space-y-3">
+                <div>
+                  <label class="label text-xs">Refund amount (ETB)</label>
+                  <input v-model="refundAmountInput" type="number" step="0.01" min="0.01" class="input text-sm" :placeholder="order.totalPrice" />
+                  <p class="text-xs text-zinc-400 mt-1">Leave blank to use full total: ETB {{ Number(order.totalPrice).toFixed(2) }}</p>
+                </div>
+                <div>
+                  <label class="label text-xs">Refund note <span class="text-zinc-400 font-normal">(optional)</span></label>
+                  <input v-model="refundNoteInput" type="text" maxlength="300" class="input text-sm" placeholder="e.g. Returned via Telebirr to 09xxx" />
+                </div>
+                <button class="btn-primary text-sm px-4" :disabled="updatingRefund" @click="markRefundDone">
+                  {{ updatingRefund ? '…' : 'Mark Refund Done' }}
+                </button>
+              </div>
+            </template>
+
+            <!-- Refunded: show summary -->
+            <template v-else-if="order.refundStatus === 'REFUNDED'">
+              <div class="text-xs text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 space-y-1">
+                <p><span class="font-semibold">Amount refunded: </span>ETB {{ Number(order.refundAmount).toFixed(2) }}</p>
+                <p v-if="order.refundNote"><span class="font-semibold">Note: </span>{{ order.refundNote }}</p>
+              </div>
+            </template>
+
+            <!-- None: no payment was collected -->
+            <template v-else>
+              <p class="text-xs text-zinc-400">No payment was collected — no refund needed.</p>
+            </template>
           </div>
         </div>
 
@@ -307,6 +373,11 @@ const mapEl = ref(null)
 const showDispatchModal = ref(false)
 const selectedDeliveryPerson = ref(null)
 const deliveryPersons = ref([])
+const showCancelModal = ref(false)
+const cancelReasonInput = ref('')
+const refundAmountInput = ref('')
+const refundNoteInput = ref('')
+const updatingRefund = ref(false)
 let map = null
 
 const PM_LABEL = { CASH: 'Cash', COD: 'Cash', TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
@@ -346,6 +417,11 @@ const availableTransitions = computed(() => TRANSITIONS[order.value?.status] ?? 
 const statusClass = computed(() => ['badge', statusMap[order.value?.status]?.cls ?? ''].join(' '))
 const statusLabel = computed(() => statusMap[order.value?.status]?.label ?? order.value?.status)
 
+const isCashOrder = computed(() => ['CASH', 'COD'].includes(order.value?.paymentMethod))
+const canVerifyPayment = computed(() =>
+  order.value?.paymentStatus === 'PENDING' && !isCashOrder.value
+)
+
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
     year: 'numeric', month: 'short', day: 'numeric',
@@ -383,14 +459,24 @@ async function updatePaymentStatus(status) {
 async function handleTransitionClick(status) {
   if (status === 'OUT_FOR_DELIVERY') {
     try {
-      // Admin sees ALL delivery staff — no store filter
       deliveryPersons.value = await adminFetch('/api/admin/users?role=delivery')
     } catch { deliveryPersons.value = [] }
     selectedDeliveryPerson.value = order.value?.deliveryPersonId ?? null
     showDispatchModal.value = true
     return
   }
+  if (status === 'CANCELLED') {
+    cancelReasonInput.value = ''
+    showCancelModal.value = true
+    return
+  }
   await updateStatus(status)
+}
+
+async function confirmCancel() {
+  showCancelModal.value = false
+  await updateStatus('CANCELLED', { cancelReason: cancelReasonInput.value.trim() || undefined })
+  cancelReasonInput.value = ''
 }
 
 async function confirmDispatch() {
@@ -409,14 +495,14 @@ async function confirmDispatch() {
   await updateStatus('OUT_FOR_DELIVERY')
 }
 
-async function updateStatus(status) {
+async function updateStatus(status, extraBody = {}) {
   updating.value = true
   pendingStatus.value = status
   updateError.value = ''
   try {
     const updated = await adminFetch(`/api/orders/${order.value.id}/status`, {
       method: 'PATCH',
-      body: { status },
+      body: { status, ...extraBody },
     })
     order.value = updated
   } catch (e) {
@@ -424,6 +510,25 @@ async function updateStatus(status) {
   } finally {
     updating.value = false
     pendingStatus.value = null
+  }
+}
+
+async function markRefundDone() {
+  updatingRefund.value = true
+  updateError.value = ''
+  try {
+    const result = await adminFetch(`/api/admin/orders/${order.value.id}/refund`, {
+      method: 'PATCH',
+      body: {
+        refundAmount: refundAmountInput.value ? Number(refundAmountInput.value) : undefined,
+        refundNote: refundNoteInput.value.trim() || undefined,
+      },
+    })
+    order.value = { ...order.value, ...result }
+  } catch (e) {
+    updateError.value = e?.data?.statusMessage ?? 'Failed to mark refund.'
+  } finally {
+    updatingRefund.value = false
   }
 }
 

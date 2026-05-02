@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const dateWhere = { createdAt: { gte: fromDate, lte: toDate } }
   const revenueWhere = { ...dateWhere, status: { notIn: ['PENDING', 'CANCELLED'] } }
 
-  const [counts, orders, paymentGroups, topItems] = await Promise.all([
+  const [counts, orders, paymentGroups, topItems, refundedAgg, pendingRefundCount] = await Promise.all([
     Promise.all([
       prisma.order.count({ where: dateWhere }),
       prisma.order.count({ where: { ...dateWhere, status: 'PENDING' } }),
@@ -52,6 +52,12 @@ export default defineEventHandler(async (event) => {
       orderBy: { _sum: { quantity: 'desc' } },
       take: 10,
     }),
+    prisma.order.aggregate({
+      where: { ...dateWhere, status: 'CANCELLED', refundStatus: 'REFUNDED' },
+      _sum: { refundAmount: true },
+      _count: { id: true },
+    }),
+    prisma.order.count({ where: { ...dateWhere, status: 'CANCELLED', refundStatus: 'PENDING' } }),
   ])
 
   const [total, pending, confirmed, outForDelivery, delivered, cancelled] = counts
@@ -171,10 +177,17 @@ export default defineEventHandler(async (event) => {
     ),
   }
 
+  const totalRefunded = Number(refundedAgg._sum.refundAmount ?? 0)
+
   return {
     from: ymd(fromDate),
     to: ymd(toDate),
     counts: { total, pending, confirmed, outForDelivery, delivered, cancelled },
+    refunds: {
+      refundedCount: refundedAgg._count.id,
+      refundedTotal: fmt(totalRefunded),
+      pendingCount: pendingRefundCount,
+    },
     totals: {
       revenue: fmt(totalRevenue),
       deliveryFee: fmt(totalDeliveryFee),

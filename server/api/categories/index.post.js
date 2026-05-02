@@ -8,7 +8,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  requireCashier(event, 'categories:create')
+  const payload = requireCashier(event, 'categories:create')
 
   const body = await readBody(event)
   const parsed = schema.safeParse(body)
@@ -17,7 +17,16 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    return await prisma.category.create({ data: parsed.data })
+    const category = await prisma.category.create({ data: parsed.data })
+
+    await logAudit(payload, event, {
+      action: 'CATEGORY_CREATED',
+      entity: 'category',
+      entityId: category.id,
+      meta: { name: category.name, slug: category.slug },
+    })
+
+    return category
   } catch (e) {
     if (e.code === 'P2002') {
       throw createError({ statusCode: 409, statusMessage: 'A category with this slug already exists' })
