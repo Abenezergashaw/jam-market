@@ -16,45 +16,99 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid payment status' })
   }
 
-  // Cashiers can only update orders from their assigned store
-  if (staff.role === 'cashier' && staff.storeId) {
-    const existing = await prisma.order.findUnique({ where: { id }, select: { storeId: true } })
-    if (!existing) throw createError({ statusCode: 404, statusMessage: 'Order not found' })
-    if (existing.storeId !== staff.storeId) {
-      throw createError({ statusCode: 403, statusMessage: 'This order belongs to a different store' })
-    }
+  // Fetch current order for validation and auto-cancel logic
+  const current = await prisma.order.findUnique({
+    where: { id },
+    select: {
+      storeId: true,
+      status: true,
+      items: { select: { productId: true, quantity: true } },
+    },
+  })
+  if (!current) throw createError({ statusCode: 404, statusMessage: 'Order not found' })
+
+  if (staff.role === 'cashier' && staff.storeId && current.storeId !== staff.storeId) {
+    throw createError({ statusCode: 403, statusMessage: 'This order belongs to a different store' })
+  }
+
+  const baseData = {
+    paymentStatus: parsed.data.paymentStatus,
+    paymentNote: parsed.data.note ?? null,
+    paymentVerifiedAt: new Date(),
+    paymentVerifiedById: staff.userId,
+  }
+
+  const orderInclude = {
+    customer: { select: { telegramId: true } },
+    paymentVerifiedBy: { select: { id: true, name: true, email: true } },
+    items: { include: { product: { select: { id: true, name: true } } } },
   }
 
   try {
-    const order = await prisma.order.update({
-      where: { id },
-      data: {
-        paymentStatus: parsed.data.paymentStatus,
-        paymentNote: parsed.data.note ?? null,
-        paymentVerifiedAt: new Date(),
-        paymentVerifiedById: staff.userId,
-      },
-      include: {
-        customer: { select: { telegramId: true } },
-        paymentVerifiedBy: { select: { id: true, name: true, email: true } },
-        items: { include: { product: { select: { id: true, name: true } } } },
-      },
-    })
+    let order
+
+    const shouldAutoCancel =
+      parsed.data.paymentStatus === 'FAILED' &&
+      !['CANCELLED', 'DELIVERED'].includes(current.status)
+
+    if (shouldAutoCancel) {
+      const cancelReason = parsed.data.note?.trim() || 'Payment verification failed'
+      order = await prisma.$transaction(async (tx) => {
+        for (const item of current.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          })
+        }
+        return tx.order.update({
+          where: { id },
+          data: {
+            ...baseData,
+            status: 'CANCELLED',
+            cancelReason,
+            cancelledAt: new Date(),
+            refundStatus: 'NONE',
+          },
+          include: orderInclude,
+        })
+      })
+    } else {
+      order = await prisma.order.update({
+        where: { id },
+        data: baseData,
+        include: orderInclude,
+      })
+    }
 
     await logAudit(staff, event, {
       action: 'PAYMENT_VERIFIED',
       entity: 'order',
       entityId: id,
-      meta: { paymentStatus: parsed.data.paymentStatus, note: parsed.data.note ?? null },
+      meta: {
+        paymentStatus: parsed.data.paymentStatus,
+        note: parsed.data.note ?? null,
+        autoCancelled: shouldAutoCancel,
+      },
     })
+
+    if (parsed.data.paymentStatus === 'FAILED' && order.customer?.telegramId) {
+      const note = parsed.data.note?.trim()
+      const reasonLine = note ? `\n\n<b>Reason:</b> ${note}` : ''
+      await sendTelegramMessage(
+        order.customer.telegramId,
+        `❌ Your payment for <b>Jam Store order #${id}</b> has been declined and your order has been automatically cancelled.${reasonLine}\n\nPlease contact us if you need assistance.`,
+      )
+    }
 
     return {
       ...order,
       totalPrice: order.totalPrice.toString(),
+      deliveryFee: order.deliveryFee?.toString() ?? '0',
       lat: order.lat?.toString() ?? null,
       lng: order.lng?.toString() ?? null,
+      refundAmount: order.refundAmount?.toString() ?? null,
       customer: order.customer
-        ? { ...order.customer, telegramId: order.customer.telegramId.toString() }
+        ? { ...order.customer, telegramId: order.customer.telegramId?.toString() ?? null }
         : null,
       items: order.items.map((i) => ({ ...i, price: i.price.toString() })),
     }

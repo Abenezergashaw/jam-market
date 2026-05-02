@@ -187,14 +187,16 @@
                 <th class="text-right py-2 px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Items</th>
                 <th class="text-right py-2 px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider">COGS</th>
                 <th class="text-right py-2 pl-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Profit</th>
+                <th class="w-6"></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-zinc-50">
               <tr
                 v-for="day in filteredDays"
                 :key="day.date"
-                class="hover:bg-zinc-50/60 transition-colors"
-                :class="day.orders === 0 ? 'opacity-40' : ''"
+                class="hover:bg-brand-50/40 transition-colors"
+                :class="[day.orders === 0 ? 'opacity-40 cursor-default' : 'cursor-pointer', selectedDay === day.date ? 'bg-brand-50/60' : '']"
+                @click="day.orders > 0 && toggleDay(day.date)"
               >
                 <td class="py-2.5 pr-4 text-zinc-600 font-mono text-xs">{{ formatDay(day.date) }}</td>
                 <td class="py-2.5 px-3 text-right text-zinc-700">{{ day.orders }}</td>
@@ -205,6 +207,9 @@
                 <td class="py-2.5 px-3 text-right text-zinc-500">{{ fmt(day.cogs) }}</td>
                 <td class="py-2.5 pl-3 text-right font-semibold" :class="day.profit >= 0 ? 'text-green-600' : 'text-red-500'">
                   {{ fmt(day.profit) }}
+                </td>
+                <td class="py-2.5 pl-2 w-6">
+                  <svg v-if="day.orders > 0" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform duration-150" :class="selectedDay === day.date ? 'rotate-90 text-brand-400' : 'text-zinc-300'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </td>
               </tr>
             </tbody>
@@ -218,6 +223,7 @@
                 <td class="py-2.5 px-3 text-right font-semibold text-zinc-700">{{ fmt(data.totals.itemsRevenue) }}</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-zinc-600">{{ fmt(data.totals.cogs) }}</td>
                 <td class="py-2.5 pl-3 text-right font-bold text-green-600">{{ fmt(data.totals.grossProfit) }}</td>
+                <td></td>
               </tr>
             </tfoot>
           </table>
@@ -225,6 +231,99 @@
         <p v-if="filteredDays.length === 0" class="text-center py-8 text-sm text-zinc-400">
           No orders in this date range.
         </p>
+      </div>
+
+      <!-- Day orders panel -->
+      <div v-if="selectedDay" class="card p-5">
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            Orders — {{ formatDay(selectedDay) }}
+            <span class="ml-2 text-brand-500 normal-case font-bold text-sm">{{ dayOrders.length }}</span>
+          </h2>
+          <button class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors" @click="selectedDay = null">✕ Close</button>
+        </div>
+        <div v-if="dayOrders.length === 0" class="text-center py-8 text-sm text-zinc-400">No orders found for this day.</div>
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <NuxtLink
+            v-for="order in dayOrders"
+            :key="order.id"
+            :to="`/admin/orders/${order.id}`"
+            class="block p-4 rounded-xl border border-zinc-200 hover:border-brand-300 hover:bg-brand-50/30 transition-all space-y-2 bg-white"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-sm font-bold text-zinc-700">#{{ order.id }}</span>
+              <span class="badge text-[10px]" :class="statusBadge(order.status)">{{ order.status.replace('_', ' ') }}</span>
+            </div>
+            <p class="text-sm font-medium text-zinc-900 truncate">{{ order.customerName }}</p>
+            <p class="text-xs text-zinc-400">{{ formatTime(order.createdAt) }} · {{ order.itemCount }} item{{ order.itemCount !== 1 ? 's' : '' }}</p>
+            <div class="flex items-center justify-between pt-1.5 border-t border-zinc-100">
+              <span class="text-xs font-medium" :class="['CASH','COD'].includes(order.paymentMethod) ? 'text-green-600' : 'text-blue-600'">
+                {{ PM_LABEL[order.paymentMethod] ?? order.paymentMethod }}
+              </span>
+              <span class="text-sm font-bold text-zinc-900">ETB {{ fmt(order.totalPrice) }}</span>
+            </div>
+          </NuxtLink>
+        </div>
+      </div>
+
+      <!-- Receipts & Reference Codes -->
+      <div v-if="ordersData && (filteredReceiptOrders.length > 0 || receiptBankOptions.length > 1)" class="card p-5">
+        <div class="flex items-center justify-between gap-4 mb-4 flex-wrap">
+          <h2 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Receipts & Reference Codes</h2>
+          <div v-if="receiptBankOptions.length > 1" class="flex gap-1.5 flex-wrap">
+            <button
+              v-for="opt in receiptBankOptions"
+              :key="opt.key"
+              class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-150"
+              :class="activeReceiptBank === opt.key ? 'bg-brand-500 text-white shadow-sm' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'"
+              @click="activeReceiptBank = opt.key"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+        <div v-if="filteredReceiptOrders.length === 0" class="text-center py-8 text-sm text-zinc-400">
+          No receipts for this selection.
+        </div>
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div
+            v-for="order in filteredReceiptOrders"
+            :key="order.id"
+            class="rounded-xl border border-zinc-200 bg-white overflow-hidden hover:border-brand-200 transition-colors"
+          >
+            <div class="p-3 space-y-1">
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <NuxtLink :to="`/admin/orders/${order.id}`" class="font-mono text-xs font-bold text-brand-600 hover:underline">#{{ order.id }}</NuxtLink>
+                  <p class="text-sm font-medium text-zinc-800 mt-0.5 truncate">{{ order.customerName }}</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <p class="text-sm font-bold text-zinc-900">ETB {{ fmt(order.totalPrice) }}</p>
+                  <p class="text-[10px] text-zinc-400 mt-0.5">{{ formatTime(order.createdAt) }}</p>
+                </div>
+              </div>
+              <span class="inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full" :class="['CASH','COD'].includes(order.paymentMethod) ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'">
+                {{ PM_LABEL[order.paymentMethod] ?? order.paymentMethod }}
+              </span>
+            </div>
+            <!-- Receipt image -->
+            <div
+              v-if="order.receiptImageUrl"
+              class="cursor-zoom-in overflow-hidden"
+              @click="viewingReceipt = order.receiptImageUrl"
+            >
+              <CachedImage
+                :src="cloudinaryThumb(order.receiptImageUrl, 400)"
+                :alt="`Receipt #${order.id}`"
+                class="w-full h-40 object-cover border-t border-zinc-100 hover:opacity-90 transition-opacity"
+              />
+            </div>
+            <!-- Reference code -->
+            <div v-else-if="order.paymentReferenceCode" class="mx-3 mb-3 px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl font-mono text-sm text-zinc-700 select-all break-all">
+              {{ order.paymentReferenceCode }}
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Top products -->
@@ -268,6 +367,20 @@
 
     <div v-else class="card p-14 text-center text-sm text-zinc-400">No data loaded.</div>
   </div>
+
+  <!-- Receipt lightbox -->
+  <Teleport to="body">
+    <div
+      v-if="viewingReceipt"
+      class="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+      @click="viewingReceipt = null"
+    >
+      <img :src="viewingReceipt" class="max-w-full max-h-full rounded-2xl shadow-2xl" alt="Receipt" />
+      <button class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" @click="viewingReceipt = null">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -290,6 +403,11 @@ const presets = [
     label: 'Today',
     from: () => toInputDate(today),
     to: () => toInputDate(today),
+  },
+  {
+    label: 'Yesterday',
+    from: () => toInputDate(new Date(Date.now() - 86400000)),
+    to: () => toInputDate(new Date(Date.now() - 86400000)),
   },
   {
     label: 'Last 7 days',
@@ -322,11 +440,20 @@ function applyPreset(p) {
 
 const data = ref(null)
 const loading = ref(false)
+const ordersData = ref(null)
+const selectedDay = ref(null)
+const activeReceiptBank = ref('all')
+const viewingReceipt = ref(null)
 
 async function fetchRevenue() {
   loading.value = true
+  ordersData.value = null
+  selectedDay.value = null
   try {
-    data.value = await adminFetch(`/api/admin/revenue?from=${fromDate.value}&to=${toDate.value}`)
+    ;[data.value, ordersData.value] = await Promise.all([
+      adminFetch(`/api/admin/revenue?from=${fromDate.value}&to=${toDate.value}`),
+      adminFetch(`/api/admin/revenue/orders?from=${fromDate.value}&to=${toDate.value}`),
+    ])
   } catch {}
   finally { loading.value = false }
 }
@@ -353,6 +480,56 @@ function fmt(n) {
 function formatDay(iso) {
   return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
+
+function formatTime(iso) {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+}
+
+function statusBadge(s) {
+  return { PENDING: 'badge-yellow', CONFIRMED: 'badge-blue', OUT_FOR_DELIVERY: 'badge-orange', DELIVERED: 'badge-green', CANCELLED: 'badge-red' }[s] ?? ''
+}
+
+function cloudinaryThumb(url, w = 400) {
+  if (!url || !url.includes('cloudinary.com')) return url
+  return url.replace('/upload/', `/upload/f_auto,q_auto,w_${w}/`)
+}
+
+function toggleDay(date) {
+  selectedDay.value = selectedDay.value === date ? null : date
+}
+
+const PM_LABEL = { CASH: 'Cash', COD: 'Cash', TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
+
+const dayOrders = computed(() => {
+  if (!selectedDay.value || !ordersData.value) return []
+  return ordersData.value.orders.filter((o) => {
+    const d = new Date(o.createdAt)
+    const s = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return s === selectedDay.value
+  })
+})
+
+const receiptBankOptions = computed(() => {
+  if (!ordersData.value) return []
+  const methods = new Set(
+    ordersData.value.orders
+      .filter((o) => (o.receiptImageUrl || o.paymentReferenceCode) && o.paymentStatus === 'COLLECTED')
+      .map((o) => o.paymentMethod),
+  )
+  return [
+    { key: 'all', label: 'All' },
+    ...['TELEBIRR', 'CBE', 'BOA'].filter((m) => methods.has(m)).map((m) => ({ key: m, label: PM_LABEL[m] })),
+  ]
+})
+
+const filteredReceiptOrders = computed(() => {
+  if (!ordersData.value) return []
+  return ordersData.value.orders.filter((o) => {
+    const hasProof = o.receiptImageUrl || o.paymentReferenceCode
+    const matchesBank = activeReceiptBank.value === 'all' || o.paymentMethod === activeReceiptBank.value
+    return hasProof && matchesBank && o.paymentStatus === 'COLLECTED'
+  })
+})
 
 onMounted(fetchRevenue)
 useHead({ title: 'Revenue — Admin' })

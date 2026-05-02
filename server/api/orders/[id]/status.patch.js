@@ -10,7 +10,6 @@ const notificationMessages = {
   CONFIRMED: (id) => `✅ Your Jam Store order #${id} has been confirmed! We're preparing it now.`,
   OUT_FOR_DELIVERY: (id) => `🛵 Your Jam Store order #${id} is on its way! It should arrive soon.`,
   DELIVERED: (id) => `🎉 Your Jam Store order #${id} has been delivered! Thanks for shopping with us.`,
-  CANCELLED: (id) => `❌ Your Jam Store order #${id} has been cancelled. Contact us if you have questions.`,
 }
 
 export default defineEventHandler(async (event) => {
@@ -118,9 +117,15 @@ export default defineEventHandler(async (event) => {
     }
 
     const telegramId = order.customer?.telegramId
-    const message = notificationMessages[newStatus]
-    if (telegramId && message) {
-      await sendTelegramMessage(telegramId, message(order.id))
+    if (telegramId) {
+      let message
+      if (newStatus === 'CANCELLED') {
+        const reasonLine = cancelReason?.trim() ? `\n\n<b>Reason:</b> ${cancelReason.trim()}` : ''
+        message = `❌ Your Jam Store order #${order.id} has been cancelled.${reasonLine}\n\nContact us if you have questions.`
+      } else {
+        message = notificationMessages[newStatus]?.(order.id)
+      }
+      if (message) await sendTelegramMessage(telegramId, message)
     }
 
     return {

@@ -107,9 +107,23 @@
                 <span class="text-sm font-semibold text-zinc-700 shrink-0">ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
               </li>
             </ul>
-            <div class="border-t border-zinc-100 mt-4 pt-4 flex items-center justify-between">
-              <span class="text-sm text-zinc-500">Total</span>
-              <span class="text-lg font-bold text-zinc-900">ETB {{ Number(order.totalPrice).toFixed(2) }}</span>
+            <div class="border-t border-zinc-100 mt-4 pt-3 space-y-1.5">
+              <div class="flex items-center justify-between text-sm text-zinc-500">
+                <span>Items subtotal</span>
+                <span>ETB {{ itemsSubtotal.toFixed(2) }}</span>
+              </div>
+              <div v-if="Number(order.deliveryFee) > 0" class="flex items-center justify-between text-sm text-zinc-500">
+                <span>Delivery fee</span>
+                <span>ETB {{ Number(order.deliveryFee).toFixed(2) }}</span>
+              </div>
+              <div v-if="serviceCharge > 0" class="flex items-center justify-between text-sm text-zinc-500">
+                <span>Service charge</span>
+                <span>ETB {{ serviceCharge.toFixed(2) }}</span>
+              </div>
+              <div class="flex items-center justify-between pt-1.5 border-t border-zinc-100">
+                <span class="text-sm font-semibold text-zinc-700">Total</span>
+                <span class="text-lg font-bold text-zinc-900">ETB {{ Number(order.totalPrice).toFixed(2) }}</span>
+              </div>
             </div>
           </div>
 
@@ -421,6 +435,16 @@ const isCashOrder = computed(() => ['CASH', 'COD'].includes(order.value?.payment
 const canVerifyPayment = computed(() =>
   order.value?.paymentStatus === 'PENDING' && !isCashOrder.value
 )
+
+const itemsSubtotal = computed(() => {
+  if (!order.value?.items) return 0
+  return order.value.items.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0)
+})
+const serviceCharge = computed(() => {
+  if (!order.value) return 0
+  const sc = Number(order.value.totalPrice) - itemsSubtotal.value - Number(order.value.deliveryFee ?? 0)
+  return sc > 0.001 ? sc : 0
+})
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
