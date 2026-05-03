@@ -25,22 +25,21 @@
         </div>
         <p class="text-xs text-zinc-400">{{ formatDate(order.createdAt) }}</p>
 
-        <div v-if="order.status === 'OUT_FOR_DELIVERY'" class="mt-4">
-          <p v-if="updateError" class="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2 mb-3">{{ updateError }}</p>
-          <button
-            class="btn-primary w-full text-sm"
-            :disabled="updating"
-            @click="markDelivered"
-          >
-            {{ updating ? 'Updating…' : 'Mark as Delivered' }}
-          </button>
+        <div v-if="order.status === 'OUT_FOR_DELIVERY'" class="mt-4 space-y-2">
+          <div class="flex items-center gap-2 text-amber-700 bg-amber-50 rounded-xl px-3 py-2.5 border border-amber-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-sm font-medium">Awaiting customer confirmation</span>
+          </div>
+          <p class="text-xs text-zinc-400 text-center">Ask the customer to confirm receipt from their Jam Store account.</p>
         </div>
         <div v-else-if="order.status === 'DELIVERED'" class="mt-4">
           <div class="flex items-center gap-2 text-green-700 bg-green-50 rounded-xl px-3 py-2.5 border border-green-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            <span class="text-sm font-medium">Order delivered successfully</span>
+            <span class="text-sm font-medium">Customer confirmed receipt</span>
           </div>
         </div>
       </div>
@@ -114,8 +113,6 @@ const { adminFetch } = useAdminFetch()
 
 const order = ref(null)
 const loading = ref(true)
-const updating = ref(false)
-const updateError = ref('')
 const mapEl = ref(null)
 let map = null
 
@@ -139,22 +136,6 @@ async function fetchOrder() {
     order.value = await adminFetch(`/api/delivery/orders/${route.params.id}`)
   } catch { order.value = null }
   finally { loading.value = false }
-}
-
-async function markDelivered() {
-  updating.value = true
-  updateError.value = ''
-  try {
-    const updated = await adminFetch(`/api/delivery/orders/${route.params.id}/status`, {
-      method: 'PATCH',
-      body: { status: 'DELIVERED' },
-    })
-    order.value = { ...order.value, ...updated }
-  } catch (e) {
-    updateError.value = e?.data?.statusMessage ?? 'Failed to update order.'
-  } finally {
-    updating.value = false
-  }
 }
 
 async function initMap() {

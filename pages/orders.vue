@@ -65,6 +65,39 @@
           </div>
         </div>
 
+        <!-- Confirm receipt CTA — shown when order is out for delivery -->
+        <div v-if="order.status === 'OUT_FOR_DELIVERY'" class="mb-4">
+          <template v-if="confirmingId === order.id">
+            <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+              <p class="text-sm font-semibold text-amber-900">Confirm you received order #{{ order.id }}?</p>
+              <p class="text-xs text-amber-700 leading-relaxed">Only confirm after you physically receive all your items. This cannot be undone.</p>
+              <div class="flex gap-2">
+                <button
+                  class="btn-primary text-sm px-4 flex-1"
+                  :disabled="confirming"
+                  @click="doConfirm(order.id)"
+                >
+                  {{ confirming ? 'Confirming…' : '✓ Yes, I received it' }}
+                </button>
+                <button class="btn-secondary text-sm px-4" :disabled="confirming" @click="confirmingId = null">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <button
+              class="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-brand-300 bg-brand-50 hover:bg-brand-100 px-4 py-3 text-sm font-semibold text-brand-700 transition-colors"
+              @click="confirmingId = order.id"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              I received my order
+            </button>
+          </template>
+        </div>
+
         <!-- Payment status — only shown for online payment orders -->
         <div
           v-if="order.paymentMethod && order.paymentMethod !== 'CASH' && order.paymentMethod !== 'COD'"
@@ -133,6 +166,27 @@
 <script setup>
 const myOrdersStore = useCustomerOrdersStore()
 const customerStore = useCustomerStore()
+
+const confirmingId = ref(null)
+const confirming = ref(false)
+
+async function doConfirm(orderId) {
+  confirming.value = true
+  try {
+    await $fetch(`/api/customer/orders/${orderId}/confirm-delivery`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerStore.token}` },
+    })
+    const order = myOrdersStore.orders.find((o) => o.id === orderId)
+    if (order) order.status = 'DELIVERED'
+    myOrdersStore._persist()
+    confirmingId.value = null
+  } catch (e) {
+    alert(e?.data?.statusMessage ?? 'Failed to confirm receipt. Please try again.')
+  } finally {
+    confirming.value = false
+  }
+}
 
 const STATUS_STEPS = [
   { key: 'PENDING', label: 'Placed' },
