@@ -33,6 +33,18 @@
           Orders
         </NuxtLink>
 
+        <NuxtLink
+          to="/cashier/messages"
+          class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150"
+          :class="$route.path === '/cashier/messages' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+          </svg>
+          Messages
+          <span v-if="msgUnread > 0" class="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ msgUnread }}</span>
+        </NuxtLink>
+
         <template v-if="canManageProducts">
           <p class="px-3 pt-4 pb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Catalogue</p>
           <NuxtLink
@@ -125,6 +137,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           <span class="text-[9px] font-medium">Orders</span>
+        </NuxtLink>
+        <NuxtLink to="/cashier/messages" class="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors relative" :class="$route.path === '/cashier/messages' ? 'text-brand-500' : 'text-zinc-400'">
+          <div class="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+            </svg>
+            <span v-if="msgUnread > 0" class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">{{ msgUnread }}</span>
+          </div>
+          <span class="text-[9px] font-medium">Messages</span>
         </NuxtLink>
         <NuxtLink v-if="canManageProducts" to="/cashier/products" class="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors" :class="$route.path.startsWith('/cashier/products') ? 'text-brand-500' : 'text-zinc-400'">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

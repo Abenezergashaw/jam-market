@@ -471,7 +471,7 @@ async function updatePaymentStatus(status) {
       method: 'PATCH',
       body: { paymentStatus: status, note: paymentNoteInput.value.trim() || undefined },
     })
-    order.value = { ...order.value, paymentStatus: status, paymentNote: updated.paymentNote, paymentVerifiedAt: updated.paymentVerifiedAt, paymentVerifiedById: updated.paymentVerifiedById, paymentVerifiedBy: updated.paymentVerifiedBy }
+    order.value = updated
     paymentNoteInput.value = ''
   } catch (e) {
     updateError.value = e?.data?.statusMessage ?? 'Failed to update payment status.'

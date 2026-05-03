@@ -56,6 +56,7 @@ model Product {
   orderItems           OrderItem[]
   images               ProductImage[]
   reviews              ProductReview[]
+  conversations        Conversation[]
 
   @@map("products")
 }
@@ -81,6 +82,7 @@ model Customer {
   createdAt  DateTime @default(now()) @map("created_at")
   orders     Order[]
   reviews    ProductReview[]
+  conversations Conversation[]
 
   @@map("customers")
 }
@@ -238,6 +240,36 @@ model AuditLog {
   @@index([entity, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model Conversation {
+  id         Int       @id @default(autoincrement())
+  customerId Int       @map("customer_id")
+  productId  Int?      @map("product_id")
+  subject    String?   @db.VarChar(200)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  messages   Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int          @map("conversation_id")
+  senderRole     String       @map("sender_role")
+  senderId       Int          @map("sender_id")
+  body           String       @db.Text
+  imageUrl       String?      @map("image_url")
+  readAt         DateTime?    @map("read_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
 }
 
 enum OrderStatus {

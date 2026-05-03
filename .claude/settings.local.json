@@ -23,7 +23,13 @@
       "Bash(node -e \"console.log\\(require\\('./node_modules/prisma/package.json'\\).version\\)\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\" -Directory)",
       "Bash(Select-Object Name)",
-      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\" | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty Name)"
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\" | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20 FullName)"
     ]
   }
 }
