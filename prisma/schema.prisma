@@ -17,9 +17,12 @@ model User {
   storeId        Int?     @map("store_id")
   store          Store?   @relation(fields: [storeId], references: [id], onDelete: SetNull)
   permissions    String[] @default([])
-  assignedOrders   Order[]  @relation("DeliveryPerson")
-  verifiedPayments Order[]  @relation("PaymentVerifier")
-  createdAt      DateTime @default(now()) @map("created_at")
+  assignedOrders    Order[]  @relation("DeliveryPerson")
+  verifiedPayments  Order[]  @relation("PaymentVerifier")
+  lat               Decimal? @db.Decimal(10, 7)
+  lng               Decimal? @db.Decimal(10, 7)
+  locationUpdatedAt DateTime? @map("location_updated_at")
+  createdAt         DateTime @default(now()) @map("created_at")
 
   @@map("users")
 }

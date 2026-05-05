@@ -49,16 +49,45 @@
 
       <!-- Dispatch: assign delivery person -->
       <div v-if="showDispatchModal" class="card p-5 border-brand-200 bg-brand-50/50 space-y-3">
-        <h3 class="text-sm font-semibold text-zinc-800">Assign Delivery Person (optional)</h3>
-        <select v-model="selectedDeliveryPerson" class="input text-sm">
-          <option :value="null">— No assignment —</option>
-          <option v-for="dp in deliveryPersons" :key="dp.id" :value="dp.id">{{ dp.name || dp.email }}</option>
-        </select>
+        <h3 class="text-sm font-semibold text-zinc-800">
+          {{ reassignMode ? 'Reassign Delivery Person' : 'Assign Delivery Person' }}
+          <span class="text-zinc-400 font-normal">(optional)</span>
+        </h3>
+
+        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+          <button
+            type="button"
+            :class="selectedDeliveryPerson === null ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300' : 'border-zinc-200 hover:border-zinc-300'"
+            class="w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-colors"
+            @click="selectedDeliveryPerson = null"
+          >
+            <span class="text-zinc-400 italic">— No assignment —</span>
+          </button>
+          <button
+            v-for="dp in sortedDeliveryPersons"
+            :key="dp.id"
+            type="button"
+            :class="selectedDeliveryPerson === dp.id ? 'border-brand-400 bg-brand-50 ring-1 ring-brand-300' : 'border-zinc-200 hover:border-zinc-300'"
+            class="w-full text-left px-3 py-2.5 rounded-xl border transition-colors"
+            @click="selectedDeliveryPerson = dp.id"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-medium text-zinc-800">{{ dp.name || dp.email }}</span>
+              <span v-if="dp.distanceKm != null" class="text-xs text-zinc-400 shrink-0">
+                {{ dp.distanceKm.toFixed(1) }} km
+                <span v-if="dp.locationFresh" class="text-green-500 ml-1">●</span>
+                <span v-else class="text-zinc-300 ml-1">○</span>
+              </span>
+              <span v-else class="text-xs text-zinc-300 shrink-0">No location</span>
+            </div>
+          </button>
+        </div>
+
         <div class="flex gap-2">
           <button class="btn-primary text-sm px-4" :disabled="updating" @click="confirmDispatch">
-            {{ updating ? '…' : 'Confirm Dispatch' }}
+            {{ updating ? '…' : (reassignMode ? 'Save Assignment' : 'Confirm Dispatch') }}
           </button>
-          <button class="btn-secondary text-sm px-4" @click="showDispatchModal = false">Cancel</button>
+          <button class="btn-secondary text-sm px-4" @click="showDispatchModal = false; reassignMode = false">Cancel</button>
         </div>
       </div>
 
@@ -336,7 +365,12 @@
                 <p class="text-xs text-zinc-400">Assigned delivery</p>
                 <p class="text-sm font-medium text-zinc-800">{{ order.deliveryPerson.name || order.deliveryPerson.email }}</p>
               </div>
-              <span class="ml-auto badge badge-orange text-[10px]">Delivery</span>
+              <span class="badge badge-orange text-[10px]">Delivery</span>
+              <button
+                v-if="order.status === 'OUT_FOR_DELIVERY'"
+                class="btn-secondary text-xs px-3 py-1.5"
+                @click="openReassign"
+              >Reassign</button>
             </div>
             <div v-else-if="['CONFIRMED', 'OUT_FOR_DELIVERY'].includes(order.status)" class="mt-4 pt-4 border-t border-zinc-100">
               <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">No delivery person assigned</p>
@@ -387,6 +421,7 @@ const mapEl = ref(null)
 const showDispatchModal = ref(false)
 const selectedDeliveryPerson = ref(null)
 const deliveryPersons = ref([])
+const reassignMode = ref(false)
 const showCancelModal = ref(false)
 const cancelReasonInput = ref('')
 const refundAmountInput = ref('')
@@ -446,6 +481,41 @@ const serviceCharge = computed(() => {
   return sc > 0.001 ? sc : 0
 })
 
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+const LOCATION_FRESH_MS = 5 * 60 * 1000
+
+const sortedDeliveryPersons = computed(() => {
+  const storeLat = order.value?.store?.lat ? Number(order.value.store.lat) : null
+  const storeLng = order.value?.store?.lng ? Number(order.value.store.lng) : null
+  return deliveryPersons.value
+    .map((dp) => {
+      const hasLocation = dp.lat != null && dp.lng != null
+      const locationFresh = hasLocation &&
+        dp.locationUpdatedAt &&
+        Date.now() - new Date(dp.locationUpdatedAt).getTime() < LOCATION_FRESH_MS
+      const distanceKm = hasLocation && storeLat != null && storeLng != null
+        ? haversineKm(storeLat, storeLng, Number(dp.lat), Number(dp.lng))
+        : null
+      return { ...dp, distanceKm, locationFresh }
+    })
+    .sort((a, b) => {
+      if (a.locationFresh && b.locationFresh) return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity)
+      if (a.locationFresh) return -1
+      if (b.locationFresh) return 1
+      if (a.distanceKm != null && b.distanceKm != null) return a.distanceKm - b.distanceKm
+      return a.distanceKm != null ? -1 : 1
+    })
+})
+
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {
     year: 'numeric', month: 'short', day: 'numeric',
@@ -485,7 +555,9 @@ async function handleTransitionClick(status) {
     try {
       deliveryPersons.value = await adminFetch('/api/admin/users?role=delivery')
     } catch { deliveryPersons.value = [] }
-    selectedDeliveryPerson.value = order.value?.deliveryPersonId ?? null
+    const nearest = sortedDeliveryPersons.value.find((dp) => dp.locationFresh)
+    selectedDeliveryPerson.value = nearest?.id ?? order.value?.deliveryPersonId ?? null
+    reassignMode.value = false
     showDispatchModal.value = true
     return
   }
@@ -503,20 +575,32 @@ async function confirmCancel() {
   cancelReasonInput.value = ''
 }
 
+async function openReassign() {
+  try {
+    deliveryPersons.value = await adminFetch('/api/admin/users?role=delivery')
+  } catch { deliveryPersons.value = [] }
+  selectedDeliveryPerson.value = order.value?.deliveryPersonId ?? null
+  reassignMode.value = true
+  showDispatchModal.value = true
+}
+
 async function confirmDispatch() {
-  if (selectedDeliveryPerson.value) {
+  const isReassign = reassignMode.value
+  if (selectedDeliveryPerson.value != null || isReassign) {
     try {
       await adminFetch(`/api/admin/orders/${order.value.id}/assign`, {
         method: 'PATCH',
         body: { deliveryPersonId: selectedDeliveryPerson.value },
       })
+      await fetchOrder()
     } catch (e) {
       updateError.value = e?.data?.statusMessage ?? 'Failed to assign delivery person.'
       return
     }
   }
   showDispatchModal.value = false
-  await updateStatus('OUT_FOR_DELIVERY')
+  reassignMode.value = false
+  if (!isReassign) await updateStatus('OUT_FOR_DELIVERY')
 }
 
 async function updateStatus(status, extraBody = {}) {

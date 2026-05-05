@@ -11,6 +11,26 @@
       </span>
     </div>
 
+    <!-- Location sharing toggle -->
+    <div class="card p-4 flex items-center justify-between gap-3">
+      <div>
+        <p class="text-sm font-semibold text-zinc-800">Share my location</p>
+        <p class="text-xs text-zinc-400 mt-0.5">Lets admin see how far you are from the store</p>
+        <p v-if="locationError" class="text-xs text-red-500 mt-1">{{ locationError }}</p>
+      </div>
+      <button
+        type="button"
+        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none shrink-0"
+        :class="locationSharing ? 'bg-green-500' : 'bg-zinc-300'"
+        @click="toggleLocationSharing"
+      >
+        <span
+          class="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform"
+          :class="locationSharing ? 'translate-x-6' : 'translate-x-1'"
+        />
+      </button>
+    </div>
+
     <div v-if="loading" class="space-y-3">
       <div v-for="n in 3" :key="n" class="card h-32 animate-pulse bg-zinc-100" />
     </div>
@@ -80,11 +100,59 @@ async function fetchOrders(silent = false) {
   }
 }
 
+const locationSharing = ref(false)
+const locationError = ref('')
+let locationInterval = null
+
+async function sendLocation() {
+  try {
+    const pos = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000 })
+    )
+    await adminFetch('/api/delivery/location', {
+      method: 'PATCH',
+      body: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+    })
+    locationError.value = ''
+  } catch {
+    locationError.value = 'Could not get location'
+  }
+}
+
+function startLocationSharing() {
+  if (!navigator.geolocation) {
+    locationError.value = 'Geolocation not supported'
+    locationSharing.value = false
+    return
+  }
+  sendLocation()
+  locationInterval = setInterval(sendLocation, 30_000)
+}
+
+function stopLocationSharing() {
+  clearInterval(locationInterval)
+  locationInterval = null
+}
+
+function toggleLocationSharing() {
+  locationSharing.value = !locationSharing.value
+  localStorage.setItem('deliveryLocationSharing', locationSharing.value ? '1' : '0')
+  if (locationSharing.value) startLocationSharing()
+  else stopLocationSharing()
+}
+
 onMounted(() => {
   fetchOrders()
   pollInterval = setInterval(() => fetchOrders(true), 8000)
+  if (localStorage.getItem('deliveryLocationSharing') === '1') {
+    locationSharing.value = true
+    startLocationSharing()
+  }
 })
-onUnmounted(() => clearInterval(pollInterval))
+onUnmounted(() => {
+  clearInterval(pollInterval)
+  stopLocationSharing()
+})
 
 useHead({ title: 'My Orders — Delivery' })
 </script>

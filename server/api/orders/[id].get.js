@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
       },
       deliveryPerson: { select: { id: true, name: true, email: true } },
       paymentVerifiedBy: { select: { id: true, name: true, email: true } },
+      store: { select: { id: true, lat: true, lng: true } },
     },
   })
 
@@ -39,6 +40,9 @@ export default defineEventHandler(async (event) => {
       : null,
     deliveryPerson: order.deliveryPerson ?? null,
     paymentVerifiedBy: order.paymentVerifiedBy ?? null,
+    store: order.store
+      ? { ...order.store, lat: order.store.lat?.toString() ?? null, lng: order.store.lng?.toString() ?? null }
+      : null,
     items: order.items.map((i) => ({ ...i, price: i.price.toString() })),
   }
 

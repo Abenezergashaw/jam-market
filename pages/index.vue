@@ -363,6 +363,59 @@
           </div>
         </section>
 
+        <!-- Shop Everything — infinite scroll -->
+        <section>
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h2 class="text-lg font-bold text-zinc-900">Shop Everything</h2>
+            <span class="text-xs text-zinc-400">{{ shopTotal }} items</span>
+          </div>
+
+          <!-- Category filter chips -->
+          <div class="flex gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 mb-5 scrollbar-none">
+            <button
+              class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+              :class="shopCatId === null ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'"
+              @click="setShopCat(null)"
+            >All</button>
+            <button
+              v-for="cat in categories"
+              :key="cat.id"
+              class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
+              :class="shopCatId === cat.id ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'"
+              @click="setShopCat(cat.id)"
+            >{{ cat.name }}</button>
+          </div>
+
+          <!-- Product grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            <ProductCard v-for="p in shopProducts" :key="p.id" :product="p" />
+
+            <!-- Skeleton cards while loading more -->
+            <template v-if="shopLoadingMore">
+              <div
+                v-for="i in 10"
+                :key="`sk-${i}`"
+                class="rounded-2xl bg-white border border-zinc-100 overflow-hidden animate-pulse shadow-sm"
+              >
+                <div class="aspect-square bg-zinc-100" />
+                <div class="p-3 space-y-2">
+                  <div class="h-3 bg-zinc-100 rounded-full w-2/3" />
+                  <div class="h-4 bg-zinc-100 rounded-full w-full" />
+                  <div class="h-3 bg-zinc-100 rounded-full w-1/2" />
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Sentinel — watched by IntersectionObserver -->
+          <div ref="shopSentinel" class="h-1 mt-4" />
+
+          <p
+            v-if="shopAllLoaded && shopProducts.length"
+            class="text-center text-sm text-zinc-400 py-8"
+          >You've seen everything!</p>
+        </section>
+
         <div
           v-if="!categories?.length && !featuredProducts?.length"
           class="text-center py-16 text-zinc-400 text-sm"
@@ -467,6 +520,62 @@ function addToCart(product) {
     imageUrl: product.imageUrl,
   });
 }
+
+// Shop Everything — infinite scroll
+const shopProducts = ref([]);
+const shopPage = ref(1);
+const shopTotal = ref(0);
+const shopCatId = ref(null);
+const shopLoadingMore = ref(false);
+const shopFetched = ref(false);
+const shopSentinel = ref(null);
+const shopAllLoaded = computed(
+  () => shopFetched.value && shopProducts.value.length >= shopTotal.value,
+);
+
+async function loadShopProducts() {
+  if (shopLoadingMore.value || shopAllLoaded.value) return;
+  shopLoadingMore.value = true;
+  try {
+    const params = new URLSearchParams({ page: shopPage.value, limit: 20 });
+    if (shopCatId.value) params.set("category_id", shopCatId.value);
+    const res = await $fetch(`/api/products?${params}`);
+    shopProducts.value.push(...res.data);
+    shopTotal.value = res.total;
+    shopPage.value++;
+    shopFetched.value = true;
+  } finally {
+    shopLoadingMore.value = false;
+  }
+}
+
+function setShopCat(catId) {
+  shopCatId.value = catId;
+  shopProducts.value = [];
+  shopPage.value = 1;
+  shopTotal.value = 0;
+  shopFetched.value = false;
+  loadShopProducts();
+}
+
+onMounted(() => {
+  loadShopProducts();
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting) loadShopProducts();
+    },
+    { rootMargin: "300px" },
+  );
+
+  watch(
+    shopSentinel,
+    (el) => { if (el) observer.observe(el); },
+    { immediate: true },
+  );
+
+  onUnmounted(() => observer.disconnect());
+});
 
 useHead({ title: "Jam Store — Fresh Groceries" });
 </script>
