@@ -51,6 +51,18 @@
             My Orders
           </NuxtLink>
 
+          <NuxtLink
+            v-if="customerStore.isAuthenticated"
+            to="/messages"
+            class="relative flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors px-3 py-2 rounded-xl hover:bg-zinc-100"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+            </svg>
+            Messages
+            <span v-if="msgUnread > 0" class="absolute -top-0.5 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shadow shadow-red-500/30">{{ msgUnread }}</span>
+          </NuxtLink>
+
           <!-- Account / Login -->
           <template v-if="customerStore.isAuthenticated">
             <div
@@ -238,21 +250,21 @@
             class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-50 transition-colors"
             @click="mobileAccountOpen = false"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-zinc-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             <span class="text-sm font-medium text-zinc-700">My Orders</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/messages"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-50 transition-colors"
+            @click="mobileAccountOpen = false"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+            </svg>
+            <span class="text-sm font-medium text-zinc-700">Messages</span>
+            <span v-if="msgUnread > 0" class="ml-auto min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{{ msgUnread }}</span>
           </NuxtLink>
           <button
             class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors text-left"
@@ -285,7 +297,10 @@
     <nav
       class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-xl border-t border-zinc-200"
     >
-      <div class="grid grid-cols-6 h-16">
+      <div
+        class="grid h-16"
+        :class="customerStore.isAuthenticated ? 'grid-cols-6' : 'grid-cols-4'"
+      >
         <NuxtLink
           to="/"
           class="flex flex-col items-center justify-center gap-1 transition-colors"
@@ -338,6 +353,7 @@
 
         <NuxtLink
           to="/orders"
+          v-if="customerStore.isAuthenticated"
           class="flex flex-col items-center justify-center gap-1 transition-colors"
           :class="
             $route.path === '/orders' ? 'text-forest-500' : 'text-zinc-400'
@@ -408,27 +424,16 @@
         </NuxtLink>
 
         <NuxtLink
+          v-if="customerStore.isAuthenticated"
           to="/messages"
           class="flex flex-col items-center justify-center gap-1 transition-colors"
-          :class="
-            $route.path === '/messages' ? 'text-forest-500' : 'text-zinc-400'
-          "
+          :class="$route.path === '/messages' ? 'text-forest-500' : 'text-zinc-400'"
         >
           <div class="relative">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
             </svg>
+            <span v-if="msgUnread > 0" class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">{{ msgUnread }}</span>
           </div>
           <span class="text-[10px] font-medium">Messages</span>
         </NuxtLink>

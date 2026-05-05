@@ -2,9 +2,10 @@ import { z } from 'zod'
 
 const schema = z.object({
   name: z.string().min(1),
+  sku: z.string().optional().nullable(),
   description: z.string().default(''),
   price: z.number().positive(),
-  imageUrl: z.string().min(1),
+  imageUrl: z.string().min(1).optional().nullable(),
   stock: z.number().int().min(0).default(0),
   categoryId: z.number().int().positive().nullable().optional(),
   images: z.array(z.string().min(1)).default([]),

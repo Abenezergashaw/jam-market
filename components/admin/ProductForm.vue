@@ -16,6 +16,12 @@
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
+          <label class="label">SKU <span class="text-zinc-400 font-normal">(optional — used for import deduplication)</span></label>
+          <input v-model="form.sku" type="text" class="input" placeholder="e.g. SKU-001, COCONUT-500ML" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
           <label class="label">Brand <span class="text-zinc-400 font-normal">(optional)</span></label>
           <input v-model="form.brand" type="text" class="input" placeholder="e.g. Dole, Nestlé" />
         </div>
@@ -239,6 +245,7 @@ const { adminFetch } = useAdminFetch()
 
 const form = reactive({
   name: props.initial?.name ?? '',
+  sku: props.initial?.sku ?? '',
   description: props.initial?.description ?? '',
   price: props.initial?.price ?? '',
   imageUrl: props.initial?.imageUrl ?? '',
@@ -319,6 +326,7 @@ async function handleSubmit() {
   try {
     await emit('submit', {
       name: form.name,
+      sku: form.sku || null,
       description: form.description,
       price: Number(form.price),
       imageUrl: form.imageUrl,

@@ -4,6 +4,15 @@ export default defineEventHandler(async (event) => {
   const where = {}
   if (query.category_id) where.categoryId = parseInt(query.category_id)
   if (query.featured === 'true') where.isFeatured = true
+  if (query.search) {
+    const term = query.search.trim()
+    if (term) {
+      where.OR = [
+        { name: { contains: term, mode: 'insensitive' } },
+        { sku: { contains: term, mode: 'insensitive' } },
+      ]
+    }
+  }
 
   // Featured products (homepage carousel) — flat array, capped at 12
   if (query.featured === 'true') {
