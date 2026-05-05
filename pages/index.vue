@@ -265,14 +265,10 @@
               <div
                 class="relative w-[72px] h-[72px] rounded-xl overflow-hidden bg-zinc-100 shrink-0"
               >
-                <img
+                <ProductImage
                   :src="product.imageUrl"
                   :alt="product.name"
                   class="w-full h-full object-cover"
-                  @error="
-                    $event.target.src =
-                      'https://picsum.photos/seed/' + product.id + '/80/80'
-                  "
                 />
                 <div
                   class="absolute top-1 left-1 w-5 h-5 rounded-full bg-[#3b5323] text-white text-[9px] font-black flex items-center justify-center shadow"

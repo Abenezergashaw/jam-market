@@ -339,11 +339,10 @@
             <span class="w-6 text-center text-sm font-bold" :class="i === 0 ? 'text-amber-500' : i === 1 ? 'text-zinc-400' : i === 2 ? 'text-amber-700' : 'text-zinc-300'">
               {{ i + 1 }}
             </span>
-            <img
+            <ProductImage
               :src="product.imageUrl"
               :alt="product.name"
               class="w-10 h-10 rounded-xl object-cover bg-zinc-100 shrink-0"
-              @error="$event.target.src = 'https://picsum.photos/40/40'"
             />
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-zinc-900 truncate">{{ product.name }}</p>

@@ -94,14 +94,14 @@ const { adminFetch } = useAdminFetch()
 
 const mapEl = ref(null)
 const persons = ref([])
-const store = ref(null)
+const stores = ref([])
 const loading = ref(true)
 const refreshing = ref(false)
 const lastRefreshed = ref(null)
 
 let map = null
 let markers = []
-let storeMarker = null
+let storeMarkers = []
 let pollInterval = null
 let L = null
 
@@ -136,15 +136,17 @@ function timeAgo(date) {
 
 const markerColor = { fresh: '#22c55e', stale: '#f59e0b', old: '#f87171', none: '#d4d4d8' }
 
+const storeMap = computed(() => Object.fromEntries(stores.value.map((s) => [s.id, s])))
+
 const sortedPersons = computed(() => {
-  const storeLat = store.value?.lat ? Number(store.value.lat) : null
-  const storeLng = store.value?.lng ? Number(store.value.lng) : null
   return persons.value
     .map((p) => {
       const freshness = getFreshness(p.locationUpdatedAt)
       const hasLoc = p.lat != null && p.lng != null
-      const distanceKm = hasLoc && storeLat != null && storeLng != null
-        ? haversineKm(storeLat, storeLng, Number(p.lat), Number(p.lng))
+      // Use the person's assigned store for distance; fall back to first available store
+      const assignedStore = (p.storeId && storeMap.value[p.storeId]) || stores.value[0]
+      const distanceKm = hasLoc && assignedStore?.lat && assignedStore?.lng
+        ? haversineKm(Number(assignedStore.lat), Number(assignedStore.lng), Number(p.lat), Number(p.lng))
         : null
       return { ...p, freshness, distanceKm }
     })
@@ -160,10 +162,10 @@ async function fetchData(silent = false) {
   try {
     const [ps, st] = await Promise.all([
       adminFetch('/api/admin/users?role=delivery'),
-      adminFetch('/api/staff/my-store').catch(() => null),
+      adminFetch('/api/staff/my-store').catch(() => []),
     ])
     persons.value = ps
-    store.value = st
+    stores.value = Array.isArray(st) ? st : (st ? [st] : [])
     lastRefreshed.value = new Date()
     updateMapMarkers()
   } catch {}
@@ -184,22 +186,19 @@ function updateMapMarkers() {
   markers.forEach((m) => m.remove())
   markers = []
 
-  // Store marker
-  if (store.value?.lat && store.value?.lng) {
-    if (storeMarker) storeMarker.remove()
-    storeMarker = L.circleMarker(
-      [Number(store.value.lat), Number(store.value.lng)],
-      { radius: 10, fillColor: '#f97316', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }
-    )
-      .addTo(map)
-      .bindPopup(`<strong>${store.value.name || 'Store'}</strong>`)
-  }
-
-  // Delivery person markers
+  // Store markers — one per store
+  storeMarkers.forEach((m) => m.remove())
+  storeMarkers = []
   const bounds = []
-  if (store.value?.lat && store.value?.lng) {
-    bounds.push([Number(store.value.lat), Number(store.value.lng)])
-  }
+  stores.value.forEach((s) => {
+    if (!s.lat || !s.lng) return
+    bounds.push([Number(s.lat), Number(s.lng)])
+    const m = L.circleMarker(
+      [Number(s.lat), Number(s.lng)],
+      { radius: 10, fillColor: '#f97316', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9 }
+    ).addTo(map).bindPopup(`<strong>${s.name || 'Store'}</strong>`)
+    storeMarkers.push(m)
+  })
 
   sortedPersons.value.forEach((p) => {
     if (p.lat == null || p.lng == null) return
@@ -253,9 +252,10 @@ onMounted(async () => {
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
   })
 
-  // Default center: Addis Ababa or store
-  const defaultLat = store.value?.lat ? Number(store.value.lat) : 9.0222
-  const defaultLng = store.value?.lng ? Number(store.value.lng) : 38.7468
+  // Default center: first store with coordinates, else Addis Ababa
+  const firstStore = stores.value.find((s) => s.lat && s.lng)
+  const defaultLat = firstStore ? Number(firstStore.lat) : 9.0222
+  const defaultLng = firstStore ? Number(firstStore.lng) : 38.7468
 
   map = L.map(mapEl.value, { zoomControl: true, scrollWheelZoom: true }).setView([defaultLat, defaultLng], 13)
 

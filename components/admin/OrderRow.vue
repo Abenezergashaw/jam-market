@@ -30,11 +30,10 @@
 
         <ul class="space-y-2">
           <li v-for="item in order.items" :key="item.id" class="flex items-center gap-2">
-            <img
+            <ProductImage
               :src="item.product?.imageUrl"
               :alt="item.product?.name"
               class="w-8 h-8 rounded-lg object-cover bg-zinc-100 shrink-0"
-              @error="$event.target.src = 'https://picsum.photos/32/32'"
             />
             <div class="flex-1 min-w-0">
               <p class="text-xs font-medium text-zinc-700 truncate">{{ item.product?.name ?? 'Unknown product' }}</p>

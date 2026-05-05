@@ -170,7 +170,7 @@
             :key="idx"
             class="relative aspect-square rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200 group"
           >
-            <img :src="img" class="w-full h-full object-cover" @error="$event.target.src = 'https://picsum.photos/80/80'" />
+            <ProductImage :src="img" class="w-full h-full object-cover" />
             <button
               type="button"
               class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"

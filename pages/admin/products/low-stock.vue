@@ -49,11 +49,10 @@
             <tr v-for="product in visibleProducts" :key="product.id" class="hover:bg-zinc-50 transition-colors">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-3">
-                  <img
+                  <ProductImage
                     :src="product.imageUrl"
                     :alt="product.name"
                     class="w-9 h-9 rounded-xl object-cover bg-zinc-100 shrink-0"
-                    @error="$event.target.src = 'https://picsum.photos/36/36'"
                   />
                   <div>
                     <p class="font-medium text-zinc-800">{{ product.name }}</p>

@@ -31,11 +31,10 @@
             @click="openConversation(c.id)"
           >
             <div class="flex items-start gap-2.5">
-              <img
+              <ProductImage
                 v-if="c.product?.imageUrl"
                 :src="c.product.imageUrl"
                 class="w-9 h-9 rounded-lg object-cover bg-zinc-100 shrink-0"
-                @error="$event.target.src = 'https://picsum.photos/36/36'"
               />
               <div v-else class="w-9 h-9 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -27,7 +27,7 @@
             <tr v-for="product in products" :key="product.id" class="hover:bg-zinc-50 transition-colors">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-3">
-                  <img :src="product.imageUrl" :alt="product.name" class="w-9 h-9 rounded-xl object-cover bg-zinc-100 shrink-0" @error="$event.target.src = 'https://picsum.photos/36/36'" />
+                  <ProductImage :src="product.imageUrl" :alt="product.name" class="w-9 h-9 rounded-xl object-cover bg-zinc-100 shrink-0" />
                   <div>
                     <p class="font-medium text-zinc-900 text-sm">{{ product.name }}</p>
                     <p v-if="product.brand" class="text-[11px] text-zinc-400">{{ product.brand }}</p>

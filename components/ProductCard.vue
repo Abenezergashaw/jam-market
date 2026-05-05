@@ -5,12 +5,11 @@
   >
     <!-- Image -->
     <div class="aspect-square overflow-hidden bg-zinc-50 shrink-0 relative">
-      <img
+      <ProductImage
         :src="product.imageUrl"
         :alt="product.name"
         loading="lazy"
         class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-        @error="$event.target.src = 'https://picsum.photos/seed/' + product.id + '/400/400'"
       />
       <div v-if="product.stock === 0" class="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center">
         <span class="text-xs font-semibold text-zinc-500 bg-white px-3 py-1 rounded-full border border-zinc-200 shadow-sm">Out of stock</span>

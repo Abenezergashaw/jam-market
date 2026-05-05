@@ -38,6 +38,43 @@
           The first sheet in the workbook will be imported. Accepted formats: <strong>.xlsx</strong> and <strong>.xls</strong>.
         </p>
 
+        <!-- Spreadsheet preview -->
+        <div>
+          <p class="text-xs font-semibold text-zinc-600 mb-2">How your spreadsheet should look</p>
+          <div class="overflow-x-auto rounded-xl border border-zinc-200">
+            <table class="text-[11px] border-collapse" style="min-width: max-content">
+              <thead>
+                <tr>
+                  <th class="sticky left-0 z-10 bg-zinc-100 border-r border-b border-zinc-300 px-2.5 py-1.5 text-zinc-400 font-semibold w-8 text-center">#</th>
+                  <th
+                    v-for="col in COLUMNS"
+                    :key="col.name"
+                    class="border-r border-b border-zinc-300 px-2.5 py-1.5 font-mono font-semibold whitespace-nowrap text-left"
+                    :class="col.required ? 'bg-brand-50 text-brand-700' : 'bg-zinc-100 text-zinc-600'"
+                  >
+                    {{ col.name }}
+                    <span v-if="col.required" class="ml-1 text-brand-400">*</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, i) in DEMO_ROWS" :key="i" class="hover:bg-zinc-50/60">
+                  <td class="sticky left-0 z-10 bg-zinc-50 border-r border-b border-zinc-200 px-2.5 py-1.5 text-zinc-400 font-semibold text-center">{{ i + 2 }}</td>
+                  <td
+                    v-for="col in COLUMNS"
+                    :key="col.name"
+                    class="border-r border-b border-zinc-100 px-2.5 py-1.5 whitespace-nowrap max-w-[180px] truncate"
+                    :class="row[col.name] !== '' && row[col.name] != null ? 'text-zinc-800' : 'text-zinc-300'"
+                  >
+                    {{ row[col.name] !== '' && row[col.name] != null ? row[col.name] : '—' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-[10px] text-zinc-400 mt-1.5">Columns marked <span class="text-brand-600 font-semibold">blue *</span> are required. Scroll right to see all columns.</p>
+        </div>
+
         <!-- Column table -->
         <div class="overflow-x-auto rounded-xl border border-zinc-200">
           <table class="w-full text-xs">
@@ -295,55 +332,80 @@ const COLUMNS = [
   { name: 'image4Url',           required: false, type: 'URL',     desc: 'Fourth product image URL',             example: 'https://…' },
 ]
 
+const DEMO_ROWS = [
+  { name: 'Coconut Oil 500ml', sku: 'COCONUT-500ML', price: 89.99, imageUrl: '', stock: 150, description: 'Cold-pressed organic coconut oil', brand: 'Naturals Co.', unit: 'per bottle', weight: '500ml', categoryId: '', costPrice: 55, lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep in a cool dry place', expiryDate: '2027-06-30', image2Url: '', image3Url: '', image4Url: '' },
+  { name: 'Whole Wheat Bread', sku: 'BREAD-WW-400G', price: 35, imageUrl: '', stock: 80, description: 'Freshly baked whole wheat loaf', brand: 'Jam Bakery', unit: 'per loaf', weight: '400g', categoryId: '', costPrice: '', lowStockThreshold: 15, isFeatured: 'true', countryOfOrigin: 'Ethiopia', storageInstructions: 'Consume within 3 days', expiryDate: '', image2Url: '', image3Url: '', image4Url: '' },
+]
+
 function downloadTemplate() {
   import('xlsx').then((mod) => {
     const XLSX = mod.default ?? mod
 
     const headers = COLUMNS.map((c) => c.name)
-    const example1 = {
-      name: 'Coconut Oil 500ml',
-      sku: 'COCONUT-500ML',
-      price: 89.99,
-      imageUrl: '',
-      stock: 150,
-      description: 'Cold-pressed organic coconut oil',
-      brand: 'Naturals Co.',
-      unit: 'per bottle',
-      weight: '500ml',
-      categoryId: '',
-      costPrice: '',
-      lowStockThreshold: 20,
-      isFeatured: 'false',
-      countryOfOrigin: 'Ethiopia',
-      storageInstructions: 'Keep in a cool dry place',
-      expiryDate: '2027-06-30',
-      image2Url: '',
-      image3Url: '',
-      image4Url: '',
-    }
-    const example2 = {
-      name: 'Whole Wheat Bread',
-      sku: 'BREAD-WW-400G',
-      price: 35,
-      imageUrl: '',
-      stock: 80,
-      description: 'Freshly baked whole wheat loaf',
-      brand: 'Jam Bakery',
-      unit: 'per loaf',
-      weight: '400g',
-      categoryId: '',
-      costPrice: '',
-      lowStockThreshold: 15,
-      isFeatured: 'true',
-      countryOfOrigin: 'Ethiopia',
-      storageInstructions: 'Consume within 3 days',
-      expiryDate: '',
-      image2Url: '',
-      image3Url: '',
-      image4Url: '',
-    }
+    const sampleProducts = [
+      { name: 'Coconut Oil 500ml',       sku: 'COCONUT-500ML',   price: 89.99, stock: 150, description: 'Cold-pressed organic coconut oil',      brand: 'Naturals Co.',   unit: 'per bottle', weight: '500ml',  categoryId: '',  costPrice: 55,  lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep in a cool dry place',  expiryDate: '2027-06-30' },
+      { name: 'Whole Wheat Bread',        sku: 'BREAD-WW-400G',   price: 35,    stock: 80,  description: 'Freshly baked whole wheat loaf',         brand: 'Jam Bakery',     unit: 'per loaf',   weight: '400g',   categoryId: '',  costPrice: '',  lowStockThreshold: 15, isFeatured: 'true',  countryOfOrigin: 'Ethiopia', storageInstructions: 'Consume within 3 days',      expiryDate: '' },
+      { name: 'Full Cream Milk 1L',       sku: 'MILK-FC-1L',      price: 52,    stock: 200, description: 'Fresh pasteurised full cream milk',      brand: 'Mama Dairy',     unit: 'per litre',  weight: '1L',     categoryId: '',  costPrice: 38,  lowStockThreshold: 30, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep refrigerated',           expiryDate: '2026-06-10' },
+      { name: 'White Rice 5kg',           sku: 'RICE-WHT-5KG',    price: 220,   stock: 100, description: 'Long-grain white rice, washed and clean', brand: 'Alem Foods',    unit: 'per bag',    weight: '5kg',    categoryId: '',  costPrice: 170, lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a dry place',        expiryDate: '' },
+      { name: 'Sunflower Oil 1L',         sku: 'OIL-SF-1L',       price: 95,    stock: 120, description: 'Refined sunflower cooking oil',          brand: 'Zer Oil',        unit: 'per bottle', weight: '1L',     categoryId: '',  costPrice: 70,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep away from heat',         expiryDate: '2027-01-01' },
+      { name: 'Pasta Spaghetti 500g',     sku: 'PASTA-SPG-500G',  price: 28,    stock: 300, description: 'Durum wheat spaghetti, 7-min cook time', brand: 'Genet Pasta',   unit: 'per pack',   weight: '500g',   categoryId: '',  costPrice: 18,  lowStockThreshold: 25, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a cool dry place',   expiryDate: '2028-03-01' },
+      { name: 'Tomato Paste 200g',        sku: 'TPASTE-200G',     price: 18,    stock: 250, description: 'Concentrated tomato paste, no additives', brand: 'Red Gold',      unit: 'per can',    weight: '200g',   categoryId: '',  costPrice: 11,  lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Refrigerate after opening',   expiryDate: '2027-08-15' },
+      { name: 'Eggs Tray (30)',           sku: 'EGGS-TRAY-30',    price: 180,   stock: 60,  description: 'Fresh farm eggs, 30 per tray',           brand: 'Zema Farm',      unit: 'per tray',   weight: '1.8kg',  categoryId: '',  costPrice: 140, lowStockThreshold: 10, isFeatured: 'true',  countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep refrigerated',           expiryDate: '2026-06-15' },
+      { name: 'Lentils Red 1kg',          sku: 'LENTIL-RED-1KG',  price: 45,    stock: 180, description: 'Split red lentils, quick-cooking',       brand: 'Alem Foods',     unit: 'per pack',   weight: '1kg',    categoryId: '',  costPrice: 30,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in an airtight container', expiryDate: '' },
+      { name: 'Bottled Water 600ml',      sku: 'WATER-600ML',     price: 8,     stock: 500, description: 'Natural mineral water',                  brand: 'Abyssinia',      unit: 'per bottle', weight: '600ml',  categoryId: '',  costPrice: 4,   lowStockThreshold: 50, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep away from direct sunlight', expiryDate: '2028-01-01' },
+      { name: 'Sugar 2kg',                sku: 'SUGAR-2KG',       price: 75,    stock: 150, description: 'Refined white sugar',                    brand: 'Wonji Sugar',    unit: 'per bag',    weight: '2kg',    categoryId: '',  costPrice: 55,  lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep dry',                     expiryDate: '' },
+      { name: 'Salt Iodised 1kg',         sku: 'SALT-IOD-1KG',    price: 12,    stock: 400, description: 'Iodised table salt',                     brand: 'Assale',         unit: 'per pack',   weight: '1kg',    categoryId: '',  costPrice: 7,   lowStockThreshold: 30, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep dry',                     expiryDate: '' },
+      { name: 'Teff Flour 2kg',           sku: 'TEFF-FL-2KG',     price: 110,   stock: 90,  description: 'Whole-grain teff flour for injera',      brand: 'Alem Foods',     unit: 'per bag',    weight: '2kg',    categoryId: '',  costPrice: 80,  lowStockThreshold: 10, isFeatured: 'true',  countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a dry place',         expiryDate: '' },
+      { name: 'Butter 250g',              sku: 'BUTTER-250G',     price: 68,    stock: 70,  description: 'Unsalted pasteurised butter',            brand: 'Mama Dairy',     unit: 'per block',  weight: '250g',   categoryId: '',  costPrice: 48,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep refrigerated',            expiryDate: '2026-07-01' },
+      { name: 'Yoghurt Plain 500g',       sku: 'YOGHURT-500G',    price: 42,    stock: 80,  description: 'Creamy plain yoghurt, no sugar added',   brand: 'Mama Dairy',     unit: 'per cup',    weight: '500g',   categoryId: '',  costPrice: 28,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep refrigerated',            expiryDate: '2026-06-08' },
+      { name: 'Chicken Breast 1kg',       sku: 'CHKN-BRST-1KG',  price: 230,   stock: 40,  description: 'Fresh boneless chicken breast',          brand: 'Zema Farm',      unit: 'per kg',     weight: '1kg',    categoryId: '',  costPrice: 180, lowStockThreshold: 5,  isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep frozen',                  expiryDate: '2026-06-07' },
+      { name: 'Onions 1kg',               sku: 'ONION-1KG',       price: 22,    stock: 200, description: 'Fresh red onions',                       brand: '',               unit: 'per kg',     weight: '1kg',    categoryId: '',  costPrice: 14,  lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a cool dry place',   expiryDate: '' },
+      { name: 'Tomatoes 1kg',             sku: 'TOMATO-1KG',      price: 25,    stock: 150, description: 'Fresh ripe tomatoes',                    brand: '',               unit: 'per kg',     weight: '1kg',    categoryId: '',  costPrice: 16,  lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep at room temperature',    expiryDate: '' },
+      { name: 'Green Pepper 500g',        sku: 'PEPPER-GRN-500G', price: 20,    stock: 120, description: 'Fresh green bell peppers',               brand: '',               unit: 'per pack',   weight: '500g',   categoryId: '',  costPrice: 12,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep refrigerated',            expiryDate: '' },
+      { name: 'Garlic 250g',              sku: 'GARLIC-250G',     price: 30,    stock: 100, description: 'Fresh whole garlic bulbs',               brand: '',               unit: 'per pack',   weight: '250g',   categoryId: '',  costPrice: 18,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a cool dry place',   expiryDate: '' },
+      { name: 'Banana (bunch)',           sku: 'BANANA-BUNCH',    price: 35,    stock: 60,  description: 'Ripe sweet bananas, approx. 7 per bunch', brand: '',              unit: 'per bunch',  weight: '~800g',  categoryId: '',  costPrice: 22,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep at room temperature',    expiryDate: '' },
+      { name: 'Avocado (each)',           sku: 'AVOCADO-EACH',    price: 12,    stock: 80,  description: 'Creamy ripe avocado',                    brand: '',               unit: 'each',       weight: '~200g',  categoryId: '',  costPrice: 7,   lowStockThreshold: 10, isFeatured: 'true',  countryOfOrigin: 'Ethiopia', storageInstructions: 'Ripen at room temperature',   expiryDate: '' },
+      { name: 'Orange Juice 1L',          sku: 'OJ-1L',           price: 65,    stock: 90,  description: '100% pure squeezed orange juice',        brand: 'Fruity',         unit: 'per carton', weight: '1L',     categoryId: '',  costPrice: 45,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Refrigerate after opening',   expiryDate: '2026-08-01' },
+      { name: 'Mango Juice 500ml',        sku: 'MANGO-J-500ML',   price: 35,    stock: 110, description: 'Tropical mango nectar drink',            brand: 'Fruity',         unit: 'per bottle', weight: '500ml',  categoryId: '',  costPrice: 22,  lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Serve chilled',               expiryDate: '2027-02-15' },
+      { name: 'Coffee Ground 500g',       sku: 'COFFEE-GRD-500G', price: 185,   stock: 50,  description: 'Medium roast Sidama coffee, ground',     brand: 'Yirgacheffe Co.',unit: 'per bag',    weight: '500g',   categoryId: '',  costPrice: 130, lowStockThreshold: 5,  isFeatured: 'true',  countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in airtight container', expiryDate: '2027-12-31' },
+      { name: 'Black Tea Bags 100pk',     sku: 'TEA-BLK-100PK',   price: 55,    stock: 80,  description: '100 individual black tea bags',          brand: 'Wush Wush',      unit: 'per box',    weight: '200g',   categoryId: '',  costPrice: 35,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a dry place',         expiryDate: '2028-06-01' },
+      { name: 'Honey 500g',               sku: 'HONEY-500G',      price: 145,   stock: 45,  description: 'Pure raw Ethiopian forest honey',        brand: 'Bees of Ethiopia',unit: 'per jar',   weight: '500g',   categoryId: '',  costPrice: 100, lowStockThreshold: 5,  isFeatured: 'true',  countryOfOrigin: 'Ethiopia', storageInstructions: 'Store at room temperature',   expiryDate: '' },
+      { name: 'Biscuits 200g',            sku: 'BISCUIT-200G',    price: 22,    stock: 200, description: 'Crunchy butter biscuits',                brand: 'Kana',           unit: 'per pack',   weight: '200g',   categoryId: '',  costPrice: 14,  lowStockThreshold: 25, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep in a cool dry place',    expiryDate: '2027-03-01' },
+      { name: 'Chocolate Bar 100g',       sku: 'CHOC-100G',       price: 48,    stock: 100, description: 'Milk chocolate bar',                     brand: 'Kana',           unit: 'each',       weight: '100g',   categoryId: '',  costPrice: 30,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store below 25°C',             expiryDate: '2027-01-01' },
+      { name: 'Chips 150g',               sku: 'CHIPS-150G',      price: 30,    stock: 150, description: 'Crispy salted potato chips',             brand: 'Crispy',         unit: 'per bag',    weight: '150g',   categoryId: '',  costPrice: 18,  lowStockThreshold: 20, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep away from moisture',      expiryDate: '2026-12-01' },
+      { name: 'Washing Powder 1kg',       sku: 'WASH-PWD-1KG',    price: 58,    stock: 120, description: 'Heavy-duty laundry washing powder',      brand: 'Omo',            unit: 'per pack',   weight: '1kg',    categoryId: '',  costPrice: 40,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep dry',                     expiryDate: '' },
+      { name: 'Dish Soap 500ml',          sku: 'DISH-SOAP-500ML', price: 32,    stock: 100, description: 'Grease-cutting dishwashing liquid',      brand: 'Sunlight',       unit: 'per bottle', weight: '500ml',  categoryId: '',  costPrice: 20,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep out of reach of children', expiryDate: '' },
+      { name: 'Toilet Paper 12 rolls',    sku: 'TPAPER-12PK',     price: 95,    stock: 80,  description: '2-ply soft toilet paper, 12 rolls',      brand: 'Soft & Care',    unit: 'per pack',   weight: '1.2kg',  categoryId: '',  costPrice: 65,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: '',                             expiryDate: '' },
+      { name: 'Hand Sanitiser 250ml',     sku: 'HSANITISER-250ML',price: 45,    stock: 60,  description: '70% alcohol hand sanitiser gel',         brand: 'CleanPlus',      unit: 'per bottle', weight: '250ml',  categoryId: '',  costPrice: 28,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Flammable — keep from flame', expiryDate: '2027-06-01' },
+      { name: 'Shampoo 400ml',            sku: 'SHAMPOO-400ML',   price: 72,    stock: 70,  description: 'Moisturising hair shampoo',              brand: 'Dove',           unit: 'per bottle', weight: '400ml',  categoryId: '', costPrice: 48,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: '',                             expiryDate: '2028-01-01' },
+      { name: 'Soap Bar 3pk',             sku: 'SOAP-BAR-3PK',    price: 28,    stock: 150, description: 'Moisturising bath soap bars, pack of 3', brand: 'Lux',            unit: 'per pack',   weight: '375g',   categoryId: '', costPrice: 17,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: '',                             expiryDate: '' },
+      { name: 'Toothpaste 100ml',         sku: 'TPASTE-100ML',    price: 38,    stock: 90,  description: 'Fluoride toothpaste, fresh mint',        brand: 'Colgate',        unit: 'per tube',   weight: '100ml',  categoryId: '', costPrice: 24,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: '',                             expiryDate: '2028-06-01' },
+      { name: 'Maize Flour 2kg',          sku: 'MAIZE-FL-2KG',    price: 48,    stock: 130, description: 'Fine white maize meal',                  brand: 'Alem Foods',     unit: 'per bag',    weight: '2kg',    categoryId: '',  costPrice: 32,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a dry place',         expiryDate: '' },
+      { name: 'Spaghetti Sauce 350g',     sku: 'SPGSAUCE-350G',   price: 42,    stock: 110, description: 'Ready-to-use tomato spaghetti sauce',    brand: 'Red Gold',       unit: 'per jar',    weight: '350g',   categoryId: '',  costPrice: 27,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Refrigerate after opening',   expiryDate: '2027-09-01' },
+      { name: 'Canned Tuna 185g',         sku: 'TUNA-185G',       price: 55,    stock: 80,  description: 'Tuna chunks in brine',                   brand: 'Seasons',        unit: 'per can',    weight: '185g',   categoryId: '',  costPrice: 35,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Refrigerate after opening',   expiryDate: '2028-12-01' },
+      { name: 'Chickpeas 500g',           sku: 'CHICKPEA-500G',   price: 35,    stock: 140, description: 'Dried chickpeas (shimbra)',               brand: 'Alem Foods',     unit: 'per pack',   weight: '500g',   categoryId: '',  costPrice: 22,  lowStockThreshold: 15, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in airtight container', expiryDate: '' },
+      { name: 'Black Pepper 50g',         sku: 'PEPPER-BLK-50G',  price: 25,    stock: 100, description: 'Ground black pepper',                    brand: 'Spice Route',    unit: 'per jar',    weight: '50g',    categoryId: '', costPrice: 14,  lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep away from moisture',      expiryDate: '2028-01-01' },
+      { name: 'Berbere Spice 100g',       sku: 'BERBERE-100G',    price: 38,    stock: 75,  description: 'Authentic Ethiopian berbere spice blend', brand: 'Abyssinia Spice',unit: 'per pack',   weight: '100g',   categoryId: '', costPrice: 22,  lowStockThreshold: 10, isFeatured: 'true',  countryOfOrigin: 'Ethiopia', storageInstructions: 'Store in a cool dry place',   expiryDate: '2027-06-01' },
+      { name: 'Cardamom Ground 30g',      sku: 'CARDAMOM-30G',    price: 30,    stock: 60,  description: 'Finely ground green cardamom',           brand: 'Spice Route',    unit: 'per pack',   weight: '30g',    categoryId: '', costPrice: 18,  lowStockThreshold: 8,  isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep away from moisture',      expiryDate: '2027-09-01' },
+      { name: 'Noodles Instant 75g',      sku: 'NOODLES-75G',     price: 12,    stock: 300, description: 'Quick-cook instant noodles, chicken flavour', brand: 'Indo', unit: 'per pack',   weight: '75g',    categoryId: '',  costPrice: 6,   lowStockThreshold: 30, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep dry',                     expiryDate: '2027-01-01' },
+      { name: 'Corn Flakes 375g',         sku: 'CORNFLAKE-375G',  price: 78,    stock: 60,  description: 'Toasted corn flakes breakfast cereal',   brand: 'Kellogg\'s',     unit: 'per box',    weight: '375g',   categoryId: '',  costPrice: 52,  lowStockThreshold: 8,  isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep dry after opening',       expiryDate: '2027-03-01' },
+      { name: 'Minced Meat 500g',         sku: 'MINCE-500G',      price: 175,   stock: 30,  description: 'Fresh minced beef',                      brand: 'Zema Farm',      unit: 'per pack',   weight: '500g',   categoryId: '',  costPrice: 130, lowStockThreshold: 5,  isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep frozen',                  expiryDate: '2026-06-07' },
+      { name: 'Olive Oil 500ml',          sku: 'OLIVEOIL-500ML',  price: 280,   stock: 35,  description: 'Extra virgin cold-pressed olive oil',    brand: 'Kefita',         unit: 'per bottle', weight: '500ml',  categoryId: '',  costPrice: 210, lowStockThreshold: 5,  isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Store away from light',        expiryDate: '2027-12-01' },
+      { name: 'Peanut Butter 400g',       sku: 'PNUTBTR-400G',    price: 85,    stock: 55,  description: 'Smooth peanut butter, no added sugar',   brand: 'Naturals Co.',   unit: 'per jar',    weight: '400g',   categoryId: '',  costPrice: 58,  lowStockThreshold: 8,  isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Refrigerate after opening',   expiryDate: '2027-06-01' },
+      { name: 'Mango (each)',             sku: 'MANGO-EACH',      price: 15,    stock: 70,  description: 'Fresh ripe mango',                       brand: '',               unit: 'each',       weight: '~300g',  categoryId: '',  costPrice: 8,   lowStockThreshold: 10, isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Ripen at room temperature',   expiryDate: '' },
+      { name: 'Papaya (each)',            sku: 'PAPAYA-EACH',     price: 20,    stock: 50,  description: 'Fresh ripe papaya',                      brand: '',               unit: 'each',       weight: '~500g',  categoryId: '',  costPrice: 11,  lowStockThreshold: 8,  isFeatured: 'false', countryOfOrigin: 'Ethiopia', storageInstructions: 'Keep at room temperature',    expiryDate: '' },
+    ]
 
-    const ws = XLSX.utils.json_to_sheet([example1, example2], { header: headers })
+    const rows = sampleProducts.map((p) => ({
+      name: p.name, sku: p.sku, price: p.price, imageUrl: '', stock: p.stock,
+      description: p.description, brand: p.brand, unit: p.unit, weight: p.weight,
+      categoryId: p.categoryId, costPrice: p.costPrice, lowStockThreshold: p.lowStockThreshold,
+      isFeatured: p.isFeatured, countryOfOrigin: p.countryOfOrigin,
+      storageInstructions: p.storageInstructions, expiryDate: p.expiryDate,
+      image2Url: '', image3Url: '', image4Url: '',
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers })
 
     // Column widths
     ws['!cols'] = headers.map((h) => ({
@@ -392,7 +454,6 @@ async function processFile(file) {
     const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
 
     if (!rows.length) { uploadError.value = 'The spreadsheet is empty.'; return }
-    if (rows.length > 500) { uploadError.value = 'Too many rows. Maximum is 500 products per import.'; return }
 
     previewRows.value = rows
   } catch (e) {

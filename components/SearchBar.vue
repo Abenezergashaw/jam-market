@@ -58,7 +58,7 @@
               :class="activeIdx === categories.length + i ? 'bg-zinc-50' : 'hover:bg-zinc-50'"
               @mousedown.prevent="goToProduct(product)"
             >
-              <img :src="product.imageUrl" :alt="product.name" class="w-10 h-10 rounded-lg object-cover shrink-0 bg-zinc-100" @error="$event.target.src = 'https://picsum.photos/seed/' + product.id + '/80/80'" />
+              <ProductImage :src="product.imageUrl" :alt="product.name" class="w-10 h-10 rounded-lg object-cover shrink-0 bg-zinc-100" />
               <div class="flex-1 min-w-0">
                 <p v-if="product.brand" class="text-[10px] text-zinc-400 font-medium truncate">{{ product.brand }}</p>
                 <p class="text-sm font-medium text-zinc-800 truncate">{{ product.name }}</p>

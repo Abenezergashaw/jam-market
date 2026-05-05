@@ -38,11 +38,10 @@
       <!-- Gallery -->
       <div class="space-y-3">
         <div class="relative aspect-square rounded-2xl overflow-hidden bg-zinc-100 border border-zinc-200 group">
-          <img
+          <ProductImage
             :src="gallery[activeIdx]"
             :alt="product.name"
             class="w-full h-full object-cover transition-opacity duration-200"
-            @error="$event.target.src = 'https://picsum.photos/seed/' + product.id + '/600/600'"
           />
 
           <template v-if="gallery.length > 1">
@@ -87,7 +86,7 @@
             :class="activeIdx === i ? 'border-brand-500 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'"
             @click="activeIdx = i"
           >
-            <img :src="img" :alt="`Image ${i + 1}`" class="w-full h-full object-cover" @error="$event.target.src = 'https://picsum.photos/64/64'" />
+            <ProductImage :src="img" :alt="`Image ${i + 1}`" class="w-full h-full object-cover" />
           </button>
         </div>
       </div>

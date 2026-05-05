@@ -18,12 +18,11 @@
       <!-- Items -->
       <ul class="space-y-2 mb-8">
         <li v-for="item in cartStore.items" :key="item.id" class="card p-3 flex items-center gap-3 hover:border-zinc-300 hover:shadow-sm transition-all">
-          <img
+          <ProductImage
             :src="item.imageUrl"
             :alt="item.name"
             class="w-14 h-14 object-cover rounded-xl bg-zinc-100 shrink-0"
             loading="lazy"
-            @error="$event.target.src = 'https://picsum.photos/56/56'"
           />
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-zinc-900 truncate">{{ item.name }}</p>

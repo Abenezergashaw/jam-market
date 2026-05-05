@@ -3,7 +3,6 @@ const _require = createRequire(import.meta.url)
 const XLSX = _require('xlsx')
 import { z } from 'zod'
 
-const MAX_ROWS = 500
 
 // Convert empty-string cells (xlsx defval:'') to undefined so optional fields don't fail validation
 const opt = (v) => (v === '' || v == null ? undefined : v)
@@ -65,9 +64,6 @@ export default defineEventHandler(async (event) => {
   const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
 
   if (!rows.length) throw createError({ statusCode: 400, statusMessage: 'The spreadsheet is empty.' })
-  if (rows.length > MAX_ROWS) {
-    throw createError({ statusCode: 400, statusMessage: `Too many rows. Maximum is ${MAX_ROWS} products per import.` })
-  }
 
   // Validate all rows
   const errors = []
@@ -110,6 +106,21 @@ export default defineEventHandler(async (event) => {
 
   if (errors.length > 0) {
     return { ok: false, errors, validCount: valid.length }
+  }
+
+  // Nullify categoryIds that don't exist in the DB
+  const categoryIdsInFile = [...new Set(valid.map((r) => r.categoryId).filter(Boolean))]
+  if (categoryIdsInFile.length) {
+    const existingCats = await prisma.category.findMany({
+      where: { id: { in: categoryIdsInFile } },
+      select: { id: true },
+    })
+    const validCatIds = new Set(existingCats.map((c) => c.id))
+    for (const row of valid) {
+      if (row.categoryId != null && !validCatIds.has(row.categoryId)) {
+        row.categoryId = null
+      }
+    }
   }
 
   // Look up existing products by SKU for upsert logic
@@ -159,32 +170,30 @@ export default defineEventHandler(async (event) => {
       .map((url, pos) => ({ url, position: pos + 1 }))
 
   await prisma.$transaction(async (tx) => {
-    // Create new products
-    for (const row of toCreate) {
-      const imgs = extraImages(row)
+    // Batch-create products without extra images
+    const simpleCreates = toCreate.filter((row) => extraImages(row).length === 0)
+    if (simpleCreates.length) {
+      await tx.product.createMany({ data: simpleCreates.map(productData) })
+    }
+
+    // Individual create for products that have extra images
+    const richCreates = toCreate.filter((row) => extraImages(row).length > 0)
+    for (const row of richCreates) {
       await tx.product.create({
-        data: {
-          ...productData(row),
-          images: imgs.length ? { create: imgs } : undefined,
-        },
+        data: { ...productData(row), images: { create: extraImages(row) } },
       })
     }
 
     // Update existing products matched by SKU
     for (const { id, row } of toUpdate) {
       const imgs = extraImages(row)
-      await tx.product.update({
-        where: { id },
-        data: productData(row),
-      })
+      await tx.product.update({ where: { id }, data: productData(row) })
       if (imgs.length) {
         await tx.productImage.deleteMany({ where: { productId: id } })
-        await tx.productImage.createMany({
-          data: imgs.map((img) => ({ ...img, productId: id })),
-        })
+        await tx.productImage.createMany({ data: imgs.map((img) => ({ ...img, productId: id })) })
       }
     }
-  })
+  }, { timeout: 60000 })
 
   await logAudit({ userId: staff.userId, role: staff.role }, event, {
     action: 'PRODUCTS_BULK_IMPORTED',

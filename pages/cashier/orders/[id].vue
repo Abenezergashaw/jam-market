@@ -74,11 +74,10 @@
           <h2 class="text-sm font-semibold text-zinc-700 mb-4 uppercase tracking-wider">Order Items</h2>
           <ul class="space-y-3">
             <li v-for="item in order.items" :key="item.id" class="flex items-center gap-3">
-              <img
+              <ProductImage
                 :src="item.product?.imageUrl"
                 :alt="item.product?.name"
                 class="w-10 h-10 rounded-xl object-cover bg-zinc-100 shrink-0"
-                @error="$event.target.src = 'https://picsum.photos/40/40'"
               />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-zinc-900 truncate">{{ item.product?.name ?? 'Unknown' }}</p>

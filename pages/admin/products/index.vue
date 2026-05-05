@@ -78,11 +78,10 @@
       >
         <!-- Image area -->
         <div class="relative aspect-square bg-zinc-50 overflow-hidden">
-          <img
-            :src="product.imageUrl || `https://picsum.photos/seed/${product.id}/300/300`"
+          <ProductImage
+            :src="product.imageUrl"
             :alt="product.name"
             class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
-            @error="$event.target.src = `https://picsum.photos/seed/${product.id}/300/300`"
           />
 
           <!-- Upload progress overlay -->

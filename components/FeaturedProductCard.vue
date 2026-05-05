@@ -5,12 +5,11 @@
   >
     <!-- Image -->
     <div class="relative aspect-square bg-zinc-50 overflow-hidden">
-      <img
+      <ProductImage
         :src="product.imageUrl"
         :alt="product.name"
         loading="lazy"
         class="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-300"
-        @error="$event.target.src = 'https://picsum.photos/seed/' + product.id + '/200/200'"
       />
       <!-- Number badge -->
       <div
