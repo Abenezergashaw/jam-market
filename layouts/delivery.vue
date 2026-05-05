@@ -42,8 +42,8 @@ onMounted(async () => {
   const storeId = adminStore.user?.storeId
   if (storeId) {
     try {
-      const stores = await adminFetch('/api/admin/stores')
-      storeName.value = stores.find(s => s.id === storeId)?.name ?? ''
+      const store = await adminFetch('/api/delivery/store')
+      storeName.value = store?.name ?? ''
     } catch {}
   }
 })

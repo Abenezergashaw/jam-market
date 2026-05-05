@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   if (typeof lat !== 'number' || typeof lng !== 'number')
     throw createError({ statusCode: 400, statusMessage: 'lat and lng are required numbers' })
   await prisma.user.update({
-    where: { id: payload.id },
+    where: { id: payload.userId },
     data: { lat, lng, locationUpdatedAt: new Date() },
   })
   return { ok: true }
