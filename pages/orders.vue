@@ -65,6 +65,13 @@
           </div>
         </div>
 
+        <!-- Live delivery tracker — shown when order is out for delivery with an assigned person -->
+        <OrderDeliveryTracker
+          v-if="order.status === 'OUT_FOR_DELIVERY' && order.deliveryPersonId"
+          :order-id="order.id"
+          class="mb-4"
+        />
+
         <!-- Confirm receipt CTA — shown when order is out for delivery -->
         <div v-if="order.status === 'OUT_FOR_DELIVERY'" class="mb-4">
           <template v-if="confirmingId === order.id">

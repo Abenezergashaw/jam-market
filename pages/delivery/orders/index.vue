@@ -15,8 +15,13 @@
     <div class="card p-4 flex items-center justify-between gap-3">
       <div>
         <p class="text-sm font-semibold text-zinc-800">Share my location</p>
-        <p class="text-xs text-zinc-400 mt-0.5">Lets admin see how far you are from the store</p>
-        <p v-if="locationError" class="text-xs text-red-500 mt-1">{{ locationError }}</p>
+        <p v-if="lastSharedAt" class="text-xs text-green-600 mt-0.5">Last shared {{ timeAgo(lastSharedAt) }}</p>
+        <p v-else-if="!locationSharing" class="text-xs text-zinc-400 mt-0.5">Lets admin see how far you are from the store</p>
+        <p v-if="locationError" class="text-xs text-red-500 mt-1">
+          {{ locationError }} —
+          <button class="underline" @click="() => { locationError = ''; sendLocation() }">try again</button>
+          or refresh the page
+        </p>
       </div>
       <button
         type="button"
@@ -102,7 +107,15 @@ async function fetchOrders(silent = false) {
 
 const locationSharing = ref(false)
 const locationError = ref('')
+const lastSharedAt = ref(null)
 let locationInterval = null
+
+function timeAgo(date) {
+  const sec = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
+  if (sec < 60) return 'just now'
+  if (sec < 3600) return `${Math.floor(sec / 60)} min ago`
+  return `${Math.floor(sec / 3600)} hr ago`
+}
 
 async function sendLocation() {
   try {
@@ -114,6 +127,7 @@ async function sendLocation() {
       body: { lat: pos.coords.latitude, lng: pos.coords.longitude },
     })
     locationError.value = ''
+    lastSharedAt.value = new Date()
   } catch {
     locationError.value = 'Could not get location'
   }

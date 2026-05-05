@@ -28,6 +28,12 @@
           Revenue
         </NuxtLink>
 
+        <p class="px-3 pt-4 pb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Delivery</p>
+        <NuxtLink to="/admin/delivery/live" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/delivery/live' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          Live Map
+        </NuxtLink>
+
         <p class="px-3 pt-4 pb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Catalogue</p>
         <NuxtLink to="/admin/products" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/products' || ($route.path.startsWith('/admin/products/') && !$route.path.includes('low-stock')) ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
@@ -154,6 +160,12 @@
           <NuxtLink to="/admin/revenue" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/revenue' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'" @click="drawerOpen = false">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             Revenue
+          </NuxtLink>
+
+          <p class="px-3 pt-4 pb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Delivery</p>
+          <NuxtLink to="/admin/delivery/live" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/delivery/live' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'" @click="drawerOpen = false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Live Map
           </NuxtLink>
 
           <p class="px-3 pt-4 pb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">Catalogue</p>
