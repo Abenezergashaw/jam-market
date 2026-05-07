@@ -134,10 +134,12 @@
           <LangToggle />
         </div>
 
-        <!-- Mobile: cart icon -->
+        <!-- Mobile: lang toggle + cart icon -->
+        <div class="order-2 ml-auto sm:hidden flex items-center gap-1">
+          <LangToggle />
         <NuxtLink
           to="/cart"
-          class="order-2 ml-auto sm:hidden relative p-2 text-zinc-600 hover:text-zinc-900 transition-colors"
+          class="relative p-2 text-zinc-600 hover:text-zinc-900 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -160,6 +162,7 @@
             {{ cartStore.totalItems }}
           </span>
         </NuxtLink>
+        </div>
       </div>
     </header>
 
