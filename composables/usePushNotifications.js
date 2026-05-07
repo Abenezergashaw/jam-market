@@ -1,10 +1,14 @@
+// Shared across all composable instances on the client
+const _permission = process.client && 'Notification' in window
+  ? ref(Notification.permission)
+  : ref('denied')
+
 export function usePushNotifications() {
   const notifSupported = process.client && 'Notification' in window
   const pushSupported = process.client && 'serviceWorker' in navigator && 'PushManager' in window
 
   const isSupported = computed(() => notifSupported && pushSupported)
-
-  const permission = ref(notifSupported ? Notification.permission : 'denied')
+  const permission = _permission
 
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -13,14 +17,7 @@ export function usePushNotifications() {
     return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)))
   }
 
-  async function subscribe(authHeader) {
-    if (!isSupported.value) return false
-    if (!notifSupported) return false
-
-    const perm = await Notification.requestPermission()
-    permission.value = perm
-    if (perm !== 'granted') return false
-
+  async function _doSubscribe(authHeader) {
     try {
       const { key } = await $fetch('/api/push/vapid-public-key')
       if (!key) return false
@@ -46,6 +43,23 @@ export function usePushNotifications() {
     }
   }
 
+  // Called from UI button — requests permission then subscribes
+  async function subscribe(authHeader) {
+    if (!isSupported.value || !notifSupported) return false
+    const perm = await Notification.requestPermission()
+    permission.value = perm
+    if (perm !== 'granted') return false
+    return _doSubscribe(authHeader)
+  }
+
+  // Called silently on mount — only proceeds if already granted, never prompts
+  async function resubscribeIfGranted(authHeader) {
+    if (!isSupported.value || !notifSupported) return
+    if (Notification.permission !== 'granted') return
+    permission.value = 'granted'
+    _doSubscribe(authHeader)
+  }
+
   async function unsubscribe(authHeader) {
     if (!isSupported.value) return
     try {
@@ -62,5 +76,5 @@ export function usePushNotifications() {
     } catch { /* swallow */ }
   }
 
-  return { isSupported, permission, subscribe, unsubscribe }
+  return { isSupported, permission, subscribe, resubscribeIfGranted, unsubscribe }
 }

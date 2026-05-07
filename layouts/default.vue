@@ -471,6 +471,10 @@
     </nav>
   </div>
   <InstallBanner />
+  <NotificationPrompt
+    v-if="customerStore.isAuthenticated && isSupported"
+    :auth-header="`Bearer ${customerStore.token}`"
+  />
 </template>
 
 <script setup>
@@ -478,13 +482,13 @@ const cartStore = useCartStore();
 const myOrdersStore = useCustomerOrdersStore();
 const customerStore = useCustomerStore();
 const mobileAccountOpen = ref(false);
-const { isSupported, subscribe } = usePushNotifications();
+const { isSupported, resubscribeIfGranted } = usePushNotifications();
 
 onMounted(() => {
   customerStore.hydrate()
   setTimeout(() => {
     if (isSupported.value && customerStore.isAuthenticated) {
-      subscribe(`Bearer ${customerStore.token}`)
+      resubscribeIfGranted(`Bearer ${customerStore.token}`)
     }
   }, 3000)
 });

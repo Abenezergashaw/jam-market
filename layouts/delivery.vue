@@ -31,12 +31,16 @@
       <slot />
     </main>
   </div>
+  <NotificationPrompt
+    v-if="adminStore.token && isSupported"
+    :auth-header="`Bearer ${adminStore.token}`"
+  />
 </template>
 
 <script setup>
 const adminStore = useAdminStore()
 const { adminFetch } = useAdminFetch()
-const { isSupported, subscribe } = usePushNotifications()
+const { isSupported, resubscribeIfGranted } = usePushNotifications()
 
 const storeName = ref('')
 onMounted(async () => {
@@ -48,7 +52,7 @@ onMounted(async () => {
     } catch {}
   }
   if (isSupported.value && adminStore.token) {
-    subscribe(`Bearer ${adminStore.token}`)
+    resubscribeIfGranted(`Bearer ${adminStore.token}`)
   }
 })
 </script>
