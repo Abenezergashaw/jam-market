@@ -1,12 +1,10 @@
 export function usePushNotifications() {
-  const isSupported = computed(() =>
-    process.client &&
-    'Notification' in window &&
-    'serviceWorker' in navigator &&
-    'PushManager' in window,
-  )
+  const notifSupported = process.client && 'Notification' in window
+  const pushSupported = process.client && 'serviceWorker' in navigator && 'PushManager' in window
 
-  const permission = ref(process.client ? Notification.permission : 'default')
+  const isSupported = computed(() => notifSupported && pushSupported)
+
+  const permission = ref(notifSupported ? Notification.permission : 'denied')
 
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -17,6 +15,7 @@ export function usePushNotifications() {
 
   async function subscribe(authHeader) {
     if (!isSupported.value) return false
+    if (!notifSupported) return false
 
     const perm = await Notification.requestPermission()
     permission.value = perm
@@ -39,11 +38,7 @@ export function usePushNotifications() {
       await $fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { Authorization: authHeader },
-        body: {
-          endpoint: json.endpoint,
-          p256dh: json.keys.p256dh,
-          auth: json.keys.auth,
-        },
+        body: { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth },
       })
       return true
     } catch {
@@ -63,7 +58,7 @@ export function usePushNotifications() {
         body: { endpoint: sub.endpoint },
       })
       await sub.unsubscribe()
-      permission.value = Notification.permission
+      if (notifSupported) permission.value = Notification.permission
     } catch { /* swallow */ }
   }
 
