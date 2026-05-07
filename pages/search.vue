@@ -6,8 +6,8 @@
       <!-- Recent searches -->
       <section v-if="recentSearches.length > 0" class="mb-8">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Recent searches</h2>
-          <button class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors" @click="clearRecents">Clear all</button>
+          <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{{ $t('search.recentSearches') }}</h2>
+          <button class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors" @click="clearRecents">{{ $t('search.clearAll') }}</button>
         </div>
         <div class="flex flex-wrap gap-2">
           <button
@@ -34,7 +34,7 @@
 
       <!-- Trending categories -->
       <section v-if="trendingCategories.length > 0" class="mb-8">
-        <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Trending categories</h2>
+        <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">{{ $t('search.trendingCategories') }}</h2>
         <div class="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none">
           <NuxtLink
             v-for="cat in trendingCategories"
@@ -52,7 +52,7 @@
 
       <!-- Featured products -->
       <section v-if="featuredProducts.length > 0" class="mb-8">
-        <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Featured products</h2>
+        <h2 class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">{{ $t('search.featuredProducts') }}</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
           <ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" />
         </div>
@@ -66,8 +66,8 @@
           </svg>
         </div>
         <div>
-          <p class="font-semibold text-zinc-800">Search for products</p>
-          <p class="text-sm text-zinc-400 mt-1">Type in the search bar above to find what you need</p>
+          <p class="font-semibold text-zinc-800">{{ $t('search.searchPrompt') }}</p>
+          <p class="text-sm text-zinc-400 mt-1">{{ $t('search.searchHint') }}</p>
         </div>
       </div>
     </div>
@@ -76,9 +76,9 @@
     <template v-else>
       <!-- Header -->
       <div class="mb-5">
-        <h1 class="text-xl font-bold text-zinc-900">Results for "{{ q }}"</h1>
+        <h1 class="text-xl font-bold text-zinc-900">{{ $t('search.resultsFor', { q }) }}</h1>
         <p v-if="!pending" class="text-sm text-zinc-400 mt-0.5">
-          {{ total }} product{{ total === 1 ? '' : 's' }} found
+          {{ $t('search.productsFound', { n: total }) }}
         </p>
       </div>
 
@@ -89,7 +89,7 @@
           class="shrink-0 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors"
           :class="!activeCategory ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-300'"
         >
-          All
+          {{ $t('search.all') }}
         </NuxtLink>
         <NuxtLink
           v-for="cat in filterCategories"
@@ -116,9 +116,9 @@
 
       <!-- No results -->
       <div v-else-if="!pending && products.length === 0" class="flex flex-col items-center justify-center py-20 text-center gap-3">
-        <p class="font-semibold text-zinc-800">No products found</p>
-        <p class="text-sm text-zinc-400">Try a different search term or browse categories</p>
-        <NuxtLink to="/" class="mt-2 text-sm font-medium text-brand-600 hover:underline">Browse categories</NuxtLink>
+        <p class="font-semibold text-zinc-800">{{ $t('search.noProducts') }}</p>
+        <p class="text-sm text-zinc-400">{{ $t('search.noProductsHint') }}</p>
+        <NuxtLink to="/" class="mt-2 text-sm font-medium text-brand-600 hover:underline">{{ $t('search.browseCategories') }}</NuxtLink>
       </div>
 
       <!-- Product grid -->
@@ -133,7 +133,7 @@
           :class="{ 'opacity-50 pointer-events-none': pending }"
           @click="loadMore"
         >
-          {{ pending ? 'Loading…' : 'Load more' }}
+          {{ pending ? $t('search.loading') : $t('search.loadMore') }}
         </button>
       </div>
     </template>

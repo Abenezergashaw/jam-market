@@ -8,23 +8,23 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          Refreshing
+          {{ $t('admin.refreshing') }}
         </span>
       </p>
       <div class="flex gap-2 flex-wrap">
         <select v-model="paymentFilter" class="input text-sm py-1.5 w-auto min-w-[180px]">
-          <option value="">All payments</option>
-          <option value="PENDING">Awaiting verification</option>
-          <option value="COLLECTED">Verified</option>
-          <option value="FAILED">Payment failed</option>
+          <option value="">{{ $t('admin.allPayments') }}</option>
+          <option value="PENDING">{{ $t('admin.awaitingVerification') }}</option>
+          <option value="COLLECTED">{{ $t('admin.verified') }}</option>
+          <option value="FAILED">{{ $t('admin.paymentFailed') }}</option>
         </select>
         <select v-model="statusFilter" class="input text-sm py-1.5 w-auto min-w-[160px]">
-          <option value="">All statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="CONFIRMED">Confirmed</option>
-          <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-          <option value="DELIVERED">Delivered</option>
-          <option value="CANCELLED">Cancelled</option>
+          <option value="">{{ $t('admin.allStatuses') }}</option>
+          <option value="PENDING">{{ $t('status.pending') }}</option>
+          <option value="CONFIRMED">{{ $t('status.confirmed') }}</option>
+          <option value="OUT_FOR_DELIVERY">{{ $t('status.outForDelivery') }}</option>
+          <option value="DELIVERED">{{ $t('status.delivered') }}</option>
+          <option value="CANCELLED">{{ $t('status.cancelled') }}</option>
         </select>
       </div>
     </div>
@@ -34,7 +34,7 @@
     </div>
 
     <div v-else-if="!orders.length" class="card p-14 text-center text-zinc-400 text-sm">
-      {{ statusFilter ? 'No orders with this status.' : 'No orders yet.' }}
+      {{ statusFilter ? $t('admin.noOrders') : $t('admin.noOrdersYet') }}
     </div>
 
     <!-- Order cards -->
@@ -58,7 +58,7 @@
               </span>
             </div>
             <p class="text-sm text-zinc-600 mt-0.5">{{ order.customerName }}</p>
-            <p class="text-xs text-zinc-400 mt-0.5">{{ order.items?.length ?? 0 }} item{{ (order.items?.length ?? 0) !== 1 ? 's' : '' }} · {{ new Date(order.createdAt).toLocaleDateString() }}</p>
+            <p class="text-xs text-zinc-400 mt-0.5">{{ $t('common.items', { n: order.items?.length ?? 0 }) }} · {{ new Date(order.createdAt).toLocaleDateString() }}</p>
           </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
@@ -66,7 +66,7 @@
             :to="`/cashier/orders/${order.id}`"
             class="btn-secondary text-xs px-3 py-1.5"
           >
-            View
+            {{ $t('admin.view') }}
           </NuxtLink>
           <button
             v-for="t in availableTransitions(order)"
@@ -87,15 +87,15 @@
         class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
         @click="changePage(page - 1)"
       >
-        ← Previous
+        {{ $t('common.previous') }}
       </button>
-      <span class="text-sm text-zinc-400">Page {{ page }} of {{ totalPages }}</span>
+      <span class="text-sm text-zinc-400">{{ $t('common.page', { n: page, total: totalPages }) }}</span>
       <button
         :disabled="page === totalPages"
         class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
         @click="changePage(page + 1)"
       >
-        Next →
+        {{ $t('common.next') }}
       </button>
     </div>
   </div>
@@ -106,6 +106,7 @@ definePageMeta({ middleware: ['cashier'], layout: 'cashier', ssr: false })
 
 const { adminFetch } = useAdminFetch()
 const adminStore = useAdminStore()
+const { t } = useI18n()
 
 const orders = ref([])
 const loading = ref(true)
@@ -122,16 +123,16 @@ const permissions = computed(() => adminStore.user?.permissions ?? [])
 
 const PM_LABEL = { TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
 
-const statusMap = {
-  PENDING: { label: 'Pending', cls: 'badge-yellow' },
-  CONFIRMED: { label: 'Confirmed', cls: 'badge-blue' },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', cls: 'badge-orange' },
-  DELIVERED: { label: 'Delivered', cls: 'badge-green' },
-  CANCELLED: { label: 'Cancelled', cls: 'badge-red' },
-}
+const statusMap = computed(() => ({
+  PENDING: { label: t('status.pending'), cls: 'badge-yellow' },
+  CONFIRMED: { label: t('status.confirmed'), cls: 'badge-blue' },
+  OUT_FOR_DELIVERY: { label: t('status.outForDelivery'), cls: 'badge-orange' },
+  DELIVERED: { label: t('status.delivered'), cls: 'badge-green' },
+  CANCELLED: { label: t('status.cancelled'), cls: 'badge-red' },
+}))
 
-function statusClass(s) { return statusMap[s]?.cls ?? '' }
-function statusLabel(s) { return statusMap[s]?.label ?? s }
+function statusClass(s) { return statusMap.value[s]?.cls ?? '' }
+function statusLabel(s) { return statusMap.value[s]?.label ?? s }
 
 function availableTransitions(order) {
   const perms = permissions.value
@@ -140,11 +141,11 @@ function availableTransitions(order) {
   const canDispatch = perms.includes('orders:dispatch')
   const transitions = []
   if (order.status === 'PENDING') {
-    if (canApprove) transitions.push({ to: 'CONFIRMED', label: 'Confirm', style: 'primary' })
-    if (canCancel) transitions.push({ to: 'CANCELLED', label: 'Cancel', style: 'danger' })
+    if (canApprove) transitions.push({ to: 'CONFIRMED', label: t('admin.confirm'), style: 'primary' })
+    if (canCancel) transitions.push({ to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' })
   } else if (order.status === 'CONFIRMED') {
-    if (canDispatch) transitions.push({ to: 'OUT_FOR_DELIVERY', label: 'Dispatch', style: 'primary' })
-    if (canCancel) transitions.push({ to: 'CANCELLED', label: 'Cancel', style: 'danger' })
+    if (canDispatch) transitions.push({ to: 'OUT_FOR_DELIVERY', label: t('admin.dispatch'), style: 'primary' })
+    if (canCancel) transitions.push({ to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' })
   }
   return transitions
 }

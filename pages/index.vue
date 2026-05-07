@@ -200,13 +200,13 @@
       </div>
 
       <div v-else-if="error" class="text-center py-20">
-        <p class="text-sm text-zinc-500">Failed to load. Please refresh.</p>
+        <p class="text-sm text-zinc-500">{{ $t('common.failedLoad') }}</p>
       </div>
 
       <template v-else>
         <!-- Shop by Category — circles -->
         <section v-if="categories?.length">
-          <h2 class="text-lg font-bold text-zinc-900 mb-5">Shop by Category</h2>
+          <h2 class="text-lg font-bold text-zinc-900 mb-5">{{ $t('common.shopByCategory') }}</h2>
           <div
             class="flex gap-5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 scrollbar-none sm:flex-wrap"
           >
@@ -243,14 +243,14 @@
           <div class="flex items-center justify-between gap-3 mb-5">
             <div>
               <h2 class="text-lg font-bold text-zinc-900">
-                Top Picks This Week
+                {{ $t('common.topPicks') }}
               </h2>
-              <p class="text-xs text-zinc-400 mt-0.5">Handpicked for you</p>
+              <p class="text-xs text-zinc-400 mt-0.5">{{ $t('common.handpicked') }}</p>
             </div>
             <NuxtLink
               to="/search"
               class="text-xs font-semibold text-[#3b5323] hover:underline whitespace-nowrap shrink-0"
-              >See All</NuxtLink
+              >{{ $t('common.seeAll') }}</NuxtLink
             >
           </div>
 
@@ -297,7 +297,7 @@
                 class="shrink-0 bg-[#1d72b8] hover:bg-[#155f9c] active:scale-95 text-white text-[11px] font-bold px-3 py-2 rounded-xl transition-colors shadow-sm"
                 @click.prevent.stop="addToCart(product)"
               >
-                Add
+                {{ $t('product.add') }}
               </button>
             </NuxtLink>
           </div>
@@ -318,12 +318,12 @@
         <!-- Trending Now -->
         <section v-if="trendingCategories.length">
           <div class="flex items-center gap-3 mb-5">
-            <h2 class="text-lg font-bold text-zinc-900">Trending Now</h2>
+            <h2 class="text-lg font-bold text-zinc-900">{{ $t('common.trendingNow') }}</h2>
             <span
               class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-full px-2.5 py-0.5 text-xs font-semibold"
             >
               <span class="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-              Hot this week
+              {{ $t('common.hotThisWeek') }}
             </span>
           </div>
           <div
@@ -346,7 +346,7 @@
           <h2
             class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-5"
           >
-            Browse All Categories
+            {{ $t('common.browseAll') }}
           </h2>
           <div
             class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"
@@ -362,8 +362,8 @@
         <!-- Shop Everything — infinite scroll -->
         <section>
           <div class="flex items-center justify-between gap-3 mb-4">
-            <h2 class="text-lg font-bold text-zinc-900">Shop Everything</h2>
-            <span class="text-xs text-zinc-400">{{ shopTotal }} items</span>
+            <h2 class="text-lg font-bold text-zinc-900">{{ $t('common.shopEverything') }}</h2>
+            <span class="text-xs text-zinc-400">{{ $t('common.items', { n: shopTotal }) }}</span>
           </div>
 
           <!-- Category filter chips -->
@@ -372,7 +372,7 @@
               class="shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap"
               :class="shopCatId === null ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'"
               @click="setShopCat(null)"
-            >All</button>
+            >{{ $t('search.all') }}</button>
             <button
               v-for="cat in categories"
               :key="cat.id"
@@ -409,14 +409,14 @@
           <p
             v-if="shopAllLoaded && shopProducts.length"
             class="text-center text-sm text-zinc-400 py-8"
-          >You've seen everything!</p>
+          >{{ $t('common.seenEverything') }}</p>
         </section>
 
         <div
           v-if="!categories?.length && !featuredProducts?.length"
           class="text-center py-16 text-zinc-400 text-sm"
         >
-          No products yet. Check back soon!
+          {{ $t('common.noProductsYet') }}
         </div>
       </template>
     </div>

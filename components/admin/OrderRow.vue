@@ -48,16 +48,16 @@
         <span class="text-base font-bold text-zinc-900">ETB {{ Number(order.totalPrice).toFixed(2) }}</span>
         <div class="flex gap-2 flex-wrap justify-end">
           <NuxtLink :to="`/admin/orders/${order.id}`" class="btn-secondary text-xs px-3 py-1.5">
-            View
+            {{ $t('admin.view') }}
           </NuxtLink>
           <button
-            v-for="t in availableTransitions"
-            :key="t.to"
-            :class="[t.style === 'primary' ? 'btn-primary' : t.style === 'danger' ? 'btn-danger' : 'btn-secondary', 'text-xs px-3 py-1.5']"
+            v-for="tr in availableTransitions"
+            :key="tr.to"
+            :class="[tr.style === 'primary' ? 'btn-primary' : tr.style === 'danger' ? 'btn-danger' : 'btn-secondary', 'text-xs px-3 py-1.5']"
             :disabled="loading"
-            @click="$emit('change-status', order.id, t.to)"
+            @click="$emit('change-status', order.id, tr.to)"
           >
-            {{ t.label }}
+            {{ tr.label }}
           </button>
         </div>
       </div>
@@ -73,42 +73,44 @@ const props = defineProps({
 
 defineEmits(['change-status'])
 
+const { t } = useI18n()
+
 const PM_LABEL = { TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
 
-const statusMap = {
-  PENDING: { label: 'Pending', cls: 'badge-yellow' },
-  CONFIRMED: { label: 'Confirmed', cls: 'badge-blue' },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', cls: 'badge-orange' },
-  DELIVERED: { label: 'Delivered', cls: 'badge-green' },
-  CANCELLED: { label: 'Cancelled', cls: 'badge-red' },
-}
+const statusMap = computed(() => ({
+  PENDING: { label: t('status.pending'), cls: 'badge-yellow' },
+  CONFIRMED: { label: t('status.confirmed'), cls: 'badge-blue' },
+  OUT_FOR_DELIVERY: { label: t('status.outForDelivery'), cls: 'badge-orange' },
+  DELIVERED: { label: t('status.delivered'), cls: 'badge-green' },
+  CANCELLED: { label: t('status.cancelled'), cls: 'badge-red' },
+}))
 
-const TRANSITIONS = {
+const TRANSITIONS = computed(() => ({
   PENDING: [
-    { to: 'CONFIRMED', label: 'Confirm', style: 'primary' },
-    { to: 'CANCELLED', label: 'Cancel', style: 'danger' },
+    { to: 'CONFIRMED', label: t('admin.confirm'), style: 'primary' },
+    { to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' },
   ],
   CONFIRMED: [
-    { to: 'OUT_FOR_DELIVERY', label: 'Dispatch', style: 'primary' },
-    { to: 'PENDING', label: 'Revert', style: 'secondary' },
-    { to: 'CANCELLED', label: 'Cancel', style: 'danger' },
+    { to: 'OUT_FOR_DELIVERY', label: t('admin.dispatch'), style: 'primary' },
+    { to: 'PENDING', label: t('admin.revert'), style: 'secondary' },
+    { to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' },
   ],
   OUT_FOR_DELIVERY: [
-    { to: 'DELIVERED', label: 'Delivered', style: 'primary' },
-    { to: 'CONFIRMED', label: 'Return', style: 'secondary' },
-    { to: 'CANCELLED', label: 'Cancel', style: 'danger' },
+    { to: 'DELIVERED', label: t('admin.deliver'), style: 'primary' },
+    { to: 'CONFIRMED', label: t('admin.return'), style: 'secondary' },
+    { to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' },
   ],
   DELIVERED: [
-    { to: 'OUT_FOR_DELIVERY', label: 'Undo', style: 'secondary' },
+    { to: 'OUT_FOR_DELIVERY', label: t('admin.undo'), style: 'secondary' },
   ],
   CANCELLED: [
-    { to: 'PENDING', label: 'Reopen', style: 'secondary' },
+    { to: 'PENDING', label: t('admin.reopen'), style: 'secondary' },
   ],
-}
+}))
 
-const availableTransitions = computed(() => TRANSITIONS[props.order.status] ?? [])
-const statusClass = computed(() => ['badge', statusMap[props.order.status]?.cls ?? ''].join(' '))
-const statusLabel = computed(() => statusMap[props.order.status]?.label ?? props.order.status)
+const availableTransitions = computed(() => TRANSITIONS.value[props.order.status] ?? [])
+const statusClass = computed(() => ['badge', statusMap.value[props.order.status]?.cls ?? ''].join(' '))
+const statusLabel = computed(() => statusMap.value[props.order.status]?.label ?? props.order.status)
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })

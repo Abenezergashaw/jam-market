@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-2xl mx-auto px-4 py-8 sm:py-12">
-    <h1 class="text-2xl font-bold text-zinc-900 mb-8 tracking-tight">Your Cart</h1>
+    <h1 class="text-2xl font-bold text-zinc-900 mb-8 tracking-tight">{{ $t('cart.title') }}</h1>
 
     <!-- Empty -->
     <div v-if="cartStore.isEmpty" class="text-center py-24">
@@ -9,9 +9,9 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.53A1 1 0 007.63 21h8.74a1 1 0 00.98-1.22L16 13M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z" />
         </svg>
       </div>
-      <p class="text-zinc-700 mb-2">Your cart is empty</p>
-      <p class="text-zinc-400 text-sm mb-6">Start shopping to add items</p>
-      <NuxtLink to="/" class="btn-primary">Browse products</NuxtLink>
+      <p class="text-zinc-700 mb-2">{{ $t('cart.empty') }}</p>
+      <p class="text-zinc-400 text-sm mb-6">{{ $t('cart.emptyHint') }}</p>
+      <NuxtLink to="/" class="btn-primary">{{ $t('cart.browseProducts') }}</NuxtLink>
     </div>
 
     <template v-else>
@@ -43,7 +43,7 @@
                 @click="cartStore.updateQty(item.id, item.quantity + 1)"
               >+</button>
             </div>
-            <span v-if="item.stock != null && item.quantity >= item.stock" class="text-[10px] text-amber-500 font-medium">max stock</span>
+            <span v-if="item.stock != null && item.quantity >= item.stock" class="text-[10px] text-amber-500 font-medium">{{ $t('cart.maxStock') }}</span>
           </div>
 
           <p class="text-sm font-bold text-zinc-900 w-20 text-right shrink-0">
@@ -65,13 +65,13 @@
             <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12 12-5.373 12-12S18.628 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.31 13.9l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.838.659z"/>
           </svg>
         </div>
-        <h2 class="font-bold text-zinc-900 mb-1.5">Sign in to place your order</h2>
-        <p class="text-zinc-500 text-sm mb-5">Your cart is saved. Sign in with Telegram to continue — it only takes a second.</p>
+        <h2 class="font-bold text-zinc-900 mb-1.5">{{ $t('cart.signInTitle') }}</h2>
+        <p class="text-zinc-500 text-sm mb-5">{{ $t('cart.signInHint') }}</p>
         <NuxtLink to="/login?redirect=/cart" class="btn-primary inline-flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12 12-5.373 12-12S18.628 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.31 13.9l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.838.659z"/>
           </svg>
-          Continue with Telegram
+          {{ $t('cart.continueWithTelegram') }}
         </NuxtLink>
       </div>
 
@@ -89,23 +89,23 @@
               {{ customerStore.user?.firstName?.[0] ?? '?' }}
             </div>
             <div>
-              <h2 class="font-bold text-zinc-900 text-sm">Delivery details</h2>
-              <p class="text-xs text-zinc-400">Signed in as {{ customerStore.fullName }}</p>
+              <h2 class="font-bold text-zinc-900 text-sm">{{ $t('cart.deliveryDetails') }}</h2>
+              <p class="text-xs text-zinc-400">{{ $t('cart.signedInAs', { name: customerStore.fullName }) }}</p>
             </div>
           </div>
           <button class="text-xs text-zinc-400 hover:text-red-500 transition-colors font-medium" @click="customerStore.logout()">
-            Sign out
+            {{ $t('nav.signOut') }}
           </button>
         </div>
 
         <!-- Store selector -->
         <div>
-          <label class="label">Order from *</label>
+          <label class="label">{{ $t('cart.orderFrom') }}</label>
 
-          <div v-if="storesLoading" class="text-xs text-zinc-400 italic py-2">Loading stores…</div>
+          <div v-if="storesLoading" class="text-xs text-zinc-400 italic py-2">{{ $t('cart.loadingStores') }}</div>
 
           <div v-else-if="stores.length === 0" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-            No stores available. Please check back later.
+            {{ $t('cart.noStores') }}
           </div>
 
           <div v-else class="space-y-2 mt-1.5">
@@ -140,11 +140,11 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="label">Full name *</label>
-            <input v-model="form.customerName" type="text" class="input" placeholder="Your name" required />
+            <label class="label">{{ $t('cart.fullName') }}</label>
+            <input v-model="form.customerName" type="text" class="input" :placeholder="$t('cart.namePlaceholder')" required />
           </div>
           <div>
-            <label class="label">Phone *</label>
+            <label class="label">{{ $t('cart.phone') }}</label>
             <input v-model="form.phone" type="tel" class="input" placeholder="+251 900 000000" required />
           </div>
         </div>
@@ -152,8 +152,8 @@
         <!-- Map picker -->
         <div>
           <label class="label">
-            Delivery location *
-            <span v-if="location.address" class="text-brand-500 font-normal normal-case tracking-normal text-xs ml-1">✓ location set</span>
+            {{ $t('cart.deliveryLocation') }}
+            <span v-if="location.address" class="text-brand-500 font-normal normal-case tracking-normal text-xs ml-1">{{ $t('cart.locationSet') }}</span>
           </label>
           <MapPicker
             :model-value="location"
@@ -162,13 +162,13 @@
         </div>
 
         <div>
-          <label class="label">Order notes <span class="text-zinc-400 normal-case font-normal tracking-normal">(optional)</span></label>
-          <input v-model="form.notes" type="text" class="input" placeholder="Leave at door, ring bell, etc." />
+          <label class="label">{{ $t('cart.orderNotes') }} <span class="text-zinc-400 normal-case font-normal tracking-normal">{{ $t('cart.orderNotesOptional') }}</span></label>
+          <input v-model="form.notes" type="text" class="input" :placeholder="$t('cart.orderNotesPlaceholder')" />
         </div>
 
         <!-- Payment method -->
         <div>
-          <label class="label">Payment method *</label>
+          <label class="label">{{ $t('cart.paymentMethod') }}</label>
           <div class="space-y-2 mt-1.5">
             <button
               type="button"
@@ -186,8 +186,8 @@
                   <div v-if="paymentMethod === 'CASH'" class="w-2 h-2 rounded-full bg-brand-500" />
                 </div>
                 <div>
-                  <p class="text-sm font-semibold text-zinc-900">Cash on Delivery</p>
-                  <p v-if="!cashAvailable" class="text-xs text-zinc-400 mt-0.5">Available within 15 km of the store</p>
+                  <p class="text-sm font-semibold text-zinc-900">{{ $t('cart.cashOnDelivery') }}</p>
+                  <p v-if="!cashAvailable" class="text-xs text-zinc-400 mt-0.5">{{ $t('cart.cashUnavailable') }}</p>
                 </div>
               </div>
             </button>
@@ -207,7 +207,7 @@
                 </div>
                 <div>
                   <p class="text-sm font-semibold text-zinc-900">{{ bank.label }}</p>
-                  <p class="text-xs text-zinc-400 mt-0.5">Pay before placing your order</p>
+                  <p class="text-xs text-zinc-400 mt-0.5">{{ $t('cart.payBefore') }}</p>
                 </div>
               </div>
             </button>
@@ -216,12 +216,10 @@
 
         <!-- Online payment instructions + verification -->
         <div v-if="selectedOnlineMethod" class="rounded-2xl bg-blue-50 border border-blue-200 p-4 space-y-4">
-          <p class="text-sm font-semibold text-blue-900">Pay via {{ selectedOnlineMethod.label }}</p>
-          <p class="text-sm text-blue-700">
-            Send <span class="font-bold">ETB {{ feeBreakdown.total.toFixed(2) }}</span> to:
-          </p>
+          <p class="text-sm font-semibold text-blue-900">{{ $t('cart.payVia', { method: selectedOnlineMethod.label }) }}</p>
+          <p class="text-sm text-blue-700">{{ $t('cart.sendAmount', { amount: feeBreakdown.total.toFixed(2) }) }}</p>
           <div class="bg-white rounded-xl border border-blue-100 px-4 py-3 space-y-0.5">
-            <p class="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-1">Account Details</p>
+            <p class="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-1">{{ $t('cart.accountDetails') }}</p>
             <p class="text-base font-bold text-zinc-900 font-mono tracking-wide">
               {{ selectedOnlineAccountNumber || '—' }}
             </p>
@@ -233,9 +231,9 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            <p class="text-xs font-semibold text-green-700 flex-1">Payment verified</p>
+            <p class="text-xs font-semibold text-green-700 flex-1">{{ $t('cart.paymentVerified') }}</p>
             <button class="text-[10px] text-zinc-400 hover:text-red-500 transition-colors" @click="referenceVerified = false; referenceCode = ''">
-              Change
+              {{ $t('cart.change') }}
             </button>
           </div>
 
@@ -249,10 +247,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                Receipt attached
+                {{ $t('cart.receiptAttached') }}
               </p>
               <button class="text-xs text-zinc-400 hover:text-red-500 transition-colors mt-0.5" @click="receiptUrl = ''">
-                Remove
+                {{ $t('cart.remove') }}
               </button>
             </div>
           </div>
@@ -261,7 +259,7 @@
           <template v-else>
             <!-- Option A: Reference code -->
             <div class="space-y-2">
-              <p class="text-xs font-semibold text-blue-800">Option 1 — Enter reference code</p>
+              <p class="text-xs font-semibold text-blue-800">{{ $t('cart.enterReferenceCode') }}</p>
               <div class="flex gap-2">
                 <input
                   v-model="referenceCode"
@@ -277,7 +275,7 @@
                   :disabled="!referenceCode.trim() || verifyingCode"
                   @click="verifyReferenceCode"
                 >
-                  {{ verifyingCode ? '…' : 'Verify' }}
+                  {{ verifyingCode ? '…' : $t('cart.verifyCode') }}
                 </button>
               </div>
               <p v-if="verifyError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -294,7 +292,7 @@
 
             <!-- Option B: Upload receipt -->
             <div class="space-y-1.5">
-              <p class="text-xs font-semibold text-blue-800">Option 2 — Upload payment screenshot</p>
+              <p class="text-xs font-semibold text-blue-800">{{ $t('cart.uploadScreenshot') }}</p>
               <input ref="receiptFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadReceipt" />
               <button
                 type="button"
@@ -305,7 +303,7 @@
                 <svg v-if="!uploadingReceipt" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
-                <span>{{ uploadingReceipt ? 'Uploading…' : 'Attach Payment Screenshot' }}</span>
+                <span>{{ uploadingReceipt ? $t('product.uploading') : $t('cart.attachPaymentScreenshot') }}</span>
               </button>
             </div>
           </template>
@@ -314,25 +312,25 @@
         <!-- Fee breakdown -->
         <div class="border-t border-zinc-200 pt-4 space-y-2">
           <div class="flex justify-between text-sm text-zinc-500">
-            <span>Subtotal ({{ cartStore.totalItems }} item{{ cartStore.totalItems !== 1 ? 's' : '' }})</span>
+            <span>{{ $t('cart.subtotal', { n: cartStore.totalItems }) }}</span>
             <span>ETB {{ feeBreakdown.subtotal.toFixed(2) }}</span>
           </div>
 
           <template v-if="feeBreakdown.distanceKm != null">
             <div class="flex justify-between text-sm text-zinc-500">
-              <span>Delivery ({{ feeBreakdown.distanceKm.toFixed(1) }} km)</span>
+              <span>{{ $t('cart.delivery', { km: feeBreakdown.distanceKm.toFixed(1) }) }}</span>
               <span>ETB {{ feeBreakdown.distanceFee.toFixed(2) }}</span>
             </div>
             <div v-if="feeBreakdown.serviceCharge > 0" class="flex justify-between text-sm text-zinc-500">
-              <span>Service charge ({{ feeBreakdown.serviceChargePct.toFixed(1) }}%)</span>
+              <span>{{ $t('cart.serviceCharge', { pct: feeBreakdown.serviceChargePct.toFixed(1) }) }}</span>
               <span>ETB {{ feeBreakdown.serviceCharge.toFixed(2) }}</span>
             </div>
           </template>
-          <p v-else-if="location.lat && selectedStore" class="text-xs text-zinc-400 italic">Delivery fee calculated on dispatch.</p>
+          <p v-else-if="location.lat && selectedStore" class="text-xs text-zinc-400 italic">{{ $t('cart.deliveryFeeOnDispatch') }}</p>
 
           <div class="flex items-center justify-between gap-4 pt-2 border-t border-zinc-100">
             <div>
-              <p class="text-xs text-zinc-400">Total</p>
+              <p class="text-xs text-zinc-400">{{ $t('cart.total') }}</p>
               <p class="text-xl font-bold text-zinc-900 mt-0.5">ETB {{ feeBreakdown.total.toFixed(2) }}</p>
             </div>
             <button
@@ -340,19 +338,19 @@
               :disabled="placing || !form.customerName || !form.phone || !location.address || !selectedStoreId || belowMinOrder || (selectedOnlineMethod && !receiptUrl && !referenceVerified)"
               @click="placeOrder"
             >
-              {{ placing ? 'Placing...' : 'Place Order' }}
+              {{ placing ? $t('cart.placing') : $t('cart.placeOrder') }}
             </button>
           </div>
         </div>
 
         <p v-if="!selectedStoreId && stores.length > 0" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          Please select a store to order from.
+          {{ $t('cart.selectStore') }}
         </p>
         <p v-if="!location.address" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          Please drop a pin on the map or click "Use my location" to set your delivery address.
+          {{ $t('cart.setLocation') }}
         </p>
         <p v-if="belowMinOrder && settings" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          Minimum order is ETB {{ Number(settings.minOrderAmount).toFixed(2) }}. Add more items to continue.
+          {{ $t('cart.belowMinOrder', { amount: Number(settings.minOrderAmount).toFixed(2) }) }}
         </p>
 
         <p v-if="orderError" class="text-sm text-brand-700 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2">{{ orderError }}</p>
@@ -365,12 +363,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 class="text-xl font-bold text-zinc-900 mb-1">Order placed!</h2>
-        <p class="text-zinc-400 text-xs mb-1">Order #{{ placedOrder.id }}</p>
-        <p class="text-zinc-600 text-sm mb-7">We'll prepare your order and deliver it soon.</p>
+        <h2 class="text-xl font-bold text-zinc-900 mb-1">{{ $t('cart.successTitle') }}</h2>
+        <p class="text-zinc-400 text-xs mb-1">{{ $t('cart.successOrderNum', { id: placedOrder.id }) }}</p>
+        <p class="text-zinc-600 text-sm mb-7">{{ $t('cart.successHint') }}</p>
         <div class="flex gap-3 justify-center">
-          <NuxtLink to="/orders" class="btn-secondary">My Orders</NuxtLink>
-          <NuxtLink to="/" class="btn-primary">Continue shopping</NuxtLink>
+          <NuxtLink to="/orders" class="btn-secondary">{{ $t('cart.myOrders') }}</NuxtLink>
+          <NuxtLink to="/" class="btn-primary">{{ $t('cart.continueShopping') }}</NuxtLink>
         </div>
       </div>
     </template>

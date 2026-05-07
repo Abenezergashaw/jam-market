@@ -8,23 +8,23 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          Refreshing
+          {{ $t('admin.refreshing') }}
         </span>
       </p>
       <div class="flex gap-2 flex-wrap">
         <select v-model="paymentFilter" class="input text-sm py-1.5 w-auto min-w-[180px]">
-          <option value="">All payments</option>
-          <option value="PENDING">Awaiting verification</option>
-          <option value="COLLECTED">Verified</option>
-          <option value="FAILED">Payment failed</option>
+          <option value="">{{ $t('admin.allPayments') }}</option>
+          <option value="PENDING">{{ $t('admin.awaitingVerification') }}</option>
+          <option value="COLLECTED">{{ $t('admin.verified') }}</option>
+          <option value="FAILED">{{ $t('admin.paymentFailed') }}</option>
         </select>
         <select v-model="statusFilter" class="input text-sm py-1.5 w-auto min-w-[160px]">
-          <option value="">All statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="CONFIRMED">Confirmed</option>
-          <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
-          <option value="DELIVERED">Delivered</option>
-          <option value="CANCELLED">Cancelled</option>
+          <option value="">{{ $t('admin.allStatuses') }}</option>
+          <option value="PENDING">{{ $t('status.pending') }}</option>
+          <option value="CONFIRMED">{{ $t('status.confirmed') }}</option>
+          <option value="OUT_FOR_DELIVERY">{{ $t('status.outForDelivery') }}</option>
+          <option value="DELIVERED">{{ $t('status.delivered') }}</option>
+          <option value="CANCELLED">{{ $t('status.cancelled') }}</option>
         </select>
       </div>
     </div>
@@ -34,7 +34,7 @@
     </div>
 
     <div v-else-if="!orders.length" class="card p-14 text-center text-zinc-400 text-sm">
-      {{ statusFilter ? 'No orders with this status.' : 'No orders yet.' }}
+      {{ statusFilter ? $t('admin.noOrders') : $t('admin.noOrdersYet') }}
     </div>
 
     <AdminOrderRow
@@ -51,15 +51,15 @@
         class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
         @click="changePage(page - 1)"
       >
-        ← Previous
+        {{ $t('common.previous') }}
       </button>
-      <span class="text-sm text-zinc-400">Page {{ page }} of {{ totalPages }}</span>
+      <span class="text-sm text-zinc-400">{{ $t('common.page', { n: page, total: totalPages }) }}</span>
       <button
         :disabled="page === totalPages"
         class="text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-1.5"
         @click="changePage(page + 1)"
       >
-        Next →
+        {{ $t('common.next') }}
       </button>
     </div>
   </div>

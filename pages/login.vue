@@ -6,8 +6,8 @@
         <div class="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
           <span class="text-2xl font-black text-white">J</span>
         </div>
-        <h1 class="text-2xl font-black text-zinc-900 tracking-tight">Sign in</h1>
-        <p class="text-zinc-500 text-sm mt-1.5">Use Telegram to verify your identity</p>
+        <h1 class="text-2xl font-black text-zinc-900 tracking-tight">{{ $t('auth.signIn') }}</h1>
+        <p class="text-zinc-500 text-sm mt-1.5">{{ $t('auth.telegramVerify') }}</p>
       </div>
 
       <div class="card p-6 space-y-5">
@@ -15,7 +15,7 @@
         <!-- Step 1: Show OTP -->
         <template v-if="otp && !loggedIn">
           <div class="text-center space-y-4">
-            <p class="text-sm text-zinc-600">Open <span class="font-semibold text-[#229ED9]">@{{ botUsername }}</span> on Telegram and send this code:</p>
+            <p class="text-sm text-zinc-600">{{ $t('auth.sendCode', { bot: botUsername }) }}</p>
 
             <!-- OTP display -->
             <div class="flex items-center justify-center gap-2">
@@ -44,18 +44,18 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12 12-5.373 12-12S18.628 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.31 13.9l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.838.659z"/>
               </svg>
-              Open @{{ botUsername }}
+              {{ $t('auth.openBot', { bot: botUsername }) }}
             </a>
 
             <!-- Polling status -->
             <div class="flex items-center justify-center gap-2 text-xs text-zinc-400">
               <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
-              Waiting for verification…
+              {{ $t('auth.waitingVerification') }}
             </div>
 
             <!-- Timer -->
             <p class="text-xs text-zinc-400">
-              Code expires in <span class="font-medium text-zinc-600">{{ countdown }}s</span>
+              {{ $t('auth.codeExpiresIn', { seconds: countdown }) }}
             </p>
 
             <!-- Error -->
@@ -63,7 +63,7 @@
 
             <!-- Get new code -->
             <button class="text-xs text-zinc-400 hover:text-zinc-600 underline underline-offset-2 transition-colors" @click="requestOtp">
-              Get a new code
+              {{ $t('auth.getNewCode') }}
             </button>
           </div>
         </template>
@@ -72,7 +72,7 @@
         <template v-else-if="!otp && !loggedIn">
           <div class="text-center py-4">
             <div class="w-8 h-8 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p class="text-sm text-zinc-400">Preparing sign-in…</p>
+            <p class="text-sm text-zinc-400">{{ $t('auth.preparingSignIn') }}</p>
           </div>
         </template>
 
@@ -84,8 +84,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p class="text-sm font-semibold text-zinc-800">Signed in!</p>
-            <p class="text-xs text-zinc-400">Redirecting…</p>
+            <p class="text-sm font-semibold text-zinc-800">{{ $t('auth.signedIn') }}</p>
+            <p class="text-xs text-zinc-400">{{ $t('auth.redirecting') }}</p>
           </div>
         </template>
 
@@ -100,7 +100,7 @@
       </div>
 
       <p class="text-center text-xs text-zinc-400 mt-5">
-        By signing in you agree to our terms of service.
+        {{ $t('auth.terms') }}
       </p>
     </div>
   </div>

@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-2xl mx-auto px-4 py-8 sm:py-10">
-    <h1 class="text-2xl font-bold text-zinc-900 mb-7 tracking-tight">My Orders</h1>
+    <h1 class="text-2xl font-bold text-zinc-900 mb-7 tracking-tight">{{ $t('orders.title') }}</h1>
 
     <div v-if="myOrdersStore.loading && !myOrdersStore.orders.length" class="space-y-4">
       <div v-for="n in 3" :key="n" class="card p-5 h-40 animate-pulse bg-zinc-50" />
@@ -12,8 +12,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       </div>
-      <p class="text-zinc-500 mb-5">No orders yet.</p>
-      <NuxtLink to="/" class="btn-primary">Start shopping</NuxtLink>
+      <p class="text-zinc-500 mb-5">{{ $t('orders.noOrders') }}</p>
+      <NuxtLink to="/" class="btn-primary">{{ $t('orders.startShopping') }}</NuxtLink>
     </div>
 
     <ul v-else class="space-y-4">
@@ -21,7 +21,7 @@
         <div class="flex items-start justify-between gap-4 mb-4">
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-sm font-bold text-zinc-900">Order #{{ order.id }}</span>
+              <span class="text-sm font-bold text-zinc-900">{{ $t('orders.orderNumber', { id: order.id }) }}</span>
               <span
                 class="badge"
                 :class="{
@@ -76,18 +76,18 @@
         <div v-if="order.status === 'OUT_FOR_DELIVERY'" class="mb-4">
           <template v-if="confirmingId === order.id">
             <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
-              <p class="text-sm font-semibold text-amber-900">Confirm you received order #{{ order.id }}?</p>
-              <p class="text-xs text-amber-700 leading-relaxed">Only confirm after you physically receive all your items. This cannot be undone.</p>
+              <p class="text-sm font-semibold text-amber-900">{{ $t('orders.confirmReceived', { id: order.id }) }}</p>
+              <p class="text-xs text-amber-700 leading-relaxed">{{ $t('orders.confirmWarning') }}</p>
               <div class="flex gap-2">
                 <button
                   class="btn-primary text-sm px-4 flex-1"
                   :disabled="confirming"
                   @click="doConfirm(order.id)"
                 >
-                  {{ confirming ? 'Confirming…' : '✓ Yes, I received it' }}
+                  {{ confirming ? $t('orders.confirming') : $t('orders.yesReceived') }}
                 </button>
                 <button class="btn-secondary text-sm px-4" :disabled="confirming" @click="confirmingId = null">
-                  Cancel
+                  {{ $t('orders.cancel') }}
                 </button>
               </div>
             </div>
@@ -100,7 +100,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
               </svg>
-              I received my order
+              {{ $t('orders.iReceived') }}
             </button>
           </template>
         </div>
@@ -172,6 +172,7 @@
 <script setup>
 const myOrdersStore = useCustomerOrdersStore()
 const customerStore = useCustomerStore()
+const { t } = useI18n()
 
 const confirmingId = ref(null)
 const confirming = ref(false)
@@ -194,14 +195,14 @@ async function doConfirm(orderId) {
   }
 }
 
-const STATUS_STEPS = [
-  { key: 'PENDING', label: 'Placed' },
-  { key: 'CONFIRMED', label: 'Confirmed' },
-  { key: 'OUT_FOR_DELIVERY', label: 'On the way' },
-  { key: 'DELIVERED', label: 'Delivered' },
-]
+const STATUS_STEPS = computed(() => [
+  { key: 'PENDING', label: t('status.placed') },
+  { key: 'CONFIRMED', label: t('status.confirmed') },
+  { key: 'OUT_FOR_DELIVERY', label: t('status.onTheWay') },
+  { key: 'DELIVERED', label: t('status.delivered') },
+])
 
-const STATUS_ORDER = STATUS_STEPS.map((s) => s.key)
+const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'OUT_FOR_DELIVERY', 'DELIVERED']
 
 function stepIndex(status) {
   const i = STATUS_ORDER.indexOf(status)
@@ -210,13 +211,13 @@ function stepIndex(status) {
 
 const PM_LABEL = { TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
 
-const statusLabels = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  OUT_FOR_DELIVERY: 'Out for Delivery',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
-}
+const statusLabels = computed(() => ({
+  PENDING: t('status.pending'),
+  CONFIRMED: t('status.confirmed'),
+  OUT_FOR_DELIVERY: t('status.outForDelivery'),
+  DELIVERED: t('status.delivered'),
+  CANCELLED: t('status.cancelled'),
+}))
 
 function formatDate(iso) {
   return new Date(iso).toLocaleString('en-US', {

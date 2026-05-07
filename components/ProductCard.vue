@@ -12,10 +12,10 @@
         class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
       />
       <div v-if="product.stock === 0" class="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center">
-        <span class="text-xs font-semibold text-zinc-500 bg-white px-3 py-1 rounded-full border border-zinc-200 shadow-sm">Out of stock</span>
+        <span class="text-xs font-semibold text-zinc-500 bg-white px-3 py-1 rounded-full border border-zinc-200 shadow-sm">{{ $t('product.outOfStock') }}</span>
       </div>
       <div v-else-if="product.stock < 10" class="absolute top-2 right-2">
-        <span class="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full shadow">{{ product.stock }} left</span>
+        <span class="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full shadow">{{ $t('product.left', { n: product.stock }) }}</span>
       </div>
       <div v-if="product.images?.length > 0" class="absolute bottom-2 right-2 flex items-center gap-0.5">
         <span v-for="i in Math.min(product.images.length + 1, 4)" :key="i" class="w-1 h-1 rounded-full bg-white/60" />
@@ -39,7 +39,7 @@
           class="shrink-0 text-xs bg-[#1d72b8] hover:bg-[#155f9c] active:scale-95 text-white px-3 py-1.5 rounded-xl font-bold transition-all shadow-sm"
           @click.prevent.stop="handleAdd"
         >
-          Add
+          {{ $t('product.add') }}
         </button>
       </div>
     </div>

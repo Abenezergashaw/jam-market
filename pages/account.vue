@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-xl mx-auto px-4 py-8 sm:py-10 space-y-6">
-    <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">My Account</h1>
+    <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">{{ $t('account.title') }}</h1>
 
     <div v-if="loading" class="space-y-4">
       <div class="card p-6 h-28 animate-pulse bg-zinc-50" />
@@ -23,17 +23,17 @@
           <div>
             <p class="text-lg font-bold text-zinc-900">{{ fullName }}</p>
             <p v-if="profile.username" class="text-sm text-zinc-400">@{{ profile.username }}</p>
-            <p class="text-xs text-zinc-400 mt-0.5">Member since {{ joinDate }}</p>
+            <p class="text-xs text-zinc-400 mt-0.5">{{ $t('account.memberSince', { date: joinDate }) }}</p>
           </div>
         </div>
 
         <!-- Phone number -->
         <div>
-          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Phone number</label>
+          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">{{ $t('account.phoneNumber') }}</label>
           <div v-if="!editingPhone" class="flex items-center gap-3">
-            <span class="text-sm text-zinc-700 flex-1">{{ profile.phone || 'Not set' }}</span>
+            <span class="text-sm text-zinc-700 flex-1">{{ profile.phone || $t('account.notSet') }}</span>
             <button class="text-xs font-semibold text-brand-500 hover:text-brand-600 transition-colors" @click="startEdit">
-              {{ profile.phone ? 'Change' : 'Add' }}
+              {{ profile.phone ? $t('account.change') : $t('account.add') }}
             </button>
           </div>
           <div v-else class="flex items-center gap-2">
@@ -47,10 +47,10 @@
               @keydown.esc="cancelEdit"
             />
             <button :disabled="saving" class="btn-primary text-xs px-4 py-2 shrink-0" @click="savePhone">
-              {{ saving ? 'Saving…' : 'Save' }}
+              {{ saving ? $t('account.saving') : $t('account.save') }}
             </button>
             <button :disabled="saving" class="text-xs text-zinc-400 hover:text-zinc-600 transition-colors px-2 py-2" @click="cancelEdit">
-              Cancel
+              {{ $t('account.cancel') }}
             </button>
           </div>
           <p v-if="saveError" class="text-xs text-red-500 mt-1.5">{{ saveError }}</p>
@@ -64,7 +64,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <span class="text-sm font-medium text-zinc-700">My Orders</span>
+            <span class="text-sm font-medium text-zinc-700">{{ $t('account.myOrders') }}</span>
           </div>
           <div class="flex items-center gap-2">
             <span v-if="ordersStore.orders.length" class="badge badge-yellow">{{ ordersStore.orders.length }}</span>
@@ -83,7 +83,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
         </svg>
-        <span class="text-sm font-medium text-red-500">Sign out</span>
+        <span class="text-sm font-medium text-red-500">{{ $t('account.signOut') }}</span>
       </button>
     </template>
   </div>

@@ -4,21 +4,21 @@
     <!-- Header -->
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-base font-bold text-zinc-900">Products</h1>
-        <p class="text-xs text-zinc-400 mt-0.5">{{ total }} product{{ total !== 1 ? 's' : '' }} total</p>
+        <h1 class="text-base font-bold text-zinc-900">{{ $t('admin.pageTitle.products') }}</h1>
+        <p class="text-xs text-zinc-400 mt-0.5">{{ $t('common.items', { n: total }) }}</p>
       </div>
       <div class="flex items-center gap-2">
         <NuxtLink to="/admin/products/import" class="btn-secondary inline-flex items-center gap-1.5 text-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
           </svg>
-          Import
+          {{ $t('admin.import') }}
         </NuxtLink>
         <NuxtLink to="/admin/products/new" class="btn-primary inline-flex items-center gap-1.5 text-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          Add product
+          {{ $t('admin.addProductBtn') }}
         </NuxtLink>
       </div>
     </div>
@@ -64,9 +64,9 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       </div>
-      <p class="font-semibold text-zinc-700">No products yet</p>
-      <p class="text-sm text-zinc-400 mt-1 mb-5">Add your first product to get started</p>
-      <NuxtLink to="/admin/products/new" class="btn-primary text-sm">Add product</NuxtLink>
+      <p class="font-semibold text-zinc-700">{{ $t('admin.noProducts') }}</p>
+      <p class="text-sm text-zinc-400 mt-1 mb-5">{{ $t('admin.noProductsHint') }}</p>
+      <NuxtLink to="/admin/products/new" class="btn-primary text-sm">{{ $t('admin.addProductBtn') }}</NuxtLink>
     </div>
 
     <!-- Product grid -->
@@ -90,7 +90,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <span class="text-white text-[10px] font-semibold">Uploading…</span>
+            <span class="text-white text-[10px] font-semibold">{{ $t('product.uploading') }}</span>
           </div>
 
           <!-- Stock badge — top left -->
@@ -100,7 +100,7 @@
               :class="product.stock === 0 ? 'bg-red-500' : product.stock < 10 ? 'bg-amber-500' : 'bg-emerald-500'"
             >
               <span class="w-1 h-1 rounded-full bg-white/70" :class="product.stock > 0 ? 'animate-pulse' : ''" />
-              {{ product.stock === 0 ? 'Out of stock' : product.stock < 10 ? `${product.stock} left` : product.stock }}
+              {{ product.stock === 0 ? $t('admin.outOfStockBadge') : product.stock < 10 ? $t('product.left', { n: product.stock }) : product.stock }}
             </span>
           </div>
 
@@ -183,15 +183,15 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Previous
+        {{ $t('common.previous') }}
       </button>
-      <span class="text-xs font-medium text-zinc-400 bg-zinc-100 px-3 py-1.5 rounded-lg">{{ page }} / {{ totalPages }}</span>
+      <span class="text-xs font-medium text-zinc-400 bg-zinc-100 px-3 py-1.5 rounded-lg">{{ $t('common.page', { n: page, total: totalPages }) }}</span>
       <button
         :disabled="page === totalPages"
         class="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-500 hover:text-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-3 py-2 rounded-lg hover:bg-zinc-100 disabled:hover:bg-transparent"
         @click="changePage(page + 1)"
       >
-        Next
+        {{ $t('common.next') }}
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
         </svg>
