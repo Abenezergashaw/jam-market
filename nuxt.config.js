@@ -4,9 +4,7 @@ export default defineNuxtConfig({
   modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@sentry/nuxt/module", "@vite-pwa/nuxt"],
 
   pwa: {
-    strategies: 'injectManifest',
-    srcDir: '.',
-    filename: 'sw.js',
+    strategies: 'generateSW',
     registerType: 'autoUpdate',
     manifest: {
       name: 'Jam Supermarket',
@@ -21,15 +19,14 @@ export default defineNuxtConfig({
         { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
       ],
     },
-    injectManifest: {
+    workbox: {
       globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
+      importScripts: ['/sw-push.js'],
+      navigateFallback: null,
+      cleanupOutdatedCaches: true,
     },
     devOptions: {
-      enabled: true,
-      suppressWarnings: true,
-      navigateFallback: '/',
-      navigateFallbackAllowlist: [/^\/(?!api)/],
-      type: 'module',
+      enabled: false,
     },
   },
 
@@ -64,8 +61,16 @@ export default defineNuxtConfig({
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         { name: "description", content: "Fresh groceries delivered fast" },
+        { name: "theme-color", content: "#3b5323" },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+        { name: "apple-mobile-web-app-title", content: "Jam Store" },
       ],
-      link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+      link: [
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
+        { rel: "apple-touch-icon", sizes: "512x512", href: "/icons/icon-512.png" },
+      ],
     },
   },
 
