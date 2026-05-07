@@ -91,20 +91,27 @@ onMounted(() => {
 
   isIOS.value = detectIOS()
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    deferredPrompt = e
+  function capturePrompt() {
+    deferredPrompt = window.__pwaPrompt
     canNativeInstall.value = true
     show.value = true
-  })
+  }
+
+  // Plugin may have captured beforeinstallprompt before this component mounted
+  if (window.__pwaPrompt) {
+    capturePrompt()
+  }
+
+  // Also handle the case where it fires after mount
+  window.addEventListener('pwa-install-available', capturePrompt)
 
   window.addEventListener('appinstalled', () => {
     show.value = false
     deferredPrompt = null
+    window.__pwaPrompt = null
   })
 
-  // Show for iOS and non-Chromium browsers (no beforeinstallprompt support)
-  // Chrome/Edge will show via the event above; this handles everyone else
+  // iOS and non-Chromium browsers (no beforeinstallprompt support)
   if (isIOS.value || !('onbeforeinstallprompt' in window)) {
     setTimeout(() => {
       if (!show.value) show.value = true
