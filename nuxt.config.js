@@ -1,23 +1,7 @@
 export default defineNuxtConfig({
   ssr: true,
 
-  modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@sentry/nuxt/module", "@nuxtjs/i18n"],
-
-  i18n: {
-    locales: [
-      { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'am', name: 'አማርኛ', file: 'am.json' },
-    ],
-    defaultLocale: 'en',
-    strategy: 'no_prefix',
-    langDir: 'locales/',
-    detectBrowserLanguage: {
-      useCookie: true,
-      cookieKey: 'jam_locale',
-      alwaysRedirect: false,
-      redirectOn: 'root',
-    },
-  },
+  modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@sentry/nuxt/module"],
 
   sentry: {
     sourceMapsUploadOptions: {

@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-const { locale, setLocale } = useI18n()
+const { locale, setLocale } = useLocale()
 function toggle() {
   setLocale(locale.value === 'en' ? 'am' : 'en')
 }

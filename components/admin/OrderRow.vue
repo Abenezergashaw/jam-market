@@ -73,7 +73,7 @@ const props = defineProps({
 
 defineEmits(['change-status'])
 
-const { t } = useI18n()
+const { t } = useLocale()
 
 const PM_LABEL = { TELEBIRR: 'Telebirr', CBE: 'CBE', BOA: 'BOA' }
 

@@ -72,7 +72,7 @@
 definePageMeta({ middleware: ['delivery'], layout: 'delivery', ssr: false })
 
 const { adminFetch } = useAdminFetch()
-const { t } = useI18n()
+const { t } = useLocale()
 
 const orders = ref([])
 const loading = ref(true)

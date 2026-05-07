@@ -272,7 +272,7 @@ useHead({
   link: [{ key: 'manifest', rel: 'manifest', href: '/manifest-admin.webmanifest' }],
 })
 
-const { t } = useI18n()
+const { t } = useLocale()
 const route = useRoute()
 const adminStore = useAdminStore()
 const { pendingCount, acknowledge } = useOrderNotifier()

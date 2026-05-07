@@ -64,7 +64,7 @@ definePageMeta({ middleware: ['cashier'], layout: 'cashier', ssr: false })
 
 const router = useRouter()
 const { adminFetch } = useAdminFetch()
-const { t } = useI18n()
+const { t } = useLocale()
 
 const loading = ref(true)
 const stats = ref({ pending: 0, confirmed: 0, outForDelivery: 0, deliveredToday: 0 })

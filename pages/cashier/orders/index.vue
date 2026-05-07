@@ -106,7 +106,7 @@ definePageMeta({ middleware: ['cashier'], layout: 'cashier', ssr: false })
 
 const { adminFetch } = useAdminFetch()
 const adminStore = useAdminStore()
-const { t } = useI18n()
+const { t } = useLocale()
 
 const orders = ref([])
 const loading = ref(true)

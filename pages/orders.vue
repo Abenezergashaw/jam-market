@@ -172,7 +172,7 @@
 <script setup>
 const myOrdersStore = useCustomerOrdersStore()
 const customerStore = useCustomerStore()
-const { t } = useI18n()
+const { t } = useLocale()
 
 const confirmingId = ref(null)
 const confirming = ref(false)
