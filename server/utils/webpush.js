@@ -9,7 +9,11 @@ const privateKey = process.env.VAPID_PRIVATE_KEY
 const subject = process.env.VAPID_SUBJECT || 'mailto:admin@jamstore.com'
 
 if (publicKey && privateKey) {
-  webpush.setVapidDetails(subject, publicKey, privateKey)
+  try {
+    webpush.setVapidDetails(subject, publicKey, privateKey)
+  } catch (e) {
+    console.error('[webpush] VAPID configuration failed:', e?.message)
+  }
 }
 
 async function sendPush(sub, payload) {
