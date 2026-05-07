@@ -11,10 +11,14 @@
 
       <div class="flex-1 min-w-0">
         <p class="text-sm font-semibold text-zinc-900 leading-tight">Add to Home Screen</p>
-        <!-- iOS instruction -->
-        <p v-if="isIOS" class="text-[11px] text-zinc-400 leading-tight mt-0.5">
+        <!-- iOS Safari: tap share to install -->
+        <p v-if="isIOSSafari" class="text-[11px] text-zinc-400 leading-tight mt-0.5">
           Tap <svg xmlns="http://www.w3.org/2000/svg" class="inline h-3 w-3 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
           Share then <strong>Add to Home Screen</strong>
+        </p>
+        <!-- iOS Chrome/Firefox: must use Safari -->
+        <p v-else-if="isIOS" class="text-[11px] text-zinc-400 leading-tight mt-0.5">
+          Open this page in <strong>Safari</strong> to install
         </p>
         <!-- Chrome/Edge native install -->
         <p v-else-if="canNativeInstall" class="text-[11px] text-zinc-400 leading-tight mt-0.5">
@@ -26,7 +30,7 @@
         </p>
       </div>
 
-      <!-- iOS: no button needed, instructions are enough -->
+      <!-- iOS: no button, instructions only -->
       <button
         v-if="!isIOS"
         class="shrink-0 bg-forest-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-forest-600 transition-colors"
@@ -52,6 +56,7 @@
 const show = ref(false)
 const canNativeInstall = ref(false)
 const isIOS = ref(false)
+const isIOSSafari = ref(false)
 let deferredPrompt = null
 
 function isStandalone() {
@@ -66,6 +71,10 @@ function detectIOS() {
     /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
   )
+}
+
+function detectIOSSafari() {
+  return detectIOS() && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(navigator.userAgent)
 }
 
 function dismiss() {
@@ -90,6 +99,7 @@ onMounted(() => {
   if (localStorage.getItem('pwa-install-dismissed')) return
 
   isIOS.value = detectIOS()
+  isIOSSafari.value = detectIOSSafari()
 
   function capturePrompt() {
     deferredPrompt = window.__pwaPrompt
@@ -111,8 +121,8 @@ onMounted(() => {
     window.__pwaPrompt = null
   })
 
-  // iOS and non-Chromium browsers (no beforeinstallprompt support)
-  if (isIOS.value || !('onbeforeinstallprompt' in window)) {
+  // iOS Safari and non-Chromium browsers use the instruction banner
+  if (isIOSSafari.value || (!isIOS.value && !('onbeforeinstallprompt' in window))) {
     setTimeout(() => {
       if (!show.value) show.value = true
     }, 3000)
