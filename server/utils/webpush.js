@@ -1,6 +1,4 @@
-import { createRequire } from 'module'
-const _require = createRequire(import.meta.url)
-const webpush = _require('web-push')
+import webpush from 'web-push'
 import * as Sentry from '@sentry/nuxt'
 
 // Configure once at startup using env vars directly

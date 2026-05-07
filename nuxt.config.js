@@ -82,12 +82,6 @@ export default defineNuxtConfig({
     },
   },
 
-  nitro: {
-    externals: {
-      external: ['web-push'],
-    },
-  },
-
   vite: {
     server: {
       allowedHosts: true, // This allows any host to connect
