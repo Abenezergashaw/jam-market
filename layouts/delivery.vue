@@ -36,6 +36,7 @@
 <script setup>
 const adminStore = useAdminStore()
 const { adminFetch } = useAdminFetch()
+const { isSupported, subscribe } = usePushNotifications()
 
 const storeName = ref('')
 onMounted(async () => {
@@ -45,6 +46,9 @@ onMounted(async () => {
       const store = await adminFetch('/api/delivery/store')
       storeName.value = store?.name ?? ''
     } catch {}
+  }
+  if (isSupported.value && adminStore.token) {
+    subscribe(`Bearer ${adminStore.token}`)
   }
 })
 </script>

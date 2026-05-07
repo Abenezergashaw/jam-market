@@ -37,7 +37,10 @@
       "PowerShell([System.IO.Directory]::GetDirectories\\(\"$env:USERPROFILE\\\\.claude\\\\projects\"\\))",
       "Bash(node -e ' *)",
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\({scripts:p.scripts, prisma:p.prisma},null,2\\)\\)\")",
-      "Bash(findstr /i \"leaflet\\\\|mapbox\\\\|ol\\\\b\")"
+      "Bash(findstr /i \"leaflet\\\\|mapbox\\\\|ol\\\\b\")",
+      "Bash(grep -E \"\\\\.\\(json|ico|png|webp\\)$\")",
+      "Bash(awk '{print $NF}')",
+      "Bash(mkdir -p public/icons)"
     ]
   }
 }

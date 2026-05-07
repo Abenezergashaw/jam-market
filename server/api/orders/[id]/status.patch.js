@@ -128,6 +128,38 @@ export default defineEventHandler(async (event) => {
       if (message) await sendTelegramMessage(telegramId, message)
     }
 
+    // Web push — fire-and-forget
+    const pushTitles = {
+      CONFIRMED: '✅ Order Confirmed',
+      OUT_FOR_DELIVERY: '🛵 On the Way',
+      DELIVERED: '🎉 Order Delivered',
+      CANCELLED: '❌ Order Cancelled',
+    }
+    const pushBodies = {
+      CONFIRMED: `Your order #${order.id} is being prepared.`,
+      OUT_FOR_DELIVERY: `Your order #${order.id} is out for delivery.`,
+      DELIVERED: `Your order #${order.id} has been delivered!`,
+      CANCELLED: cancelReason?.trim()
+        ? `Your order #${order.id} was cancelled: ${cancelReason.trim()}`
+        : `Your order #${order.id} was cancelled.`,
+    }
+    if (pushTitles[newStatus]) {
+      sendPushToCustomer(order.customerId, {
+        title: pushTitles[newStatus],
+        body: pushBodies[newStatus],
+        url: '/orders',
+        tag: `order-${order.id}`,
+      })
+    }
+    if (newStatus === 'OUT_FOR_DELIVERY' && order.deliveryPersonId) {
+      sendPushToUser(order.deliveryPersonId, {
+        title: '📦 New Delivery Assignment',
+        body: `Order #${order.id} has been assigned to you.`,
+        url: '/delivery/orders',
+        tag: `assign-${order.id}`,
+      })
+    }
+
     return {
       ...order,
       totalPrice: order.totalPrice.toString(),

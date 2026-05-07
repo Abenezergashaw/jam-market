@@ -470,6 +470,7 @@
       </div>
     </nav>
   </div>
+  <InstallBanner />
 </template>
 
 <script setup>
@@ -477,8 +478,16 @@ const cartStore = useCartStore();
 const myOrdersStore = useCustomerOrdersStore();
 const customerStore = useCustomerStore();
 const mobileAccountOpen = ref(false);
+const { isSupported, subscribe } = usePushNotifications();
 
-onMounted(() => customerStore.hydrate());
+onMounted(() => {
+  customerStore.hydrate()
+  setTimeout(() => {
+    if (isSupported.value && customerStore.isAuthenticated) {
+      subscribe(`Bearer ${customerStore.token}`)
+    }
+  }, 3000)
+});
 </script>
 
 <style scoped>

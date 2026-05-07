@@ -122,6 +122,14 @@ export default defineEventHandler(async (event) => {
     })
   })
 
+  // Notify admin + cashier of new order (fire-and-forget)
+  sendPushToRole(['admin', 'cashier', 'manager'], {
+    title: '🛒 New Order',
+    body: `Order #${order.id} just came in.`,
+    url: '/admin/orders',
+    tag: `new-order-${order.id}`,
+  })
+
   return {
     ...order,
     totalPrice: order.totalPrice.toString(),

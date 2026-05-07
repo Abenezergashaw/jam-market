@@ -266,6 +266,13 @@ const route = useRoute()
 const adminStore = useAdminStore()
 const { pendingCount, acknowledge } = useOrderNotifier()
 const { unreadCount: msgUnread, acknowledge: ackMessages } = useAdminMessageNotifier()
+const { isSupported, subscribe } = usePushNotifications()
+
+onMounted(() => {
+  if (isSupported.value && adminStore.token) {
+    subscribe(`Bearer ${adminStore.token}`)
+  }
+})
 
 const drawerOpen = ref(false)
 

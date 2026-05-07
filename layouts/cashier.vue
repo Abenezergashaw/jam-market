@@ -168,6 +168,7 @@
 const route = useRoute()
 const adminStore = useAdminStore()
 const { adminFetch } = useAdminFetch()
+const { isSupported, subscribe } = usePushNotifications()
 
 const permissions = computed(() => adminStore.user?.permissions ?? [])
 const canManageProducts = computed(() =>
@@ -185,6 +186,9 @@ onMounted(async () => {
       const stores = await adminFetch('/api/admin/stores')
       storeName.value = stores.find(s => s.id === storeId)?.name ?? ''
     } catch {}
+  }
+  if (isSupported.value && adminStore.token) {
+    subscribe(`Bearer ${adminStore.token}`)
   }
 })
 
