@@ -1,0 +1,16 @@
+{
+  "id": "/admin",
+  "name": "Jam Admin",
+  "short_name": "Jam Admin",
+  "description": "Jam Supermarket admin panel",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#3b5323",
+  "background_color": "#f8f5f0",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

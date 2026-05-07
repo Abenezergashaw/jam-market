@@ -165,6 +165,10 @@
 </template>
 
 <script setup>
+useHead({
+  link: [{ key: 'manifest', rel: 'manifest', href: '/manifest-admin.webmanifest' }],
+})
+
 const route = useRoute()
 const adminStore = useAdminStore()
 const { adminFetch } = useAdminFetch()
