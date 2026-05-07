@@ -1,34 +1,7 @@
 export default defineNuxtConfig({
   ssr: true,
 
-  modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@sentry/nuxt/module", "@vite-pwa/nuxt"],
-
-  pwa: {
-    strategies: 'generateSW',
-    registerType: 'autoUpdate',
-    manifest: {
-      name: 'Jam Supermarket',
-      short_name: 'Jam Store',
-      description: 'Fresh groceries delivered fast',
-      theme_color: '#3b5323',
-      background_color: '#f8f5f0',
-      display: 'standalone',
-      start_url: '/',
-      icons: [
-        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
-      ],
-    },
-    workbox: {
-      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
-      importScripts: ['/sw-push.js'],
-      navigateFallback: null,
-      cleanupOutdatedCaches: true,
-    },
-    devOptions: {
-      enabled: false,
-    },
-  },
+  modules: ["@pinia/nuxt", "@nuxtjs/tailwindcss", "@sentry/nuxt/module"],
 
   sentry: {
     sourceMapsUploadOptions: {
@@ -68,6 +41,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "manifest", href: "/manifest.webmanifest" },
         { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
         { rel: "apple-touch-icon", sizes: "512x512", href: "/icons/icon-512.png" },
       ],
