@@ -48,7 +48,7 @@
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            {{ $t('nav.orders') }}
+            {{ $t("nav.orders") }}
           </NuxtLink>
 
           <NuxtLink
@@ -56,11 +56,26 @@
             to="/messages"
             class="relative flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors px-3 py-2 rounded-xl hover:bg-zinc-100"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z"
+              />
             </svg>
-            {{ $t('nav.messages') }}
-            <span v-if="msgUnread > 0" class="absolute -top-0.5 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shadow shadow-red-500/30">{{ msgUnread }}</span>
+            {{ $t("nav.messages") }}
+            <span
+              v-if="msgUnread > 0"
+              class="absolute -top-0.5 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shadow shadow-red-500/30"
+              >{{ msgUnread }}</span
+            >
           </NuxtLink>
 
           <!-- Account / Login -->
@@ -92,7 +107,7 @@
                 class="text-xs font-semibold text-zinc-400 hover:text-red-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-50"
                 @click="customerStore.logout()"
               >
-                {{ $t('nav.signOut') }}
+                {{ $t("nav.signOut") }}
               </button>
             </div>
           </template>
@@ -101,7 +116,7 @@
               to="/login"
               class="flex items-center gap-1.5 text-sm font-semibold text-forest-600 hover:text-forest-700 transition-colors px-3 py-2 rounded-xl hover:bg-forest-50 border border-forest-200"
             >
-              {{ $t('nav.signIn') }}
+              {{ $t("nav.signIn") }}
             </NuxtLink>
           </template>
 
@@ -123,7 +138,7 @@
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.53A1 1 0 007.63 21h8.74a1 1 0 00.98-1.22L16 13M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z"
               />
             </svg>
-            {{ $t('nav.cart') }}
+            {{ $t("nav.cart") }}
             <span
               v-if="cartStore.totalItems > 0"
               class="absolute -top-0.5 right-0 bg-forest-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shadow shadow-forest-500/30"
@@ -137,31 +152,31 @@
         <!-- Mobile: lang toggle + cart icon -->
         <div class="order-2 ml-auto sm:hidden flex items-center gap-1">
           <LangToggle />
-        <NuxtLink
-          to="/cart"
-          class="relative p-2 text-zinc-600 hover:text-zinc-900 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
+          <NuxtLink
+            to="/cart"
+            class="relative p-2 text-zinc-600 hover:text-zinc-900 transition-colors"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.53A1 1 0 007.63 21h8.74a1 1 0 00.98-1.22L16 13M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z"
-            />
-          </svg>
-          <span
-            v-if="cartStore.totalItems > 0"
-            class="absolute top-1 right-1 bg-forest-500 text-white text-[9px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center shadow shadow-forest-500/30"
-          >
-            {{ cartStore.totalItems }}
-          </span>
-        </NuxtLink>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.53A1 1 0 007.63 21h8.74a1 1 0 00.98-1.22L16 13M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z"
+              />
+            </svg>
+            <span
+              v-if="cartStore.totalItems > 0"
+              class="absolute top-1 right-1 bg-forest-500 text-white text-[9px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center shadow shadow-forest-500/30"
+            >
+              {{ cartStore.totalItems }}
+            </span>
+          </NuxtLink>
         </div>
       </div>
     </header>
@@ -247,28 +262,60 @@
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
               />
             </svg>
-            <span class="text-sm font-medium text-zinc-700">{{ $t('nav.myAccount') }}</span>
+            <span class="text-sm font-medium text-zinc-700">{{
+              $t("nav.myAccount")
+            }}</span>
           </NuxtLink>
           <NuxtLink
             to="/orders"
             class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-50 transition-colors"
             @click="mobileAccountOpen = false"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-zinc-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
             </svg>
-            <span class="text-sm font-medium text-zinc-700">{{ $t('nav.orders') }}</span>
+            <span class="text-sm font-medium text-zinc-700">{{
+              $t("nav.orders")
+            }}</span>
           </NuxtLink>
           <NuxtLink
             to="/messages"
             class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-50 transition-colors"
             @click="mobileAccountOpen = false"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 text-zinc-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z"
+              />
             </svg>
-            <span class="text-sm font-medium text-zinc-700">{{ $t('nav.messages') }}</span>
-            <span v-if="msgUnread > 0" class="ml-auto min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">{{ msgUnread }}</span>
+            <span class="text-sm font-medium text-zinc-700">{{
+              $t("nav.messages")
+            }}</span>
+            <span
+              v-if="msgUnread > 0"
+              class="ml-auto min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1"
+              >{{ msgUnread }}</span
+            >
           </NuxtLink>
           <div class="flex items-center gap-2 px-4 py-2">
             <LangToggle class="w-full justify-start" />
@@ -294,7 +341,9 @@
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
               />
             </svg>
-            <span class="text-sm font-medium text-red-500">{{ $t('nav.signOut') }}</span>
+            <span class="text-sm font-medium text-red-500">{{
+              $t("nav.signOut")
+            }}</span>
           </button>
         </div>
       </div>
@@ -331,7 +380,7 @@
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
             />
           </svg>
-          <span class="text-[10px] font-medium">{{ $t('common.home') }}</span>
+          <span class="text-[10px] font-medium">{{ $t("common.home") }}</span>
         </NuxtLink>
 
         <NuxtLink
@@ -355,7 +404,7 @@
               d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"
             />
           </svg>
-          <span class="text-[10px] font-medium">{{ $t('nav.search') }}</span>
+          <span class="text-[10px] font-medium">{{ $t("nav.search") }}</span>
         </NuxtLink>
 
         <NuxtLink
@@ -380,7 +429,7 @@
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
-          <span class="text-[10px] font-medium">{{ $t('nav.orders') }}</span>
+          <span class="text-[10px] font-medium">{{ $t("nav.orders") }}</span>
         </NuxtLink>
 
         <!-- Account / Login -->
@@ -427,22 +476,39 @@
               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
             />
           </svg>
-          <span class="text-[10px] font-medium">{{ $t('nav.signIn') }}</span>
+          <span class="text-[10px] font-medium">{{ $t("nav.signIn") }}</span>
         </NuxtLink>
 
         <NuxtLink
           v-if="customerStore.isAuthenticated"
           to="/messages"
           class="flex flex-col items-center justify-center gap-1 transition-colors"
-          :class="$route.path === '/messages' ? 'text-forest-500' : 'text-zinc-400'"
+          :class="
+            $route.path === '/messages' ? 'text-forest-500' : 'text-zinc-400'
+          "
         >
           <div class="relative">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z"
+              />
             </svg>
-            <span v-if="msgUnread > 0" class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">{{ msgUnread }}</span>
+            <span
+              v-if="msgUnread > 0"
+              class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5"
+              >{{ msgUnread }}</span
+            >
           </div>
-          <span class="text-[10px] font-medium">{{ $t('nav.messages') }}</span>
+          <span class="text-[10px] font-medium">{{ $t("nav.messages") }}</span>
         </NuxtLink>
 
         <NuxtLink
@@ -472,7 +538,7 @@
               {{ cartStore.totalItems }}
             </span>
           </div>
-          <span class="text-[10px] font-medium">{{ $t('nav.cart') }}</span>
+          <span class="text-[10px] font-medium">{{ $t("nav.cart") }}</span>
         </NuxtLink>
       </div>
     </nav>
@@ -492,12 +558,12 @@ const mobileAccountOpen = ref(false);
 const { isSupported, resubscribeIfGranted } = usePushNotifications();
 
 onMounted(() => {
-  customerStore.hydrate()
+  customerStore.hydrate();
   setTimeout(() => {
     if (isSupported.value && customerStore.isAuthenticated) {
-      resubscribeIfGranted(`Bearer ${customerStore.token}`)
+      resubscribeIfGranted(`Bearer ${customerStore.token}`);
     }
-  }, 3000)
+  }, 3000);
 });
 </script>
 
