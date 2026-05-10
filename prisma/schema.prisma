@@ -97,9 +97,10 @@ model Customer {
   phone      String?
   photoUrl   String?  @map("photo_url")
   createdAt  DateTime @default(now()) @map("created_at")
-  orders     Order[]
-  reviews    ProductReview[]
-  conversations Conversation[]
+  orders              Order[]
+  reviews             ProductReview[]
+  conversations       Conversation[]
+  specialOrders       SpecialOrderRequest[]
 
   @@map("customers")
 }
@@ -287,6 +288,29 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@map("messages")
+}
+
+model SpecialOrderRequest {
+  id          Int      @id @default(autoincrement())
+  customerId  Int      @map("customer_id")
+  productName String   @map("product_name") @db.VarChar(200)
+  brand       String?  @db.VarChar(100)
+  madeIn      String?  @map("made_in") @db.VarChar(100)
+  size        String?  @db.VarChar(100)
+  color       String?  @db.VarChar(100)
+  quantity    Int      @default(1)
+  notes       String?  @db.Text
+  imageUrl    String?  @map("image_url")
+  status      String   @default("PENDING")
+  adminNotes  String?  @map("admin_notes") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([status])
+  @@map("special_order_requests")
 }
 
 enum OrderStatus {

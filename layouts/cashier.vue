@@ -45,6 +45,18 @@
           <span v-if="msgUnread > 0" class="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ msgUnread }}</span>
         </NuxtLink>
 
+        <NuxtLink
+          to="/cashier/special-orders"
+          class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150"
+          :class="$route.path === '/cashier/special-orders' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+          </svg>
+          Product Requests
+          <span v-if="specialOrderCount > 0" class="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ specialOrderCount }}</span>
+        </NuxtLink>
+
         <template v-if="canManageProducts">
           <p class="px-3 pt-4 pb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">{{ $t('admin.sections.catalogue') }}</p>
           <NuxtLink
@@ -179,6 +191,14 @@ const adminStore = useAdminStore()
 const { adminFetch } = useAdminFetch()
 const { isSupported, subscribe } = usePushNotifications()
 
+const specialOrderCount = ref(0)
+async function fetchSpecialOrderCount() {
+  try {
+    const { count } = await adminFetch('/api/admin/special-orders/pending-count')
+    specialOrderCount.value = count
+  } catch {}
+}
+
 const permissions = computed(() => adminStore.user?.permissions ?? [])
 const canManageProducts = computed(() =>
   permissions.value.includes('products:create') || permissions.value.includes('products:edit')
@@ -199,6 +219,8 @@ onMounted(async () => {
   if (isSupported.value && adminStore.token) {
     subscribe(`Bearer ${adminStore.token}`)
   }
+  fetchSpecialOrderCount()
+  setInterval(fetchSpecialOrderCount, 30_000)
 })
 
 const pageTitle = computed(() => {

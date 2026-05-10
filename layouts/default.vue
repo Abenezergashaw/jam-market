@@ -78,6 +78,17 @@
             >
           </NuxtLink>
 
+          <NuxtLink
+            v-if="customerStore.isAuthenticated"
+            to="/special-orders"
+            class="flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors px-3 py-2 rounded-xl hover:bg-zinc-100"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+            </svg>
+            Request a Product
+          </NuxtLink>
+
           <!-- Account / Login -->
           <template v-if="customerStore.isAuthenticated">
             <div
@@ -288,6 +299,16 @@
             <span class="text-sm font-medium text-zinc-700">{{
               $t("nav.orders")
             }}</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/special-orders"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-50 transition-colors"
+            @click="mobileAccountOpen = false"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
+            </svg>
+            <span class="text-sm font-medium text-zinc-700">Request a Product</span>
           </NuxtLink>
           <NuxtLink
             to="/messages"

@@ -23,6 +23,11 @@
           {{ $t('admin.nav.messages') }}
           <span v-if="msgUnread > 0" class="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ msgUnread }}</span>
         </NuxtLink>
+        <NuxtLink to="/admin/special-orders" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/special-orders' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" /></svg>
+          Product Requests
+          <span v-if="specialOrderCount > 0" class="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ specialOrderCount }}</span>
+        </NuxtLink>
         <NuxtLink to="/admin/revenue" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/revenue' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
           {{ $t('admin.nav.revenue') }}
@@ -158,6 +163,11 @@
             {{ $t('admin.nav.messages') }}
             <span v-if="msgUnread > 0" class="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ msgUnread }}</span>
           </NuxtLink>
+          <NuxtLink to="/admin/special-orders" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/special-orders' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'" @click="drawerOpen = false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" /></svg>
+            Product Requests
+            <span v-if="specialOrderCount > 0" class="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">{{ specialOrderCount }}</span>
+          </NuxtLink>
           <NuxtLink to="/admin/revenue" class="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-150" :class="$route.path === '/admin/revenue' ? 'bg-brand-500/10 text-brand-600 border border-brand-200' : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'" @click="drawerOpen = false">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             {{ $t('admin.nav.revenue') }}
@@ -278,11 +288,22 @@ const adminStore = useAdminStore()
 const { pendingCount, acknowledge } = useOrderNotifier()
 const { unreadCount: msgUnread, acknowledge: ackMessages } = useAdminMessageNotifier()
 const { isSupported, subscribe } = usePushNotifications()
+const { adminFetch } = useAdminFetch()
+
+const specialOrderCount = ref(0)
+async function fetchSpecialOrderCount() {
+  try {
+    const { count } = await adminFetch('/api/admin/special-orders/pending-count')
+    specialOrderCount.value = count
+  } catch {}
+}
 
 onMounted(() => {
   if (isSupported.value && adminStore.token) {
     subscribe(`Bearer ${adminStore.token}`)
   }
+  fetchSpecialOrderCount()
+  setInterval(fetchSpecialOrderCount, 30_000)
 })
 
 const drawerOpen = ref(false)
