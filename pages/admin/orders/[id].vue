@@ -148,6 +148,10 @@
                 <span>Service charge</span>
                 <span>ETB {{ serviceCharge.toFixed(2) }}</span>
               </div>
+              <div v-if="discountAmount > 0" class="flex items-center justify-between text-sm text-brand-600 font-semibold">
+                <span>🎁 Promotion discount</span>
+                <span>−ETB {{ discountAmount.toFixed(2) }}</span>
+              </div>
               <div class="flex items-center justify-between pt-1.5 border-t border-zinc-100">
                 <span class="text-sm font-semibold text-zinc-700">Total</span>
                 <span class="text-lg font-bold text-zinc-900">ETB {{ Number(order.totalPrice).toFixed(2) }}</span>
@@ -474,9 +478,10 @@ const itemsSubtotal = computed(() => {
   if (!order.value?.items) return 0
   return order.value.items.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0)
 })
+const discountAmount = computed(() => Number(order.value?.discountAmount ?? 0))
 const serviceCharge = computed(() => {
   if (!order.value) return 0
-  const sc = Number(order.value.totalPrice) - itemsSubtotal.value - Number(order.value.deliveryFee ?? 0)
+  const sc = Number(order.value.totalPrice) + discountAmount.value - itemsSubtotal.value - Number(order.value.deliveryFee ?? 0)
   return sc > 0.001 ? sc : 0
 })
 

@@ -328,9 +328,9 @@
           </template>
           <p v-else-if="location.lat && selectedStore" class="text-xs text-zinc-400 italic">{{ $t('cart.deliveryFeeOnDispatch') }}</p>
 
-          <div v-if="feeBreakdown.discount > 0" class="flex justify-between text-sm text-brand-600 font-semibold">
-            <span>🎁 {{ feeBreakdown.promoName }}</span>
-            <span>−ETB {{ feeBreakdown.discount.toFixed(2) }}</span>
+          <div v-if="feeBreakdown.discount > 0" class="flex justify-between items-center bg-brand-50 border border-brand-200 rounded-lg px-3 py-2 text-sm text-brand-700 font-semibold">
+            <span class="flex items-center gap-1.5">🎁 <span>{{ feeBreakdown.promoName }}</span></span>
+            <span class="text-brand-600">−ETB {{ feeBreakdown.discount.toFixed(2) }}</span>
           </div>
 
           <div class="flex items-center justify-between gap-4 pt-2 border-t border-zinc-100">
@@ -444,14 +444,14 @@ const selectedStore = computed(() => stores.value.find(s => s.id === selectedSto
 
 const activePromos = ref([])
 
-function bestPromo(subtotal, deliveryFee) {
+function bestPromo(subtotal, deliveryFee, distanceFee) {
   let best = null
   let bestDiscount = 0
   for (const promo of activePromos.value) {
     if (subtotal < Number(promo.minOrderAmount)) continue
     let d = 0
     if (promo.type === 'FREE_DELIVERY') {
-      d = deliveryFee
+      d = distanceFee  // only the distance-based portion, not service charge
     } else if (promo.type === 'PERCENT_OFF') {
       d = subtotal * Number(promo.value) / 100
       if (promo.maxDiscount) d = Math.min(d, Number(promo.maxDiscount))
@@ -469,7 +469,7 @@ const feeBreakdown = computed(() => {
   const store = selectedStore.value
 
   if (!store || store.lat == null || store.lng == null || location.lat == null || location.lng == null) {
-    const { discount, promo } = bestPromo(subtotal, 0)
+    const { discount, promo } = bestPromo(subtotal, 0, 0)
     return { subtotal, distanceKm: null, distanceFee: 0, serviceCharge: 0, serviceChargePct: 0, deliveryFee: 0, discount, promoName: promo?.name ?? '', total: Math.max(0, subtotal - discount) }
   }
 
@@ -484,7 +484,7 @@ const feeBreakdown = computed(() => {
   const distanceFee = distanceKm * effectiveCostPerKm
   const serviceCharge = subtotal * effectiveServiceChargePct / 100
   const deliveryFee = distanceFee + serviceCharge
-  const { discount, promo } = bestPromo(subtotal, deliveryFee)
+  const { discount, promo } = bestPromo(subtotal, deliveryFee, distanceFee)
   return { subtotal, distanceKm, distanceFee, serviceCharge, serviceChargePct: effectiveServiceChargePct, deliveryFee, discount, promoName: promo?.name ?? '', total: Math.max(0, subtotal + deliveryFee - discount) }
 })
 

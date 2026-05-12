@@ -58,6 +58,7 @@ export default defineEventHandler(async (event) => {
 
   const settings = await prisma.storeSettings.findFirst()
   let deliveryFee = 0
+  let distanceFee = 0
   let distKm = null
 
   if (storeId != null && lat != null && lng != null) {
@@ -70,7 +71,8 @@ export default defineEventHandler(async (event) => {
         ? Number(store.serviceChargePct)
         : Number(settings?.serviceChargePct ?? 0)
       distKm = haversineKm(Number(store.lat), Number(store.lng), lat, lng)
-      deliveryFee = distKm * effectiveCostPerKm + totalPrice * effectiveServiceChargePct / 100
+      distanceFee = distKm * effectiveCostPerKm
+      deliveryFee = distanceFee + totalPrice * effectiveServiceChargePct / 100
     }
   }
 
@@ -97,7 +99,7 @@ export default defineEventHandler(async (event) => {
 
     let d = 0
     if (promo.type === 'FREE_DELIVERY') {
-      d = deliveryFee
+      d = distanceFee
     } else if (promo.type === 'PERCENT_OFF') {
       d = totalPrice * Number(promo.value) / 100
       if (promo.maxDiscount) d = Math.min(d, Number(promo.maxDiscount))

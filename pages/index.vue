@@ -171,10 +171,8 @@
 
     <!-- Active promotions strip -->
     <div v-if="livePromos.length" class="promo-strip relative bg-[#175B35] overflow-hidden">
-      <!-- Shine sweep overlay -->
       <div class="promo-shine pointer-events-none absolute inset-0 z-10" />
-      <!-- Scrolling ticker -->
-      <div class="promo-ticker flex whitespace-nowrap py-2.5">
+      <div class="promo-ticker flex whitespace-nowrap py-3">
         <template v-for="_ in 4" :key="_">
           <div
             v-for="promo in livePromos"
