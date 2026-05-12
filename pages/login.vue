@@ -17,13 +17,7 @@
       <div v-if="step === 'phone'" class="card p-6 space-y-4">
         <div>
           <label class="block text-xs font-semibold text-zinc-600 mb-1.5">Phone number *</label>
-          <input
-            v-model="phoneForm.phone"
-            type="tel"
-            class="input"
-            placeholder="+251 9XX XXX XXX"
-            @keyup.enter="submitPhone"
-          />
+          <PhoneInput v-model="phoneForm.phone" @keyup.enter="submitPhone" />
         </div>
 
         <!-- Optional password -->
@@ -100,7 +94,7 @@
           <!-- Phone -->
           <div>
             <label class="block text-xs font-semibold text-zinc-600 mb-1.5">Phone number *</label>
-            <input v-model="form.phone" type="tel" class="input" placeholder="+251 9XX XXX XXX" @keyup.enter="submit" />
+            <PhoneInput v-model="form.phone" @keyup.enter="submit" />
           </div>
 
           <!-- Password -->

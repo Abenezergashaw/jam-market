@@ -37,11 +37,8 @@
             </button>
           </div>
           <div v-else class="flex items-center gap-2">
-            <input
+            <PhoneInput
               v-model="phoneInput"
-              type="tel"
-              placeholder="+251 9XX XXX XXXX"
-              class="input text-sm flex-1"
               :disabled="saving"
               @keydown.enter="savePhone"
               @keydown.esc="cancelEdit"

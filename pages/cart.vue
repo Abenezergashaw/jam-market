@@ -145,7 +145,7 @@
           </div>
           <div>
             <label class="label">{{ $t('cart.phone') }}</label>
-            <input v-model="form.phone" type="tel" class="input" placeholder="+251 900 000000" required />
+            <PhoneInput v-model="form.phone" required />
           </div>
         </div>
 
