@@ -293,7 +293,7 @@ async function submitPhone() {
   submitting.value = true
   const token = pendingToken.value || route.query.token
   try {
-    const updatedUser = await $fetch('/api/auth/customer/complete-profile', {
+    const result = await $fetch('/api/auth/customer/complete-profile', {
       method: 'POST',
       body: {
         phone: phoneForm.phone,
@@ -301,7 +301,12 @@ async function submitPhone() {
       },
       headers: { Authorization: `Bearer ${token}` },
     })
-    customerStore.loginWithToken(token, { ...customerStore.user, ...updatedUser })
+    // If accounts were merged, the server returns a new token for the merged account
+    if (result._newToken) {
+      customerStore.loginWithToken(result._newToken, result)
+    } else {
+      customerStore.loginWithToken(token, { ...customerStore.user, ...result })
+    }
     step.value = 'success'
     setTimeout(() => router.push(route.query.redirect || '/'), 700)
   } catch (e) {
