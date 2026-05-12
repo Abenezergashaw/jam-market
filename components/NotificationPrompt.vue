@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-const props = defineProps({
+defineProps({
   authHeader: { type: String, required: true },
 })
 
@@ -48,6 +48,7 @@ const { isSupported, permission, subscribe } = usePushNotifications()
 const dismissed = ref(false)
 const denied = computed(() => permission.value === 'denied')
 
+// Show on every page load if permission not granted — dismissed only lasts the session
 const show = computed(() =>
   isSupported.value &&
   permission.value !== 'granted' &&
@@ -56,18 +57,12 @@ const show = computed(() =>
 
 function dismiss() {
   dismissed.value = true
-  if (process.client) localStorage.setItem('notif-prompt-dismissed', '1')
 }
 
 async function enable() {
   const ok = await subscribe(props.authHeader)
   if (ok) dismissed.value = true
-  // if not ok, permission is now 'denied' and the banner switches to the blocked message
 }
-
-onMounted(() => {
-  if (localStorage.getItem('notif-prompt-dismissed')) dismissed.value = true
-})
 </script>
 
 <style scoped>

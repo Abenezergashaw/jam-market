@@ -63,7 +63,7 @@
             {{ $t("nav.messages") }}
             <span
               v-if="msgUnread > 0"
-              class="absolute -top-0.5 right-0 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shadow shadow-red-500/30"
+              class="absolute -top-0.5 right-0 bg-brand-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shadow shadow-brand-500/30"
               >{{ msgUnread }}</span
             >
           </NuxtLink>
@@ -320,7 +320,7 @@
             }}</span>
             <span
               v-if="msgUnread > 0"
-              class="ml-auto min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1"
+              class="ml-auto min-w-[18px] h-[18px] bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1"
               >{{ msgUnread }}</span
             >
           </NuxtLink>
@@ -511,7 +511,7 @@
             </svg>
             <span
               v-if="msgUnread > 0"
-              class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5"
+              class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-brand-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5"
               >{{ msgUnread }}</span
             >
           </div>

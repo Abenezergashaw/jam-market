@@ -23,7 +23,7 @@
         <span class="text-[10px] font-bold text-zinc-500 bg-white border border-zinc-200 px-2 py-0.5 rounded-full shadow-sm">Out of stock</span>
       </div>
       <div v-else-if="product.stock < 10" class="absolute top-2 right-2">
-        <span class="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full shadow">{{ product.stock }} left</span>
+        <span class="text-[10px] font-bold bg-brand-500 text-white px-2 py-0.5 rounded-full shadow">{{ product.stock }} left</span>
       </div>
     </div>
 

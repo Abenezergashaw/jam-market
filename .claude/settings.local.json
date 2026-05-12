@@ -46,7 +46,9 @@
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\cashier\\\\orders\" -ErrorAction SilentlyContinue 2>&1 | ForEach-Object { $_.FullName })",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\delivery\\\\orders\" -ErrorAction SilentlyContinue 2>&1 | ForEach-Object { $_.FullName })",
       "Bash(npm list *)",
-      "Bash(powershell -Command \"\\(Get-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\index.vue'\\) -replace '#3b5323', '#175B35' -replace '#2c3e1a', '#134a2b' | Set-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\index.vue'\")"
+      "Bash(powershell -Command \"\\(Get-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\index.vue'\\) -replace '#3b5323', '#175B35' -replace '#2c3e1a', '#134a2b' | Set-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\index.vue'\")",
+      "Bash(powershell -Command \"\\(Get-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\layouts\\\\default.vue'\\) -replace 'bg-red-500 text-white text-\\\\[10px\\\\] font-bold rounded-full min-w-\\\\[16px\\\\] h-\\\\[16px\\\\] flex items-center justify-center px-1 shadow shadow-red-500/30', 'bg-brand-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shadow shadow-brand-500/30' | Set-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\layouts\\\\default.vue'\")",
+      "Bash(powershell -Command \"\\(Get-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\layouts\\\\default.vue'\\) -replace 'bg-red-500 text-white text-\\\\[10px\\\\] font-bold rounded-full flex items-center justify-center px-1\\\\\"', 'bg-brand-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1\\\\\"' | Set-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\layouts\\\\default.vue'\")"
     ]
   }
 }

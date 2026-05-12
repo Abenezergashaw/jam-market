@@ -91,13 +91,34 @@ export default defineEventHandler(async (event) => {
       },
     })
 
-    if (parsed.data.paymentStatus === 'FAILED' && order.customer?.telegramId) {
+    if (parsed.data.paymentStatus === 'COLLECTED') {
+      sendPushToCustomer(order.customerId, {
+        title: '✅ Payment Confirmed',
+        body: `Your payment for order #${id} has been verified. We're preparing your order.`,
+        url: '/orders',
+        tag: `payment-confirmed-${id}`,
+      })
+    }
+
+    if (parsed.data.paymentStatus === 'FAILED') {
       const note = parsed.data.note?.trim()
-      const reasonLine = note ? `\n\n<b>Reason:</b> ${note}` : ''
-      await sendTelegramMessage(
-        order.customer.telegramId,
-        `❌ Your payment for <b>Jam Store order #${id}</b> has been declined and your order has been automatically cancelled.${reasonLine}\n\nPlease contact us if you need assistance.`,
-      )
+
+      if (order.customer?.telegramId) {
+        const reasonLine = note ? `\n\n<b>Reason:</b> ${note}` : ''
+        await sendTelegramMessage(
+          order.customer.telegramId,
+          `❌ Your payment for <b>Jam Store order #${id}</b> has been declined and your order has been automatically cancelled.${reasonLine}\n\nPlease contact us if you need assistance.`,
+        )
+      }
+
+      sendPushToCustomer(order.customerId, {
+        title: '❌ Payment Failed',
+        body: note
+          ? `Order #${id} payment declined: ${note}. Order cancelled.`
+          : `Your payment for order #${id} was declined and the order has been cancelled.`,
+        url: '/orders',
+        tag: `payment-failed-${id}`,
+      })
     }
 
     return {

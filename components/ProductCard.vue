@@ -15,7 +15,7 @@
         <span class="text-xs font-semibold text-zinc-500 bg-white px-3 py-1 rounded-full border border-zinc-200 shadow-sm">{{ $t('product.outOfStock') }}</span>
       </div>
       <div v-else-if="product.stock < 10" class="absolute top-2 right-2">
-        <span class="text-[10px] font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full shadow">{{ $t('product.left', { n: product.stock }) }}</span>
+        <span class="text-[10px] font-bold bg-brand-500 text-white px-2 py-0.5 rounded-full shadow">{{ $t('product.left', { n: product.stock }) }}</span>
       </div>
       <div v-if="product.images?.length > 0" class="absolute bottom-2 right-2 flex items-center gap-0.5">
         <span v-for="i in Math.min(product.images.length + 1, 4)" :key="i" class="w-1 h-1 rounded-full bg-white/60" />
