@@ -568,7 +568,7 @@ let _logoTimer = null
 function handleLogoTap() {
   _logoTaps++
   clearTimeout(_logoTimer)
-  if (_logoTaps >= 5) {
+  if (_logoTaps >= 2) {
     _logoTaps = 0
     navigateTo('/admin')
     return
