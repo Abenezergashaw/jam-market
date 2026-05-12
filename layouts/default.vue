@@ -7,9 +7,9 @@
       <div
         class="max-w-6xl mx-auto px-4 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-2 sm:py-0 sm:h-14"
       >
-        <NuxtLink to="/" class="order-1 shrink-0">
-          <img src="/logo.svg" alt="Jam Store" class="h-9 w-auto" onerror="this.src='/logo.jpg'" @click.prevent="handleLogoTap" />
-        </NuxtLink>
+        <div class="order-1 shrink-0 cursor-pointer" @click="handleLogoTap">
+          <img src="/logo.svg" alt="Jam Store" class="h-9 w-auto" onerror="this.src='/logo.jpg'" />
+        </div>
 
         <SearchBar
           class="order-3 sm:order-2 w-full sm:w-auto sm:flex-1 sm:max-w-sm"
@@ -573,6 +573,7 @@ function handleLogoTap() {
     navigateTo('/admin')
     return
   }
+  navigateTo('/')
   _logoTimer = setTimeout(() => { _logoTaps = 0 }, 1500)
 }
 const { isSupported, resubscribeIfGranted } = usePushNotifications();
