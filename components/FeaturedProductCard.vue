@@ -14,7 +14,7 @@
       <!-- Number badge -->
       <div
         v-if="index !== undefined"
-        class="absolute top-2.5 left-2.5 w-6 h-6 rounded-full bg-[#3b5323] text-white text-[11px] font-black flex items-center justify-center shadow-md"
+        class="absolute top-2.5 left-2.5 w-6 h-6 rounded-full bg-[#175B35] text-white text-[11px] font-black flex items-center justify-center shadow-md"
       >
         {{ index + 1 }}
       </div>

@@ -2,7 +2,7 @@
   <div class="min-h-screen flex flex-col bg-zinc-50">
     <!-- Top nav -->
     <header class="sticky top-0 z-30 bg-white border-b border-zinc-200 h-14 flex items-center px-4 gap-3 shrink-0">
-      <span class="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center text-[11px] font-black text-white shadow shadow-brand-500/30 shrink-0">J</span>
+      <img src="/logo.svg" alt="Jam" class="h-8 w-auto shrink-0" onerror="this.src='/logo.jpg'" />
       <div class="flex-1 min-w-0">
         <p class="text-sm font-bold text-zinc-900 leading-tight">{{ $t('delivery.jamDelivery') }}</p>
         <p v-if="storeName" class="text-[10px] text-zinc-400 leading-tight truncate">{{ storeName }}</p>

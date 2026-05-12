@@ -45,7 +45,8 @@
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\delivery\" -ErrorAction SilentlyContinue 2>&1 | ForEach-Object { $_.FullName })",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\cashier\\\\orders\" -ErrorAction SilentlyContinue 2>&1 | ForEach-Object { $_.FullName })",
       "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\delivery\\\\orders\" -ErrorAction SilentlyContinue 2>&1 | ForEach-Object { $_.FullName })",
-      "Bash(npm list *)"
+      "Bash(npm list *)",
+      "Bash(powershell -Command \"\\(Get-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\index.vue'\\) -replace '#3b5323', '#175B35' -replace '#2c3e1a', '#134a2b' | Set-Content 'c:\\\\Users\\\\chere\\\\Documents\\\\systems\\\\jam-supermarket\\\\pages\\\\index.vue'\")"
     ]
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Desktop green category nav bar -->
-    <div class="hidden sm:block sticky top-14 z-30 bg-[#3b5323] shadow-sm">
+    <div class="hidden sm:block sticky top-14 z-30 bg-[#175B35] shadow-sm">
       <div class="max-w-6xl mx-auto px-4">
         <div
           v-if="!pending"
@@ -78,7 +78,7 @@
                   </p>
                   <NuxtLink
                     :to="slide.cta.href"
-                    class="inline-flex items-center gap-2 bg-[#3b5323] hover:bg-[#2c3e1a] text-white font-bold px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-xl hover:-translate-y-0.5 uppercase tracking-wide"
+                    class="inline-flex items-center gap-2 bg-[#175B35] hover:bg-[#134a2b] text-white font-bold px-6 py-3 rounded-xl text-sm transition-all duration-200 shadow-xl hover:-translate-y-0.5 uppercase tracking-wide"
                   >
                     {{ slide.cta.label }}
                     <svg
@@ -160,7 +160,7 @@
 
       <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 z-10">
         <div
-          class="h-full bg-[#3b5323] transition-none"
+          class="h-full bg-[#175B35] transition-none"
           :style="{
             width: progressWidth + '%',
             transition: paused ? 'none' : `width ${INTERVAL}ms linear`,
@@ -217,7 +217,7 @@
               class="shrink-0 flex flex-col items-center gap-2 group"
             >
               <div
-                class="w-[62px] h-[62px] rounded-full overflow-hidden bg-zinc-100 ring-2 ring-transparent group-hover:ring-[#3b5323] transition-all duration-200 shadow-sm"
+                class="w-[62px] h-[62px] rounded-full overflow-hidden bg-zinc-100 ring-2 ring-transparent group-hover:ring-[#175B35] transition-all duration-200 shadow-sm"
               >
                 <img
                   :src="cat.imageUrl"
@@ -231,7 +231,7 @@
                 />
               </div>
               <span
-                class="text-[11px] font-medium text-zinc-600 text-center line-clamp-2 leading-tight w-[70px] group-hover:text-[#3b5323] transition-colors"
+                class="text-[11px] font-medium text-zinc-600 text-center line-clamp-2 leading-tight w-[70px] group-hover:text-[#175B35] transition-colors"
                 >{{ cat.name }}</span
               >
             </NuxtLink>
@@ -249,7 +249,7 @@
             </div>
             <NuxtLink
               to="/search"
-              class="text-xs font-semibold text-[#3b5323] hover:underline whitespace-nowrap shrink-0"
+              class="text-xs font-semibold text-[#175B35] hover:underline whitespace-nowrap shrink-0"
               >{{ $t('common.seeAll') }}</NuxtLink
             >
           </div>
@@ -271,7 +271,7 @@
                   class="w-full h-full object-cover"
                 />
                 <div
-                  class="absolute top-1 left-1 w-5 h-5 rounded-full bg-[#3b5323] text-white text-[9px] font-black flex items-center justify-center shadow"
+                  class="absolute top-1 left-1 w-5 h-5 rounded-full bg-[#175B35] text-white text-[9px] font-black flex items-center justify-center shadow"
                 >
                   {{ i + 1 }}
                 </div>

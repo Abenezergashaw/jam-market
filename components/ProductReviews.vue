@@ -73,7 +73,7 @@
           />
           <div class="flex items-center justify-between mt-1 mb-3">
             <p v-if="submitError" class="text-xs text-red-500">{{ submitError }}</p>
-            <p v-else-if="submitSuccess" class="text-xs text-[#3b5323] font-semibold">Review submitted!</p>
+            <p v-else-if="submitSuccess" class="text-xs text-[#175B35] font-semibold">Review submitted!</p>
             <span v-else />
             <span class="text-[10px] text-zinc-400">{{ myComment.length }}/1000</span>
           </div>

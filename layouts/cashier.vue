@@ -3,7 +3,7 @@
     <!-- Desktop sidebar -->
     <aside class="hidden lg:flex w-56 shrink-0 flex-col bg-white border-r border-zinc-200 sticky top-0 h-screen overflow-y-auto">
       <div class="h-14 flex items-center px-5 border-b border-zinc-200 shrink-0 gap-2">
-        <span class="w-6 h-6 rounded-lg bg-brand-500 flex items-center justify-center text-[10px] font-black text-white shadow shadow-brand-500/30">J</span>
+        <img src="/logo.svg" alt="Jam" class="h-7 w-auto" onerror="this.src='/logo.jpg'" />
         <div class="min-w-0">
           <span class="font-bold text-zinc-900 tracking-tight text-sm block">Jam Cashier</span>
           <span v-if="storeName" class="text-[10px] text-zinc-400 truncate block">{{ storeName }}</span>
@@ -116,7 +116,7 @@
     <div class="flex-1 flex flex-col min-w-0">
       <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-zinc-200 h-14 flex items-center px-4 lg:px-6 gap-3">
         <div class="lg:hidden flex items-center gap-2 mr-auto">
-          <span class="w-5 h-5 rounded-md bg-brand-500 flex items-center justify-center text-[9px] font-black text-white">J</span>
+          <img src="/logo.svg" alt="Jam" class="h-6 w-auto" onerror="this.src='/logo.jpg'" />
           <span class="font-bold text-zinc-900 text-sm">{{ storeName || 'Cashier' }}</span>
         </div>
         <h1 class="hidden lg:block text-sm font-semibold text-zinc-500">{{ pageTitle }}</h1>

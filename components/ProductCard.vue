@@ -27,6 +27,7 @@
       <div class="flex-1">
         <p v-if="product.brand" class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wide mb-0.5">{{ product.brand }}</p>
         <h3 class="text-sm font-semibold text-zinc-900 leading-snug line-clamp-2">{{ product.name }}</h3>
+        <p v-if="product.sku" class="text-[10px] text-zinc-400 mt-0.5">#{{ product.sku }}</p>
       </div>
 
       <div class="flex items-center justify-between gap-2">

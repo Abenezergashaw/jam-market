@@ -4,9 +4,7 @@
 
       <!-- Logo -->
       <div class="text-center mb-8">
-        <div class="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
-          <span class="text-2xl font-black text-white">J</span>
-        </div>
+        <img src="/logo.svg" alt="Jam Store" class="h-16 w-auto mx-auto mb-4" onerror="this.src='/logo.jpg'" />
         <h1 class="text-2xl font-black text-zinc-900 tracking-tight">
           {{ step === 'phone' ? 'One more step' : mode === 'signin' ? 'Welcome back' : 'Create account' }}
         </h1>

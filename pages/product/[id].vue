@@ -108,6 +108,7 @@
         <div>
           <p v-if="product.brand" class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-1.5">{{ product.brand }}</p>
           <h1 class="text-2xl sm:text-3xl font-black text-zinc-900 leading-tight tracking-tight">{{ product.name }}</h1>
+          <p v-if="product.sku" class="text-xs text-zinc-400 mt-1.5">#{{ product.sku }}</p>
         </div>
 
         <!-- Price -->

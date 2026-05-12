@@ -4,7 +4,7 @@
     <!-- ─── Desktop sidebar ──────────────────────────────── -->
     <aside class="hidden lg:flex w-56 shrink-0 flex-col bg-white border-r border-zinc-200 sticky top-0 h-screen overflow-y-auto">
       <div class="h-14 flex items-center px-5 border-b border-zinc-200 shrink-0 gap-2">
-        <span class="w-6 h-6 rounded-lg bg-brand-500 flex items-center justify-center text-[10px] font-black text-white shadow shadow-brand-500/30">J</span>
+        <img src="/logo.svg" alt="Jam" class="h-7 w-auto" onerror="this.src='/logo.jpg'" />
         <span class="font-bold text-zinc-900 tracking-tight text-sm">{{ $t('admin.jamAdmin') }}</span>
       </div>
 
@@ -130,7 +130,7 @@
           <button class="p-1.5 -ml-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors" @click="drawerOpen = false">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-          <span class="w-5 h-5 rounded-md bg-brand-500 flex items-center justify-center text-[9px] font-black text-white shadow shadow-brand-500/30">J</span>
+          <img src="/logo.svg" alt="Jam" class="h-6 w-auto" onerror="this.src='/logo.jpg'" />
           <span class="font-bold text-zinc-900 text-sm">{{ $t('admin.jamAdmin') }}</span>
         </div>
 

@@ -7,18 +7,8 @@
       <div
         class="max-w-6xl mx-auto px-4 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-2 sm:py-0 sm:h-14"
       >
-        <NuxtLink
-          to="/"
-          class="order-1 shrink-0 flex flex-col items-start leading-none"
-        >
-          <span
-            class="text-xl font-black text-forest-500 tracking-tight leading-none"
-            >JAM</span
-          >
-          <span
-            class="text-[8px] font-bold text-zinc-400 tracking-[0.18em] uppercase leading-none mt-0.5"
-            >Supermarket</span
-          >
+        <NuxtLink to="/" class="order-1 shrink-0">
+          <img src="/logo.svg" alt="Jam Store" class="h-9 w-auto" onerror="this.src='/logo.jpg'" />
         </NuxtLink>
 
         <SearchBar
@@ -202,11 +192,7 @@
         class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between gap-4"
       >
         <div class="flex items-center gap-2">
-          <span
-            class="w-5 h-5 rounded-md bg-forest-500 flex items-center justify-center text-[9px] font-black text-white"
-            >J</span
-          >
-          <span class="text-sm font-semibold text-zinc-800">Jam Store</span>
+          <img src="/logo.svg" alt="Jam Store" class="h-7 w-auto" onerror="this.src='/logo.jpg'" />
         </div>
         <p class="text-xs text-zinc-400">
           &copy; {{ new Date().getFullYear() }} Jam Store — Fresh groceries
