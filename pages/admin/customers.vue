@@ -63,16 +63,16 @@
               <th class="text-right text-[11px] font-semibold text-zinc-400 uppercase tracking-wider px-4 py-3 hidden md:table-cell">Spent</th>
               <th class="text-right text-[11px] font-semibold text-zinc-400 uppercase tracking-wider px-4 py-3 hidden lg:table-cell">Last Order</th>
               <th class="text-right text-[11px] font-semibold text-zinc-400 uppercase tracking-wider px-4 py-3 hidden lg:table-cell">Joined</th>
+              <th class="px-4 py-3" />
             </tr>
           </thead>
           <tbody class="divide-y divide-zinc-50">
             <tr
               v-for="c in customers"
               :key="c.id"
-              class="hover:bg-zinc-50 cursor-pointer transition-colors"
-              @click="openCustomer(c)"
+              class="hover:bg-zinc-50 transition-colors"
             >
-              <td class="px-4 py-3">
+              <td class="px-4 py-3 cursor-pointer" @click="openCustomer(c)">
                 <div class="flex items-center gap-2.5">
                   <div class="relative shrink-0">
                     <img v-if="c.photoUrl" :src="c.photoUrl" class="w-8 h-8 rounded-full object-cover" />
@@ -87,18 +87,29 @@
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-3 text-zinc-500 hidden sm:table-cell">{{ c.phone ?? '—' }}</td>
-              <td class="px-4 py-3 text-right">
+              <td class="px-4 py-3 text-zinc-500 hidden sm:table-cell cursor-pointer" @click="openCustomer(c)">{{ c.phone ?? '—' }}</td>
+              <td class="px-4 py-3 text-right cursor-pointer" @click="openCustomer(c)">
                 <span class="font-bold text-zinc-900">{{ c.totalOrders }}</span>
               </td>
-              <td class="px-4 py-3 text-right hidden md:table-cell">
+              <td class="px-4 py-3 text-right hidden md:table-cell cursor-pointer" @click="openCustomer(c)">
                 <span class="font-semibold text-zinc-700">ETB {{ c.totalSpent.toFixed(0) }}</span>
               </td>
-              <td class="px-4 py-3 text-right text-zinc-400 text-xs hidden lg:table-cell">
+              <td class="px-4 py-3 text-right text-zinc-400 text-xs hidden lg:table-cell cursor-pointer" @click="openCustomer(c)">
                 {{ c.lastOrderAt ? formatDate(c.lastOrderAt) : '—' }}
               </td>
-              <td class="px-4 py-3 text-right text-zinc-400 text-xs hidden lg:table-cell">
+              <td class="px-4 py-3 text-right text-zinc-400 text-xs hidden lg:table-cell cursor-pointer" @click="openCustomer(c)">
                 {{ formatDate(c.createdAt) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                <button
+                  class="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Delete customer"
+                  @click.stop="confirmDelete(c)"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </td>
             </tr>
           </tbody>
@@ -112,6 +123,34 @@
         <button class="btn-secondary text-xs px-3 py-1.5" :disabled="page === totalPages" @click="changePage(page + 1)">Next →</button>
       </div>
     </div>
+
+    <!-- Delete confirm modal -->
+    <Transition name="sheet">
+      <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center px-4" @click.self="deleteTarget = null">
+        <div class="absolute inset-0 bg-black/30" @click="deleteTarget = null" />
+        <div class="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div>
+              <p class="font-bold text-zinc-900">Delete customer?</p>
+              <p class="text-sm text-zinc-500">{{ deleteTarget.firstName }} {{ deleteTarget.lastName ?? '' }}</p>
+            </div>
+          </div>
+          <p class="text-sm text-zinc-600 mb-5">This will permanently delete the account and all associated data. This cannot be undone.</p>
+          <p v-if="deleteError" class="text-xs text-red-500 mb-3">{{ deleteError }}</p>
+          <div class="flex gap-2">
+            <button class="flex-1 btn-secondary text-sm" :disabled="deleting" @click="deleteTarget = null">Cancel</button>
+            <button class="flex-1 btn text-sm bg-red-500 text-white hover:bg-red-600 active:scale-[0.97]" :disabled="deleting" @click="doDelete">
+              {{ deleting ? 'Deleting…' : 'Delete' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Customer detail drawer -->
     <Transition name="sheet">
@@ -205,6 +244,9 @@ const totalPages = ref(1)
 const drawer = ref(null)
 const drawerLoading = ref(false)
 const drawerCustomerRow = ref(null)
+const deleteTarget = ref(null)
+const deleting = ref(false)
+const deleteError = ref('')
 
 let searchTimer = null
 
@@ -250,6 +292,27 @@ function onSearch() {
 function changePage(p) {
   page.value = p
   fetch()
+}
+
+function confirmDelete(row) {
+  deleteTarget.value = row
+  deleteError.value = ''
+}
+
+async function doDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await adminFetch(`/api/admin/customers/${deleteTarget.value.id}`, { method: 'DELETE' })
+    customers.value = customers.value.filter(c => c.id !== deleteTarget.value.id)
+    if (stats.value) stats.value = { ...stats.value, total: stats.value.total - 1 }
+    deleteTarget.value = null
+  } catch (e) {
+    deleteError.value = e?.data?.statusMessage ?? 'Failed to delete customer'
+  } finally {
+    deleting.value = false
+  }
 }
 
 async function openCustomer(row) {

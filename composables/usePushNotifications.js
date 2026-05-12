@@ -1,4 +1,4 @@
-// Shared across all composable instances on the client
+// Shared singleton — persists across composable instances on the client
 const _permission = process.client && 'Notification' in window
   ? ref(Notification.permission)
   : ref('denied')
@@ -17,53 +17,84 @@ export function usePushNotifications() {
     return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)))
   }
 
+  // Resolves when SW is active, or rejects after timeout (Android can be slow)
+  function waitForSW(ms = 12000) {
+    return Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Service worker took too long to become active')), ms)
+      ),
+    ])
+  }
+
+  // Throws on any failure so callers can show meaningful errors
   async function _doSubscribe(authHeader) {
-    try {
-      const { key } = await $fetch('/api/push/vapid-public-key')
-      if (!key) return false
+    const { key } = await $fetch('/api/push/vapid-public-key')
+    if (!key) throw new Error('Push not configured on server (missing VAPID key)')
 
-      const reg = await navigator.serviceWorker.ready
-      let sub = await reg.pushManager.getSubscription()
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(key),
-        })
-      }
+    const reg = await waitForSW()
 
-      const json = sub.toJSON()
-      await $fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { Authorization: authHeader },
-        body: { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth },
+    let sub = await reg.pushManager.getSubscription()
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(key),
       })
-      return true
-    } catch {
-      return false
+    }
+
+    const json = sub.toJSON()
+    if (!json.keys?.p256dh || !json.keys?.auth) {
+      throw new Error('Subscription missing keys')
+    }
+
+    await $fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: { Authorization: authHeader },
+      body: { endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth },
+    })
+  }
+
+  // Returns { ok, error? } — never throws
+  async function subscribe(authHeader) {
+    if (!isSupported.value) return { ok: false, error: 'Push notifications not supported on this device' }
+
+    let perm
+    try {
+      perm = await Notification.requestPermission()
+    } catch (e) {
+      return { ok: false, error: 'Permission request failed' }
+    }
+
+    permission.value = perm
+    if (perm !== 'granted') {
+      return { ok: false, error: perm === 'denied' ? 'blocked' : 'dismissed' }
+    }
+
+    try {
+      await _doSubscribe(authHeader)
+      return { ok: true }
+    } catch (e) {
+      console.error('[push] subscription failed:', e?.message)
+      return { ok: false, error: e?.message ?? 'Subscription failed — please try again' }
     }
   }
 
-  // Called from UI button — requests permission then subscribes
-  async function subscribe(authHeader) {
-    if (!isSupported.value || !notifSupported) return false
-    const perm = await Notification.requestPermission()
-    permission.value = perm
-    if (perm !== 'granted') return false
-    return _doSubscribe(authHeader)
-  }
-
-  // Called silently on mount — only proceeds if already granted, never prompts
+  // Silent re-registration on mount when permission already granted
   async function resubscribeIfGranted(authHeader) {
-    if (!isSupported.value || !notifSupported) return
+    if (!isSupported.value) return
     if (Notification.permission !== 'granted') return
     permission.value = 'granted'
-    _doSubscribe(authHeader)
+    try {
+      await _doSubscribe(authHeader)
+    } catch (e) {
+      console.warn('[push] resubscribe failed:', e?.message)
+    }
   }
 
   async function unsubscribe(authHeader) {
     if (!isSupported.value) return
     try {
-      const reg = await navigator.serviceWorker.ready
+      const reg = await waitForSW()
       const sub = await reg.pushManager.getSubscription()
       if (!sub) return
       await $fetch('/api/push/unsubscribe', {
@@ -73,7 +104,9 @@ export function usePushNotifications() {
       })
       await sub.unsubscribe()
       if (notifSupported) permission.value = Notification.permission
-    } catch { /* swallow */ }
+    } catch (e) {
+      console.warn('[push] unsubscribe failed:', e?.message)
+    }
   }
 
   return { isSupported, permission, subscribe, resubscribeIfGranted, unsubscribe }

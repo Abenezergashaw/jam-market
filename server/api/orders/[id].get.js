@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
     lng: order.lng?.toString() ?? null,
     refundAmount: order.refundAmount?.toString() ?? null,
     customer: order.customer
-      ? { ...order.customer, telegramId: order.customer.telegramId.toString() }
+      ? { ...order.customer, telegramId: order.customer.telegramId?.toString() ?? null }
       : null,
     deliveryPerson: order.deliveryPerson ?? null,
     paymentVerifiedBy: order.paymentVerifiedBy ?? null,
