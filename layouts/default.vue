@@ -8,7 +8,7 @@
         class="max-w-6xl mx-auto px-4 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 py-2 sm:py-0 sm:h-14"
       >
         <NuxtLink to="/" class="order-1 shrink-0">
-          <img src="/logo.svg" alt="Jam Store" class="h-9 w-auto" onerror="this.src='/logo.jpg'" />
+          <img src="/logo.svg" alt="Jam Store" class="h-9 w-auto" onerror="this.src='/logo.jpg'" @click.prevent="handleLogoTap" />
         </NuxtLink>
 
         <SearchBar
@@ -562,6 +562,19 @@ const cartStore = useCartStore();
 const myOrdersStore = useCustomerOrdersStore();
 const customerStore = useCustomerStore();
 const mobileAccountOpen = ref(false);
+
+let _logoTaps = 0
+let _logoTimer = null
+function handleLogoTap() {
+  _logoTaps++
+  clearTimeout(_logoTimer)
+  if (_logoTaps >= 5) {
+    _logoTaps = 0
+    navigateTo('/admin')
+    return
+  }
+  _logoTimer = setTimeout(() => { _logoTaps = 0 }, 1500)
+}
 const { isSupported, resubscribeIfGranted } = usePushNotifications();
 
 onMounted(() => {
