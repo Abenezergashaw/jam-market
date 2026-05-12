@@ -81,7 +81,38 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'A payment receipt or reference code is required for online payment orders' })
   }
 
-  const grandTotal = totalPrice + deliveryFee
+  // Auto-apply best active promotion
+  const now = new Date()
+  const activePromos = await prisma.promotion.findMany({
+    where: { isActive: true, startAt: { lte: now }, endAt: { gte: now } },
+  })
+
+  let discountAmount = 0
+  let appliedPromoId = null
+  let bestDiscount = 0
+
+  for (const promo of activePromos) {
+    const minOrder = Number(promo.minOrderAmount)
+    if (totalPrice < minOrder) continue
+
+    let d = 0
+    if (promo.type === 'FREE_DELIVERY') {
+      d = deliveryFee
+    } else if (promo.type === 'PERCENT_OFF') {
+      d = totalPrice * Number(promo.value) / 100
+      if (promo.maxDiscount) d = Math.min(d, Number(promo.maxDiscount))
+    } else if (promo.type === 'FLAT_OFF') {
+      d = Math.min(Number(promo.value), totalPrice + deliveryFee)
+    }
+
+    if (d > bestDiscount) {
+      bestDiscount = d
+      discountAmount = d
+      appliedPromoId = promo.id
+    }
+  }
+
+  const grandTotal = Math.max(0, totalPrice + deliveryFee - discountAmount)
 
   const order = await prisma.$transaction(async (tx) => {
     for (const item of items) {
@@ -99,6 +130,8 @@ export default defineEventHandler(async (event) => {
         notes,
         totalPrice: grandTotal,
         deliveryFee,
+        discountAmount,
+        promotionId: appliedPromoId,
         customerId,
         storeId: storeId ?? null,
         lat: lat ?? null,
@@ -134,6 +167,7 @@ export default defineEventHandler(async (event) => {
     ...order,
     totalPrice: order.totalPrice.toString(),
     deliveryFee: order.deliveryFee.toString(),
+    discountAmount: order.discountAmount.toString(),
     items: order.items.map((i) => ({ ...i, price: i.price.toString() })),
   }
 })

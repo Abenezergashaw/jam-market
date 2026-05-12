@@ -169,6 +169,26 @@
       </div>
     </div>
 
+    <!-- Active promotions strip -->
+    <div v-if="livePromos.length" class="promo-strip relative bg-[#175B35] overflow-hidden">
+      <!-- Shine sweep overlay -->
+      <div class="promo-shine pointer-events-none absolute inset-0 z-10" />
+      <!-- Scrolling ticker -->
+      <div class="promo-ticker flex whitespace-nowrap py-2.5">
+        <template v-for="_ in 4" :key="_">
+          <div
+            v-for="promo in livePromos"
+            :key="promo.id + '_' + _"
+            class="shrink-0 flex items-center gap-2 px-8 text-white border-r border-white/20"
+          >
+            <span class="text-sm">🎁</span>
+            <p class="text-xs font-bold tracking-wide">{{ promo.name }}</p>
+            <span v-if="promo.description" class="text-[11px] text-white/65 font-medium">— {{ promo.description }}</span>
+          </div>
+        </template>
+      </div>
+    </div>
+
     <!-- Main content -->
     <div class="max-w-6xl mx-auto px-4 pt-8 pb-14 space-y-12 sm:space-y-14">
       <!-- Loading skeleton -->
@@ -427,6 +447,8 @@
 const INTERVAL = 5000;
 
 const { data: slidesData } = await useFetch("/api/hero-slides");
+const { data: promosData } = await useFetch("/api/promotions/active");
+const livePromos = computed(() => promosData.value ?? []);
 const slides = computed(() =>
   (slidesData.value ?? []).map((s) => ({
     id: s.id,
@@ -592,5 +614,34 @@ useHead({ title: "Jam Store — Fresh Groceries" });
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* Promo strip ticker */
+.promo-ticker {
+  animation: ticker-scroll 28s linear infinite;
+  will-change: transform;
+}
+.promo-strip:hover .promo-ticker {
+  animation-play-state: paused;
+}
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Shine sweep */
+.promo-shine {
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 70%
+  );
+  animation: shine-sweep 3.2s ease-in-out infinite;
+}
+@keyframes shine-sweep {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(200%); }
+  100% { transform: translateX(200%); }
 }
 </style>

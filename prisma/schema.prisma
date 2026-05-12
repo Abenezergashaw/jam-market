@@ -127,6 +127,9 @@ model Order {
   paymentVerifiedBy    User?         @relation("PaymentVerifier", fields: [paymentVerifiedById], references: [id], onDelete: SetNull)
   totalPrice    Decimal       @db.Decimal(10, 2) @map("total_price")
   deliveryFee   Decimal       @default(0) @db.Decimal(10, 2) @map("delivery_fee")
+  discountAmount Decimal      @default(0) @db.Decimal(10, 2) @map("discount_amount")
+  promotionId   Int?          @map("promotion_id")
+  promotion     Promotion?    @relation(fields: [promotionId], references: [id], onDelete: SetNull)
   createdAt     DateTime      @default(now()) @map("created_at")
   customerId    Int?          @map("customer_id")
   customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
@@ -172,6 +175,23 @@ model ProductReview {
 
   @@unique([productId, customerId])
   @@map("product_reviews")
+}
+
+model Promotion {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String?
+  type           String   // FREE_DELIVERY | PERCENT_OFF | FLAT_OFF
+  value          Decimal  @default(0) @db.Decimal(10, 2)
+  minOrderAmount Decimal  @default(0) @db.Decimal(10, 2) @map("min_order_amount")
+  maxDiscount    Decimal? @db.Decimal(10, 2) @map("max_discount")
+  startAt        DateTime @map("start_at")
+  endAt          DateTime @map("end_at")
+  isActive       Boolean  @default(true) @map("is_active")
+  orders         Order[]
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("promotions")
 }
 
 model HeroSlide {

@@ -328,6 +328,11 @@
           </template>
           <p v-else-if="location.lat && selectedStore" class="text-xs text-zinc-400 italic">{{ $t('cart.deliveryFeeOnDispatch') }}</p>
 
+          <div v-if="feeBreakdown.discount > 0" class="flex justify-between text-sm text-brand-600 font-semibold">
+            <span>🎁 {{ feeBreakdown.promoName }}</span>
+            <span>−ETB {{ feeBreakdown.discount.toFixed(2) }}</span>
+          </div>
+
           <div class="flex items-center justify-between gap-4 pt-2 border-t border-zinc-100">
             <div>
               <p class="text-xs text-zinc-400">{{ $t('cart.total') }}</p>
@@ -437,13 +442,35 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 
 const selectedStore = computed(() => stores.value.find(s => s.id === selectedStoreId.value) ?? null)
 
+const activePromos = ref([])
+
+function bestPromo(subtotal, deliveryFee) {
+  let best = null
+  let bestDiscount = 0
+  for (const promo of activePromos.value) {
+    if (subtotal < Number(promo.minOrderAmount)) continue
+    let d = 0
+    if (promo.type === 'FREE_DELIVERY') {
+      d = deliveryFee
+    } else if (promo.type === 'PERCENT_OFF') {
+      d = subtotal * Number(promo.value) / 100
+      if (promo.maxDiscount) d = Math.min(d, Number(promo.maxDiscount))
+    } else if (promo.type === 'FLAT_OFF') {
+      d = Math.min(Number(promo.value), subtotal + deliveryFee)
+    }
+    if (d > bestDiscount) { bestDiscount = d; best = promo }
+  }
+  return { discount: bestDiscount, promo: best }
+}
+
 const feeBreakdown = computed(() => {
   const subtotal = cartStore.totalPrice
   const s = settings.value
   const store = selectedStore.value
 
   if (!store || store.lat == null || store.lng == null || location.lat == null || location.lng == null) {
-    return { subtotal, distanceKm: null, distanceFee: 0, serviceCharge: 0, serviceChargePct: 0, deliveryFee: 0, total: subtotal }
+    const { discount, promo } = bestPromo(subtotal, 0)
+    return { subtotal, distanceKm: null, distanceFee: 0, serviceCharge: 0, serviceChargePct: 0, deliveryFee: 0, discount, promoName: promo?.name ?? '', total: Math.max(0, subtotal - discount) }
   }
 
   const effectiveCostPerKm = store.costPerKm != null
@@ -457,7 +484,8 @@ const feeBreakdown = computed(() => {
   const distanceFee = distanceKm * effectiveCostPerKm
   const serviceCharge = subtotal * effectiveServiceChargePct / 100
   const deliveryFee = distanceFee + serviceCharge
-  return { subtotal, distanceKm, distanceFee, serviceCharge, serviceChargePct: effectiveServiceChargePct, deliveryFee, total: subtotal + deliveryFee }
+  const { discount, promo } = bestPromo(subtotal, deliveryFee)
+  return { subtotal, distanceKm, distanceFee, serviceCharge, serviceChargePct: effectiveServiceChargePct, deliveryFee, discount, promoName: promo?.name ?? '', total: Math.max(0, subtotal + deliveryFee - discount) }
 })
 
 const belowMinOrder = computed(() =>
@@ -531,12 +559,14 @@ onMounted(async () => {
       form.phone = customerStore.user.phone
     }
   }
-  const [fetchedSettings, fetchedStores] = await Promise.all([
+  const [fetchedSettings, fetchedStores, fetchedPromos] = await Promise.all([
     $fetch('/api/settings').catch(() => null),
     $fetch('/api/stores').catch(() => []),
+    $fetch('/api/promotions/active').catch(() => []),
   ])
   settings.value = fetchedSettings
   stores.value = fetchedStores
+  activePromos.value = fetchedPromos
   storesLoading.value = false
 
   if (fetchedStores.length === 1 && !selectedStoreId.value) {
