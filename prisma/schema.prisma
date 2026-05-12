@@ -89,18 +89,23 @@ model ProductImage {
 }
 
 model Customer {
-  id         Int      @id @default(autoincrement())
-  telegramId BigInt   @unique @map("telegram_id")
-  firstName  String   @map("first_name")
-  lastName   String?  @map("last_name")
-  username   String?
-  phone      String?
-  photoUrl   String?  @map("photo_url")
-  createdAt  DateTime @default(now()) @map("created_at")
-  orders              Order[]
-  reviews             ProductReview[]
-  conversations       Conversation[]
-  specialOrders       SpecialOrderRequest[]
+  id           Int      @id @default(autoincrement())
+  phone        String?  @unique
+  passwordHash String?  @map("password_hash")
+  telegramId   BigInt?  @unique @map("telegram_id")
+  googleId     String?  @unique @map("google_id")
+  email        String?  @unique
+  firstName    String   @map("first_name")
+  lastName     String?  @map("last_name")
+  username     String?
+  photoUrl     String?  @map("photo_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  orders         Order[]
+  reviews        ProductReview[]
+  conversations  Conversation[]
+  specialOrders  SpecialOrderRequest[]
 
   @@map("customers")
 }
@@ -229,19 +234,6 @@ model DeliveryZone {
   @@map("delivery_zones")
 }
 
-model CustomerAuthToken {
-  id         Int      @id @default(autoincrement())
-  otp        String   @unique @db.VarChar(6)
-  telegramId BigInt?  @map("telegram_id")
-  firstName  String?  @map("first_name")
-  lastName   String?  @map("last_name")
-  username   String?
-  verified   Boolean  @default(false)
-  expiresAt  DateTime @map("expires_at")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@map("customer_auth_tokens")
-}
 
 model AuditLog {
   id        Int      @id @default(autoincrement())

@@ -15,19 +15,35 @@ export const useCustomerStore = defineStore('customer', {
   },
 
   actions: {
-    async loginWithOtp(otp) {
-      const res = await $fetch('/api/auth/customer/otp/verify', {
+    async loginWithPhone(phone, password) {
+      const res = await $fetch('/api/auth/customer/login', {
         method: 'POST',
-        body: { otp },
+        body: { phone, password },
       })
-      if (!res.verified) return false
-      this.token = res.token
-      this.user = res.user
+      this._persist(res.token, res.user)
+      return res
+    },
+
+    async register(body) {
+      const res = await $fetch('/api/auth/customer/register', {
+        method: 'POST',
+        body,
+      })
+      this._persist(res.token, res.user)
+      return res
+    },
+
+    loginWithToken(token, user) {
+      this._persist(token, user)
+    },
+
+    _persist(token, user) {
+      this.token = token
+      this.user = user
       if (import.meta.client) {
-        localStorage.setItem('customer_token', res.token)
-        localStorage.setItem('customer_user', JSON.stringify(res.user))
+        localStorage.setItem('customer_token', token)
+        localStorage.setItem('customer_user', JSON.stringify(user))
       }
-      return true
     },
 
     logout() {

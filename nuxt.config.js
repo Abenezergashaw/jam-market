@@ -21,6 +21,9 @@ export default defineNuxtConfig({
     cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
     vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || '',
     vapidSubject: process.env.VAPID_SUBJECT || 'mailto:admin@jamstore.com',
+    googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    googleRedirectUri: process.env.GOOGLE_REDIRECT_URI || '',
     public: {
       telegramBotUsername: process.env.TELEGRAM_BOT_USERNAME,
       vapidPublicKey: process.env.VAPID_PUBLIC_KEY || '',
