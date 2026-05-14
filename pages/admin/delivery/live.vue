@@ -257,7 +257,7 @@ onMounted(async () => {
   const defaultLat = firstStore ? Number(firstStore.lat) : 9.0222
   const defaultLng = firstStore ? Number(firstStore.lng) : 38.7468
 
-  map = L.map(mapEl.value, { zoomControl: true, scrollWheelZoom: true }).setView([defaultLat, defaultLng], 13)
+  map = L.map(mapEl.value, { zoomControl: true, scrollWheelZoom: true, tap: false }).setView([defaultLat, defaultLng], 13)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

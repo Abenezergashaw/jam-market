@@ -14,6 +14,9 @@ export default defineEventHandler(async (event) => {
   return orders.map((o) => ({
     ...o,
     totalPrice: o.totalPrice.toString(),
+    deliveryFee: o.deliveryFee.toString(),
+    serviceCharge: o.serviceCharge.toString(),
+    discountAmount: o.discountAmount.toString(),
     lat: o.lat?.toString() ?? null,
     lng: o.lng?.toString() ?? null,
     items: o.items.map((i) => ({ ...i, price: i.price.toString() })),

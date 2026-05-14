@@ -132,6 +132,7 @@ export default defineEventHandler(async (event) => {
         notes,
         totalPrice: grandTotal,
         deliveryFee,
+        serviceCharge: deliveryFee - distanceFee,
         discountAmount,
         promotionId: appliedPromoId,
         customerId,

@@ -112,7 +112,7 @@ onMounted(async () => {
   const defaultLat = props.modelValue.lat ?? -1.2921
   const defaultLng = props.modelValue.lng ?? 36.8219
 
-  map = L.map(mapEl.value).setView([defaultLat, defaultLng], props.modelValue.lat ? 15 : 12)
+  map = L.map(mapEl.value, { scrollWheelZoom: false, tap: false }).setView([defaultLat, defaultLng], props.modelValue.lat ? 15 : 12)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

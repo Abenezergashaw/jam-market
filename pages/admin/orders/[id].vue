@@ -140,9 +140,9 @@
                 <span>Items subtotal</span>
                 <span>ETB {{ itemsSubtotal.toFixed(2) }}</span>
               </div>
-              <div v-if="Number(order.deliveryFee) > 0" class="flex items-center justify-between text-sm text-zinc-500">
+              <div v-if="Number(order.deliveryFee) - serviceCharge > 0" class="flex items-center justify-between text-sm text-zinc-500">
                 <span>Delivery fee</span>
-                <span>ETB {{ Number(order.deliveryFee).toFixed(2) }}</span>
+                <span>ETB {{ (Number(order.deliveryFee) - serviceCharge).toFixed(2) }}</span>
               </div>
               <div v-if="serviceCharge > 0" class="flex items-center justify-between text-sm text-zinc-500">
                 <span>Service charge</span>
@@ -380,6 +380,15 @@
             </div>
           </div>
 
+          <!-- Live delivery tracker (when out for delivery) -->
+          <div v-if="order.status === 'OUT_FOR_DELIVERY'">
+            <OrderDeliveryTracker
+              :order-id="order.id"
+              :fetch-url="`/api/admin/orders/${order.id}/tracking`"
+              :auth-header="`Bearer ${adminStore.token}`"
+            />
+          </div>
+
           <!-- Delivery map -->
           <div class="card p-5">
             <h2 class="text-sm font-semibold text-zinc-700 mb-3 uppercase tracking-wider">Delivery Location</h2>
@@ -412,6 +421,7 @@ definePageMeta({ middleware: ['admin'], layout: 'admin', ssr: false })
 
 const route = useRoute()
 const { adminFetch } = useAdminFetch()
+const adminStore = useAdminStore()
 
 const order = ref(null)
 const loading = ref(true)
@@ -479,11 +489,7 @@ const itemsSubtotal = computed(() => {
   return order.value.items.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0)
 })
 const discountAmount = computed(() => Number(order.value?.discountAmount ?? 0))
-const serviceCharge = computed(() => {
-  if (!order.value) return 0
-  const sc = Number(order.value.totalPrice) + discountAmount.value - itemsSubtotal.value - Number(order.value.deliveryFee ?? 0)
-  return sc > 0.001 ? sc : 0
-})
+const serviceCharge = computed(() => Number(order.value?.serviceCharge ?? 0))
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const R = 6371
@@ -660,7 +666,7 @@ async function initMap() {
   const lat = parseFloat(order.value.lat)
   const lng = parseFloat(order.value.lng)
 
-  map = L.map(mapEl.value, { zoomControl: true, dragging: true, scrollWheelZoom: false }).setView([lat, lng], 16)
+  map = L.map(mapEl.value, { zoomControl: true, dragging: true, scrollWheelZoom: false, tap: false }).setView([lat, lng], 16)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

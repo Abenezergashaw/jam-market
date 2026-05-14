@@ -127,6 +127,7 @@ model Order {
   paymentVerifiedBy    User?         @relation("PaymentVerifier", fields: [paymentVerifiedById], references: [id], onDelete: SetNull)
   totalPrice    Decimal       @db.Decimal(10, 2) @map("total_price")
   deliveryFee   Decimal       @default(0) @db.Decimal(10, 2) @map("delivery_fee")
+  serviceCharge Decimal       @default(0) @db.Decimal(10, 2) @map("service_charge")
   discountAmount Decimal      @default(0) @db.Decimal(10, 2) @map("discount_amount")
   promotionId   Int?          @map("promotion_id")
   promotion     Promotion?    @relation(fields: [promotionId], references: [id], onDelete: SetNull)

@@ -8,7 +8,7 @@
           :class="freshness === 'fresh' ? 'bg-green-500 animate-pulse' : freshness === 'stale' ? 'bg-amber-400' : 'bg-zinc-300'"
         />
         <span class="text-sm font-semibold text-zinc-800">
-          {{ tracking?.deliveryPerson?.name ?? 'Your delivery' }} is on the way
+          {{ tracking?.deliveryPerson?.name ?? 'Delivery' }} is on the way
         </span>
       </div>
       <span class="text-xs text-zinc-400">
@@ -37,6 +37,8 @@
 <script setup>
 const props = defineProps({
   orderId: { type: Number, required: true },
+  fetchUrl: { type: String, default: null },
+  authHeader: { type: String, default: null },
 })
 
 const customerStore = useCustomerStore()
@@ -46,6 +48,7 @@ const tracking = ref(null)
 let map = null
 let storeMarker = null
 let dpMarker = null
+let customerMarker = null
 let pollInterval = null
 let L = null
 
@@ -72,9 +75,9 @@ const markerColor = { fresh: '#22c55e', stale: '#f59e0b', old: '#f87171', none: 
 
 async function fetchTracking() {
   try {
-    const data = await $fetch(`/api/customer/orders/${props.orderId}/tracking`, {
-      headers: { Authorization: `Bearer ${customerStore.token}` },
-    })
+    const url = props.fetchUrl ?? `/api/customer/orders/${props.orderId}/tracking`
+    const token = props.authHeader ?? `Bearer ${customerStore.token}`
+    const data = await $fetch(url, { headers: { Authorization: token } })
     tracking.value = data
     updateMarkers()
   } catch {}
@@ -85,34 +88,44 @@ function updateMarkers() {
 
   const dp = tracking.value.deliveryPerson
   const st = tracking.value.store
+  const cu = { lat: tracking.value.customerLat, lng: tracking.value.customerLng, address: tracking.value.customerAddress }
 
-  // Store marker (only placed once)
+  // Store marker (placed once)
   if (st?.lat && st?.lng && !storeMarker) {
     storeMarker = L.circleMarker([Number(st.lat), Number(st.lng)], {
-      radius: 9, fillColor: '#f97316', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9,
-    }).addTo(map).bindPopup(`<strong>${st.name || 'Store'}</strong>`)
+      radius: 8, fillColor: '#f97316', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9,
+    }).addTo(map).bindPopup(`<strong>🏪 ${st.name || 'Store'}</strong>`)
   }
 
-  // Delivery person marker
+  // Customer destination marker (placed once)
+  if (cu?.lat && cu?.lng && !customerMarker) {
+    customerMarker = L.circleMarker([Number(cu.lat), Number(cu.lng)], {
+      radius: 8, fillColor: '#3b82f6', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9,
+    }).addTo(map).bindPopup(`<strong>📍 Delivery destination</strong>${cu.address ? `<br><span style="color:#71717a;font-size:11px">${cu.address}</span>` : ''}`)
+  }
+
+  // Delivery person marker (updates position)
   if (dp?.lat && dp?.lng) {
     const color = markerColor[freshness.value]
     const latLng = [Number(dp.lat), Number(dp.lng)]
     if (dpMarker) {
       dpMarker.setLatLng(latLng).setStyle({ fillColor: color })
+      dpMarker.getPopup()?.setContent(`<strong>🛵 ${dp.name}</strong><br><span style="color:#71717a;font-size:11px">Last seen ${timeAgo(dp.locationUpdatedAt)}</span>`)
     } else {
       dpMarker = L.circleMarker(latLng, {
-        radius: 9, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85,
-      }).addTo(map).bindPopup(`<strong>${dp.name}</strong><br><span style="color:#71717a;font-size:11px">Last seen ${timeAgo(dp.locationUpdatedAt)}</span>`)
+        radius: 10, fillColor: color, color: '#fff', weight: 2.5, opacity: 1, fillOpacity: 0.9,
+      }).addTo(map).bindPopup(`<strong>🛵 ${dp.name}</strong><br><span style="color:#71717a;font-size:11px">Last seen ${timeAgo(dp.locationUpdatedAt)}</span>`)
     }
-
-    // Fit both pins if store is also present
-    const bounds = [[Number(dp.lat), Number(dp.lng)]]
-    if (st?.lat && st?.lng) bounds.push([Number(st.lat), Number(st.lng)])
-    if (bounds.length > 1) map.fitBounds(bounds, { padding: [40, 40] })
-    else map.setView(latLng, 14)
-  } else if (st?.lat && st?.lng) {
-    map.setView([Number(st.lat), Number(st.lng)], 14)
   }
+
+  // Fit all available pins
+  const bounds = []
+  if (dp?.lat && dp?.lng) bounds.push([Number(dp.lat), Number(dp.lng)])
+  if (cu?.lat && cu?.lng) bounds.push([Number(cu.lat), Number(cu.lng)])
+  if (st?.lat && st?.lng) bounds.push([Number(st.lat), Number(st.lng)])
+
+  if (bounds.length > 1) map.fitBounds(bounds, { padding: [45, 45] })
+  else if (bounds.length === 1) map.setView(bounds[0], 14)
 }
 
 onMounted(async () => {
@@ -131,7 +144,7 @@ onMounted(async () => {
   const defaultLat = tracking.value?.store?.lat ? Number(tracking.value.store.lat) : 9.0222
   const defaultLng = tracking.value?.store?.lng ? Number(tracking.value.store.lng) : 38.7468
 
-  map = L.map(mapEl.value, { zoomControl: false, scrollWheelZoom: false, dragging: true })
+  map = L.map(mapEl.value, { zoomControl: false, scrollWheelZoom: false, dragging: true, tap: false })
     .setView([defaultLat, defaultLng], 13)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -147,5 +160,6 @@ onMounted(async () => {
 onUnmounted(() => {
   clearInterval(pollInterval)
   map?.remove()
+  map = null; storeMarker = null; dpMarker = null; customerMarker = null
 })
 </script>

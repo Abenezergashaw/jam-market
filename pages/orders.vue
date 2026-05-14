@@ -164,8 +164,170 @@
           </svg>
           {{ order.address }}
         </p>
+
+        <!-- Actions row -->
+        <div class="flex items-center gap-2 pt-3 border-t border-zinc-100 mt-3">
+          <button
+            class="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-900 bg-zinc-50 hover:bg-zinc-100 rounded-xl px-3 py-2.5 transition-colors"
+            @click="viewOrder = order"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            View details
+          </button>
+          <button
+            v-if="order.status !== 'CANCELLED' && order.status !== 'DELIVERED'"
+            class="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl px-3 py-2.5 transition-colors"
+            :disabled="cancellingId === order.id"
+            @click="cancelOrder(order)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            {{ cancellingId === order.id ? 'Cancelling…' : 'Cancel order' }}
+          </button>
+        </div>
       </li>
     </ul>
+
+    <!-- Order detail sheet -->
+    <Teleport to="body">
+      <Transition name="sheet">
+        <div v-if="viewOrder" class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center" @click.self="viewOrder = null">
+          <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="viewOrder = null" />
+          <div class="relative bg-white w-full sm:max-w-lg sm:mx-4 sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col">
+            <!-- Handle -->
+            <div class="flex justify-center pt-3 pb-1 sm:hidden">
+              <div class="w-10 h-1 bg-zinc-200 rounded-full" />
+            </div>
+            <!-- Header -->
+            <div class="flex items-center justify-between px-5 py-3 border-b border-zinc-100">
+              <div>
+                <p class="font-bold text-zinc-900">Order #{{ viewOrder.id }}</p>
+                <p class="text-xs text-zinc-400 mt-0.5">{{ formatDate(viewOrder.createdAt) }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="badge" :class="{
+                  'badge-yellow': viewOrder.status === 'PENDING',
+                  'badge-blue': viewOrder.status === 'CONFIRMED',
+                  'badge-orange': viewOrder.status === 'OUT_FOR_DELIVERY',
+                  'badge-green': viewOrder.status === 'DELIVERED',
+                  'badge-red': viewOrder.status === 'CANCELLED',
+                }">{{ statusLabels[viewOrder.status] ?? viewOrder.status }}</span>
+                <button class="p-1.5 text-zinc-400 hover:text-zinc-700 transition-colors" @click="viewOrder = null">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <!-- Body -->
+            <div class="overflow-y-auto flex-1 px-5 py-4 space-y-5">
+              <!-- Items -->
+              <div>
+                <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-3">Items</p>
+                <ul class="space-y-3">
+                  <li v-for="item in viewOrder.items" :key="item.id" class="flex items-center gap-3">
+                    <ProductImage :src="item.product?.imageUrl" :alt="item.product?.name" class="w-11 h-11 rounded-xl object-cover bg-zinc-100 shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-zinc-900 truncate">{{ item.product?.name ?? 'Product' }}</p>
+                      <p class="text-xs text-zinc-400">×{{ item.quantity }} · ETB {{ Number(item.price).toFixed(2) }} each</p>
+                    </div>
+                    <span class="text-sm font-semibold text-zinc-700 shrink-0">ETB {{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Price breakdown -->
+              <div class="border-t border-zinc-100 pt-4 space-y-2">
+                <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-3">Summary</p>
+                <div class="flex justify-between text-sm text-zinc-500">
+                  <span>Items subtotal</span>
+                  <span>ETB {{ viewOrderSubtotal.toFixed(2) }}</span>
+                </div>
+                <div v-if="Number(viewOrder.deliveryFee) - Number(viewOrder.serviceCharge ?? 0) > 0" class="flex justify-between text-sm text-zinc-500">
+                  <span>Delivery fee</span>
+                  <span>ETB {{ (Number(viewOrder.deliveryFee) - Number(viewOrder.serviceCharge ?? 0)).toFixed(2) }}</span>
+                </div>
+                <div v-if="Number(viewOrder.serviceCharge) > 0" class="flex justify-between text-sm text-zinc-500">
+                  <span>Service charge</span>
+                  <span>ETB {{ Number(viewOrder.serviceCharge).toFixed(2) }}</span>
+                </div>
+                <div v-if="Number(viewOrder.discountAmount) > 0" class="flex justify-between text-sm text-brand-600 font-semibold">
+                  <span>🎁 Promotion discount</span>
+                  <span>−ETB {{ Number(viewOrder.discountAmount).toFixed(2) }}</span>
+                </div>
+                <div class="flex justify-between pt-2 border-t border-zinc-100">
+                  <span class="font-bold text-zinc-900">Total</span>
+                  <span class="font-bold text-zinc-900">ETB {{ Number(viewOrder.totalPrice).toFixed(2) }}</span>
+                </div>
+              </div>
+
+              <!-- Delivery info -->
+              <div class="border-t border-zinc-100 pt-4 space-y-2">
+                <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-3">Delivery</p>
+                <div class="flex gap-2 text-sm text-zinc-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 mt-0.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <span>{{ viewOrder.address }}</span>
+                </div>
+                <div v-if="viewOrder.notes" class="flex gap-2 text-sm text-zinc-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 mt-0.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
+                  <span class="italic">{{ viewOrder.notes }}</span>
+                </div>
+              </div>
+
+              <!-- Payment -->
+              <div class="border-t border-zinc-100 pt-4">
+                <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-3">Payment</p>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-zinc-600">{{ PM_LABEL[viewOrder.paymentMethod] ?? viewOrder.paymentMethod }}</span>
+                  <span class="font-medium" :class="viewOrder.paymentStatus === 'COLLECTED' ? 'text-green-600' : viewOrder.paymentStatus === 'FAILED' ? 'text-red-500' : 'text-amber-600'">
+                    {{ viewOrder.paymentStatus === 'COLLECTED' ? 'Verified' : viewOrder.paymentStatus === 'FAILED' ? 'Failed' : 'Pending' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Cancel reason -->
+              <div v-if="viewOrder.status === 'CANCELLED' && viewOrder.cancelReason" class="border-t border-zinc-100 pt-4">
+                <p class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Cancellation reason</p>
+                <p class="text-sm text-zinc-600 italic">{{ viewOrder.cancelReason }}</p>
+              </div>
+            </div>
+
+            <!-- Footer action -->
+            <div v-if="viewOrder.status !== 'CANCELLED' && viewOrder.status !== 'DELIVERED'" class="px-5 py-4 border-t border-zinc-100">
+              <button
+                class="w-full flex items-center justify-center gap-2 text-sm font-semibold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl px-4 py-3 transition-colors"
+                :disabled="cancellingId === viewOrder.id"
+                @click="cancelOrder(viewOrder)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                {{ cancellingId === viewOrder.id ? 'Cancelling…' : 'Cancel this order' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Cancel confirmation modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="cancelTarget" class="fixed inset-0 z-[10000] flex items-center justify-center p-4" @click.self="cancelTarget = null">
+          <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="cancelTarget = null" />
+          <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+            <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h3 class="text-base font-bold text-zinc-900 mb-1">Cancel order #{{ cancelTarget.id }}?</h3>
+            <p class="text-sm text-zinc-500 mb-6">This cannot be undone. Your items will be restocked.</p>
+            <div class="flex gap-3">
+              <button class="flex-1 btn-secondary" :disabled="cancellingId === cancelTarget.id" @click="cancelTarget = null">Keep order</button>
+              <button class="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-60" :disabled="cancellingId === cancelTarget.id" @click="doCancel">
+                {{ cancellingId === cancelTarget.id ? 'Cancelling…' : 'Yes, cancel' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -176,6 +338,40 @@ const { t } = useLocale()
 
 const confirmingId = ref(null)
 const confirming = ref(false)
+const viewOrder = ref(null)
+const cancellingId = ref(null)
+const cancelTarget = ref(null)
+
+const viewOrderSubtotal = computed(() => {
+  if (!viewOrder.value?.items) return 0
+  return viewOrder.value.items.reduce((s, i) => s + Number(i.price) * i.quantity, 0)
+})
+
+function cancelOrder(order) {
+  cancelTarget.value = order
+}
+
+async function doCancel() {
+  const order = cancelTarget.value
+  if (!order) return
+  cancellingId.value = order.id
+  try {
+    await $fetch(`/api/customer/orders/${order.id}/cancel`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerStore.token}` },
+    })
+    const o = myOrdersStore.orders.find((x) => x.id === order.id)
+    if (o) o.status = 'CANCELLED'
+    if (viewOrder.value?.id === order.id) viewOrder.value = { ...viewOrder.value, status: 'CANCELLED' }
+    myOrdersStore._persist()
+    cancelTarget.value = null
+  } catch (e) {
+    cancelTarget.value = null
+    alert(e?.data?.statusMessage ?? 'Failed to cancel order. Please try again.')
+  } finally {
+    cancellingId.value = null
+  }
+}
 
 async function doConfirm(orderId) {
   confirming.value = true
@@ -239,3 +435,18 @@ onUnmounted(() => clearInterval(pollInterval))
 
 useHead({ title: 'My Orders — Jam Store' })
 </script>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active .relative, .fade-leave-active .relative { transition: transform 0.2s ease; }
+.fade-enter-from .relative, .fade-leave-to .relative { transform: scale(0.95); }
+
+.sheet-enter-active, .sheet-leave-active { transition: opacity 0.25s ease; }
+.sheet-enter-active .relative, .sheet-leave-active .relative { transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); }
+.sheet-enter-from, .sheet-leave-to { opacity: 0; }
+.sheet-enter-from .relative, .sheet-leave-to .relative { transform: translateY(100%); }
+@media (min-width: 640px) {
+  .sheet-enter-from .relative, .sheet-leave-to .relative { transform: translateY(20px) scale(0.97); }
+}
+</style>

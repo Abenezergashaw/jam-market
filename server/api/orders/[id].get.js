@@ -32,6 +32,7 @@ export default defineEventHandler(async (event) => {
     ...order,
     totalPrice: order.totalPrice.toString(),
     deliveryFee: order.deliveryFee.toString(),
+    serviceCharge: order.serviceCharge.toString(),
     discountAmount: order.discountAmount.toString(),
     lat: order.lat?.toString() ?? null,
     lng: order.lng?.toString() ?? null,

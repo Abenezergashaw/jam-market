@@ -81,13 +81,19 @@
             </p>
           </div>
           <template v-if="activeConv?.product">
-            <div class="hidden sm:flex items-center gap-2 shrink-0 border-l border-zinc-100 pl-3">
+            <NuxtLink
+              :to="`/admin/products/${activeConv.product.id}`"
+              class="hidden sm:flex items-center gap-2 shrink-0 border-l border-zinc-100 pl-3 hover:bg-zinc-50 rounded-lg px-2 -mr-2 transition-colors cursor-pointer"
+            >
               <img :src="activeConv.product.imageUrl" class="w-8 h-8 rounded-lg object-cover bg-zinc-100" />
               <div>
                 <p class="text-xs font-semibold text-zinc-800 truncate max-w-[120px]">{{ activeConv.product.name }}</p>
                 <p class="text-xs text-zinc-400">ETB {{ Number(activeConv.product.price).toFixed(2) }}</p>
               </div>
-            </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-zinc-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </NuxtLink>
           </template>
         </div>
 

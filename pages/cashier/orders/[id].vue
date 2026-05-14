@@ -378,7 +378,7 @@ async function initMap() {
   })
   const lat = parseFloat(order.value.lat)
   const lng = parseFloat(order.value.lng)
-  map = L.map(mapEl.value, { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16)
+  map = L.map(mapEl.value, { zoomControl: true, scrollWheelZoom: false, tap: false }).setView([lat, lng], 16)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     maxZoom: 19,
