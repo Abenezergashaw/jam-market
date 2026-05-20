@@ -1,6 +1,4 @@
-import { createRequire } from 'module'
-const _require = createRequire(import.meta.url)
-const XLSX = _require('xlsx')
+import * as XLSX from 'xlsx'
 import { z } from 'zod'
 
 
