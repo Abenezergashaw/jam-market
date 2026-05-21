@@ -3,7 +3,7 @@ import { z } from 'zod'
 const schema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers, hyphens'),
-  imageUrl: z.string().min(1),
+  imageUrl: z.string().optional().nullable(),
   isTrending: z.boolean().optional().default(false),
 })
 
