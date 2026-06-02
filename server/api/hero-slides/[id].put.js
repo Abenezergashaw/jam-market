@@ -12,7 +12,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
   const id = parseInt(getRouterParam(event, 'id'))
   if (isNaN(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid ID' })
 

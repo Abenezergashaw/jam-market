@@ -83,20 +83,27 @@
 
     <div class="border-t border-zinc-200" />
 
-    <!-- Store Location -->
+    <!-- Store Locations (per branch) -->
     <div class="space-y-4">
       <div>
-        <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Store Location</h3>
-        <p class="text-xs text-zinc-400 mt-1">Shown to customers on the "Find a Product in Store" page.</p>
+        <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Store Locations</h3>
+        <p class="text-xs text-zinc-400 mt-1">Set the aisle and shelf for each branch. Shown on the "Find a Product" page.</p>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="label">Aisle <span class="text-zinc-400 font-normal">(optional)</span></label>
-          <input v-model="form.aisle" type="text" class="input" placeholder="e.g. A3, Aisle 5" />
-        </div>
-        <div>
-          <label class="label">Shelf <span class="text-zinc-400 font-normal">(optional)</span></label>
-          <input v-model="form.shelf" type="text" class="input" placeholder="e.g. Top, Row 2" />
+      <div v-if="loadingStores" class="text-xs text-zinc-400">Loading stores…</div>
+      <div v-else-if="!stores.length" class="text-xs text-zinc-400">No stores found.</div>
+      <div v-else class="space-y-3">
+        <div v-for="store in stores" :key="store.id" class="bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 space-y-2">
+          <p class="text-xs font-semibold text-zinc-700">{{ store.name }}</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="label text-[10px]">Aisle</label>
+              <input v-model="locationMap[store.id].aisle" type="text" class="input text-sm py-2" placeholder="e.g. A3" />
+            </div>
+            <div>
+              <label class="label text-[10px]">Shelf</label>
+              <input v-model="locationMap[store.id].shelf" type="text" class="input text-sm py-2" placeholder="e.g. Top" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -283,8 +290,6 @@ const form = reactive({
   costPrice: props.initial?.costPrice ?? '',
   lowStockThreshold: props.initial?.lowStockThreshold ?? 10,
   isFeatured: props.initial?.isFeatured ?? false,
-  aisle: props.initial?.aisle ?? '',
-  shelf: props.initial?.shelf ?? '',
   reason: '',
 })
 
@@ -299,6 +304,31 @@ watch(() => form.imageUrl, (val) => {
 })
 
 const { data: categories } = await useFetch('/api/categories')
+
+// Per-store location map
+const stores = ref([])
+const loadingStores = ref(true)
+const locationMap = ref({})
+
+async function loadStoresAndLocations() {
+  try {
+    const [storeList, existingLocs] = await Promise.all([
+      adminFetch('/api/admin/stores'),
+      props.initial?.id
+        ? adminFetch(`/api/products/${props.initial.id}/locations`).catch(() => [])
+        : Promise.resolve([]),
+    ])
+    stores.value = storeList
+    const locByStore = Object.fromEntries(existingLocs.map((l) => [l.storeId, l]))
+    locationMap.value = Object.fromEntries(
+      storeList.map((s) => [s.id, { aisle: locByStore[s.id]?.aisle ?? '', shelf: locByStore[s.id]?.shelf ?? '' }])
+    )
+  } finally {
+    loadingStores.value = false
+  }
+}
+
+onMounted(loadStoresAndLocations)
 
 async function handlePrimaryFile(e) {
   const file = e.target.files?.[0]
@@ -346,7 +376,7 @@ async function handleSubmit() {
   error.value = ''
   saving.value = true
   try {
-    await emit('submit', {
+    const savedProduct = await emit('submit', {
       name: form.name,
       sku: form.sku || null,
       description: form.description,
@@ -364,10 +394,22 @@ async function handleSubmit() {
       costPrice: form.costPrice ? Number(form.costPrice) : null,
       lowStockThreshold: Number(form.lowStockThreshold),
       isFeatured: form.isFeatured,
-      aisle: form.aisle || null,
-      shelf: form.shelf || null,
       ...(props.isEdit && form.reason ? { reason: form.reason } : {}),
     })
+
+    // Save per-store locations
+    const productId = savedProduct?.id ?? props.initial?.id
+    if (productId && stores.value.length) {
+      const locations = stores.value.map((s) => ({
+        storeId: s.id,
+        aisle: locationMap.value[s.id]?.aisle || null,
+        shelf: locationMap.value[s.id]?.shelf || null,
+      }))
+      await adminFetch(`/api/products/${productId}/locations`, {
+        method: 'PUT',
+        body: { locations },
+      })
+    }
   } catch (e) {
     error.value = e?.data?.statusMessage ?? 'Something went wrong'
   } finally {

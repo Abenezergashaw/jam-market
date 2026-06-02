@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const payload = requireDelivery(event)
+  const payload = await requireDelivery(event)
   if (!payload.storeId) return null
   const store = await prisma.store.findUnique({
     where: { id: payload.storeId },

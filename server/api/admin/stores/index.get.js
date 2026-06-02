@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
   const stores = await prisma.store.findMany({ orderBy: { createdAt: 'asc' } })
   return stores.map(s => ({
     id: s.id,

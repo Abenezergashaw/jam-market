@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const { range = '7d' } = getQuery(event)
   const days = range === '30d' ? 30 : 7

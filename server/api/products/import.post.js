@@ -42,7 +42,7 @@ const rowSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const staff = requireCashier(event, null)
+  const staff = await requireCashier(event, null)
   const isAdmin = staff.role === 'admin' || staff.role === 'manager'
 
   const parts = await readMultipartFormData(event)

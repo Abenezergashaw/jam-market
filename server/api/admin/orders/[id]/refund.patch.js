@@ -6,7 +6,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const payload = requireCashier(event, 'orders:cancel')
+  const payload = await requireCashier(event, 'orders:cancel')
 
   const id = parseInt(getRouterParam(event, 'id'))
   const body = await readBody(event)

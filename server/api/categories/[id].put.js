@@ -9,7 +9,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const payload = requireCashier(event, 'categories:edit')
+  const payload = await requireCashier(event, 'categories:edit')
 
   const id = parseInt(getRouterParam(event, 'id'))
   const body = await readBody(event)

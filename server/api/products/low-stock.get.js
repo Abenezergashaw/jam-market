@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const all = await prisma.product.findMany({
     include: { category: { select: { id: true, name: true } } },

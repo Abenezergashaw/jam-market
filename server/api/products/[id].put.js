@@ -18,13 +18,11 @@ const schema = z.object({
   costPrice: z.number().positive().optional().nullable(),
   lowStockThreshold: z.number().int().min(0).optional(),
   isFeatured: z.boolean().optional(),
-  aisle: z.string().max(50).optional().nullable(),
-  shelf: z.string().max(50).optional().nullable(),
   reason: z.string().max(300).optional(),
 })
 
 export default defineEventHandler(async (event) => {
-  const payload = requireCashier(event, 'products:edit')
+  const payload = await requireCashier(event, 'products:edit')
 
   const id = parseInt(getRouterParam(event, 'id'))
   const body = await readBody(event)

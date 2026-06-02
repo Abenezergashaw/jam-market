@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireCashier(event, null)
+  await requireCashier(event, null)
   const id = parseInt(getRouterParam(event, 'id'))
   if (isNaN(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid conversation ID' })
 

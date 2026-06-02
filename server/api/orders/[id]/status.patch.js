@@ -13,7 +13,7 @@ const notificationMessages = {
 }
 
 export default defineEventHandler(async (event) => {
-  const payload = requireStaff(event)
+  const payload = await requireStaff(event)
 
   const id = parseInt(getRouterParam(event, 'id'))
   const body = await readBody(event)

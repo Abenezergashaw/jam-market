@@ -1,21 +1,28 @@
 <template>
   <div class="space-y-4 max-w-4xl">
-    <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
       <div>
         <h1 class="text-lg font-bold text-zinc-900">Store Feedback</h1>
         <p class="text-xs text-zinc-400 mt-0.5">Customer comments about service, staff, and the store experience.</p>
       </div>
-      <!-- Filter tabs -->
-      <div class="flex items-center gap-1 bg-zinc-100 rounded-xl p-1">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors"
-          :class="filter === tab.value ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'"
-          @click="filter = tab.value"
-        >
-          {{ tab.label }}
-        </button>
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Store filter -->
+        <select v-model="storeFilter" class="input text-xs py-1.5 px-3 w-auto">
+          <option value="">All Stores</option>
+          <option v-for="s in stores" :key="s.id" :value="s.id">{{ s.name }}</option>
+        </select>
+        <!-- Status tabs -->
+        <div class="flex items-center gap-1 bg-zinc-100 rounded-xl p-1">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors"
+            :class="filter === tab.value ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'"
+            @click="filter = tab.value"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -49,7 +56,7 @@
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-semibold text-zinc-900">{{ item.name || 'Anonymous' }}</span>
-            <span v-if="item.employeeName" class="text-xs text-zinc-400">re: {{ item.employeeName }}</span>
+            <span v-if="item.store" class="badge badge-blue text-[10px]">{{ item.store.name }}</span>
             <StarRating v-if="item.rating" :model-value="item.rating" readonly size="sm" />
           </div>
           <p class="text-sm text-zinc-600 mt-0.5 line-clamp-2">{{ item.message }}</p>
@@ -84,6 +91,7 @@
             <div>
               <div class="flex items-center gap-2 flex-wrap">
                 <p class="font-bold text-zinc-900">{{ selected.name || 'Anonymous' }}</p>
+                <span v-if="selected.store" class="badge badge-blue text-[10px]">{{ selected.store.name }}</span>
                 <StarRating v-if="selected.rating" :model-value="selected.rating" readonly size="sm" />
               </div>
               <p class="text-xs text-zinc-400 mt-0.5">{{ formatDate(selected.createdAt) }}</p>
@@ -155,6 +163,7 @@ const tabs = [
 ]
 
 const filter = ref('')
+const storeFilter = ref('')
 const page = ref(1)
 const items = ref([])
 const total = ref(0)
@@ -162,12 +171,14 @@ const loading = ref(true)
 const selected = ref(null)
 const reviewNote = ref('')
 const saving = ref(false)
+const stores = ref([])
 
 async function load() {
   loading.value = true
   try {
     const qs = new URLSearchParams({ page: page.value })
     if (filter.value) qs.set('status', filter.value)
+    if (storeFilter.value) qs.set('storeId', storeFilter.value)
     const res = await adminFetch(`/api/admin/feedback?${qs}`)
     items.value = res.items
     total.value = res.total
@@ -176,12 +187,13 @@ async function load() {
   }
 }
 
-watch([filter, page], () => {
-  if (filter.value) page.value = 1
-  load()
-})
+watch([filter, storeFilter], () => { page.value = 1; load() })
+watch(page, load)
 
-onMounted(load)
+onMounted(async () => {
+  const [, s] = await Promise.allSettled([load(), adminFetch('/api/admin/stores')])
+  if (s.status === 'fulfilled') stores.value = s.value
+})
 
 function open(item) {
   selected.value = item

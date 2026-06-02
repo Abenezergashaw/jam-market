@@ -11,7 +11,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const adminPayload = requireAdmin(event)
+  const adminPayload = await requireAdmin(event)
 
   const body = await readBody(event)
   const parsed = schema.safeParse(body)

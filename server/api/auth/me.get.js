@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const p = requireStaff(event)
+  const p = await requireStaff(event)
 
   const user = await prisma.user.findUnique({
     where: { id: p.userId },

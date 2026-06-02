@@ -38,11 +38,14 @@ if (!isNew.value) {
 
 async function handleSubmit(data) {
   if (isNew.value) {
-    await adminFetch('/api/products', { method: 'POST', body: data })
+    const saved = await adminFetch('/api/products', { method: 'POST', body: data })
+    router.push('/admin/products')
+    return saved
   } else {
-    await adminFetch(`/api/products/${route.params.id}`, { method: 'PUT', body: data })
+    const saved = await adminFetch(`/api/products/${route.params.id}`, { method: 'PUT', body: data })
+    router.push('/admin/products')
+    return saved
   }
-  router.push('/admin/products')
 }
 
 useHead({ title: isNew.value ? 'New Product — Admin' : 'Edit Product — Admin' })

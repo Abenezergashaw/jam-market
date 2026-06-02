@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const { from, to } = getQuery(event)
   if (!from || !to) throw createError({ statusCode: 400, statusMessage: 'from and to are required' })

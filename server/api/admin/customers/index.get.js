@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireCashier(event)
+  await requireCashier(event)
 
   const query = getQuery(event)
   const search = query.search?.toString().trim() || ''

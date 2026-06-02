@@ -3,7 +3,7 @@ function ymd(d) {
 }
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const { from, to } = getQuery(event)
 

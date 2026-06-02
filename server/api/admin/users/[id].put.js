@@ -9,7 +9,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const payload = requireAdmin(event)
+  const payload = await requireAdmin(event)
 
   const id = Number(getRouterParam(event, 'id'))
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Invalid user ID' })

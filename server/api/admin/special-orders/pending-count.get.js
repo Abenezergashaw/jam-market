@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireCashier(event)
+  await requireCashier(event)
 
   const count = await prisma.specialOrderRequest.count({
     where: { status: 'PENDING' },

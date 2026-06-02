@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const p = requireDelivery(event)
+  const p = await requireDelivery(event)
 
   const orders = await prisma.order.findMany({
     where: { deliveryPersonId: p.userId },

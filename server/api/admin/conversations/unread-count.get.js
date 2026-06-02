@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireCashier(event, null)
+  await requireCashier(event, null)
 
   const count = await prisma.conversation.count({
     where: {

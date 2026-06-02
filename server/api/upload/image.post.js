@@ -2,7 +2,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import * as Sentry from '@sentry/nuxt'
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const config = useRuntimeConfig()
   cloudinary.config({

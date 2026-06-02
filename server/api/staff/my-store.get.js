@@ -1,7 +1,7 @@
 const serialize = (s) => ({ id: s.id, name: s.name, lat: s.lat?.toString() ?? null, lng: s.lng?.toString() ?? null })
 
 export default defineEventHandler(async (event) => {
-  const payload = requireStaff(event)
+  const payload = await requireStaff(event)
 
   if (!payload.storeId) {
     // Admin with no assigned store — return all active stores

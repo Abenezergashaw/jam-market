@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   // Check if the caller is an admin — admins get costPrice, everyone else does not
   let isAdmin = false
   try {
-    const p = requireStaff(event)
+    const p = await requireStaff(event)
     isAdmin = p.role === 'admin'
   } catch {}
 

@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireCashier(event)
+  await requireCashier(event)
 
   const id = parseInt(getRouterParam(event, 'id'))
   const { status, adminNotes } = await readBody(event)

@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const payload = requireCashier(event, null)
+  const payload = await requireCashier(event, null)
 
   const query = getQuery(event)
   const page = Math.max(1, parseInt(query.page) || 1)

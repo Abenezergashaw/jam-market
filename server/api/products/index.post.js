@@ -21,7 +21,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const payload = requireCashier(event, 'products:create')
+  const payload = await requireCashier(event, 'products:create')
 
   const body = await readBody(event)
   const parsed = schema.safeParse(body)

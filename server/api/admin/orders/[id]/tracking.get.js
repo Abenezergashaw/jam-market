@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireStaff(event)
+  await requireStaff(event)
   const id = parseInt(getRouterParam(event, 'id'))
   if (isNaN(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid order ID' })
 

@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-lg mx-auto px-4 py-10">
-    <NuxtLink to="/info" class="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-brand-500 transition-colors mb-6">
+    <NuxtLink :to="`/info/${storeId}`" class="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-brand-500 transition-colors mb-6">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
@@ -8,6 +8,7 @@
     </NuxtLink>
 
     <h1 class="text-xl font-bold text-zinc-900 mb-1">Share Your Feedback</h1>
+    <p v-if="store" class="text-sm font-medium text-brand-600 mb-1">{{ store.name }}</p>
     <p class="text-sm text-zinc-500 mb-6">Tell us about your experience — service, staff, or anything about the store.</p>
 
     <!-- Success state -->
@@ -21,7 +22,7 @@
         <p class="font-bold text-zinc-900 text-lg">Thank you!</p>
         <p class="text-sm text-zinc-500 mt-1">Your feedback has been received. We appreciate you taking the time.</p>
       </div>
-      <NuxtLink to="/info" class="btn-primary inline-flex">Back to Home</NuxtLink>
+      <NuxtLink :to="`/info/${storeId}`" class="btn-primary inline-flex">Back to Home</NuxtLink>
     </div>
 
     <!-- Form -->
@@ -68,15 +69,12 @@
 </template>
 
 <script setup>
-useHead({ title: 'Leave Feedback — Jam Supermarket' })
+const route = useRoute()
+const storeId = parseInt(route.params.storeId)
 
-const form = reactive({
-  name: '',
-  phone: '',
-  message: '',
-  rating: null,
-})
+const { data: store } = await useFetch(`/api/stores/${storeId}`)
 
+const form = reactive({ name: '', phone: '', message: '', rating: null })
 const submitting = ref(false)
 const submitted = ref(false)
 const error = ref('')
@@ -88,6 +86,7 @@ async function submit() {
     await $fetch('/api/feedback', {
       method: 'POST',
       body: {
+        storeId,
         name: form.name || undefined,
         phone: form.phone || undefined,
         message: form.message,
@@ -101,4 +100,8 @@ async function submit() {
     submitting.value = false
   }
 }
+
+useHead(() => ({
+  title: store.value ? `Feedback — ${store.value.name}` : 'Leave Feedback',
+}))
 </script>

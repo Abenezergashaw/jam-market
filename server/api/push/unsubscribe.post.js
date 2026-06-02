@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
   try {
     payload = requireCustomer(event)
   } catch {
-    payload = requireStaff(event)
+    payload = await requireStaff(event)
   }
 
   const { endpoint } = await readBody(event)

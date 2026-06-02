@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const payload = requireStaff(event)
+  const payload = await requireStaff(event)
 
   let where = {}
 

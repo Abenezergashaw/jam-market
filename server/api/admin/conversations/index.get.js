@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireCashier(event, null)
+  await requireCashier(event, null)
 
   const conversations = await prisma.conversation.findMany({
     orderBy: { updatedAt: 'desc' },

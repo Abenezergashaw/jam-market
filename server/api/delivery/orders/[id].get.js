@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const p = requireDelivery(event)
+  const p = await requireDelivery(event)
   const id = parseInt(getRouterParam(event, 'id'))
 
   const order = await prisma.order.findUnique({

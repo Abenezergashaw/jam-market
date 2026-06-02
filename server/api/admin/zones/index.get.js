@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
 
   const zones = await prisma.deliveryZone.findMany({ orderBy: { id: 'asc' } })
 

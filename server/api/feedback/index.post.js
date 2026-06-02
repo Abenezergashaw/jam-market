@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
 const schema = z.object({
-  name:         z.string().trim().max(100).optional(),
-  phone:        z.string().trim().max(30).optional(),
-  message:      z.string().trim().min(5, 'Message must be at least 5 characters').max(2000),
-  rating:       z.number().int().min(1).max(5).optional().nullable(),
-  employeeName: z.string().trim().max(100).optional(),
+  storeId: z.number().int().positive().optional().nullable(),
+  name:    z.string().trim().max(100).optional(),
+  phone:   z.string().trim().max(30).optional(),
+  message: z.string().trim().min(5, 'Message must be at least 5 characters').max(2000),
+  rating:  z.number().int().min(1).max(5).optional().nullable(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -14,15 +14,15 @@ export default defineEventHandler(async (event) => {
   if (!parsed.success)
     throw createError({ statusCode: 400, statusMessage: parsed.error.issues[0].message })
 
-  const { name, phone, message, rating, employeeName } = parsed.data
+  const { storeId, name, phone, message, rating } = parsed.data
 
   const feedback = await prisma.storeFeedback.create({
     data: {
+      storeId: storeId ?? null,
       name: name || null,
       phone: phone || null,
       message,
       rating: rating ?? null,
-      employeeName: employeeName || null,
     },
   })
 

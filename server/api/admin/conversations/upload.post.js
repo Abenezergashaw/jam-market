@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary'
 
 export default defineEventHandler(async (event) => {
-  requireCashier(event, null)
+  await requireCashier(event, null)
 
   const config = useRuntimeConfig()
   cloudinary.config({

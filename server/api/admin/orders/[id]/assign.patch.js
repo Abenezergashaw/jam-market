@@ -5,7 +5,7 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const payload = requireCashier(event, 'orders:dispatch')
+  const payload = await requireCashier(event, 'orders:dispatch')
 
   const id = Number(getRouterParam(event, 'id'))
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Invalid order ID' })

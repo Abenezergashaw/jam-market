@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const payload = requireCashier(event, null)
+  const payload = await requireCashier(event, null)
 
   const id = parseInt(getRouterParam(event, 'id'))
   if (isNaN(id)) throw createError({ statusCode: 400, statusMessage: 'Invalid order ID' })
