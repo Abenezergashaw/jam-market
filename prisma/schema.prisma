@@ -19,6 +19,7 @@ model User {
   permissions    String[] @default([])
   assignedOrders    Order[]  @relation("DeliveryPerson")
   verifiedPayments  Order[]  @relation("PaymentVerifier")
+  feedbackReviewed  StoreFeedback[] @relation("FeedbackReviewer")
   lat               Decimal? @db.Decimal(10, 7)
   lng               Decimal? @db.Decimal(10, 7)
   locationUpdatedAt DateTime? @map("location_updated_at")
@@ -68,6 +69,8 @@ model Product {
   costPrice            Decimal?       @db.Decimal(10, 2) @map("cost_price")
   lowStockThreshold    Int            @default(10) @map("low_stock_threshold")
   isFeatured           Boolean        @default(false) @map("is_featured")
+  aisle                String?        @map("aisle")
+  shelf                String?        @map("shelf")
   categoryId           Int?           @map("category_id")
   category             Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   orderItems           OrderItem[]
@@ -324,6 +327,23 @@ model SpecialOrderRequest {
   @@index([customerId])
   @@index([status])
   @@map("special_order_requests")
+}
+
+model StoreFeedback {
+  id           Int       @id @default(autoincrement())
+  name         String?
+  phone        String?
+  message      String    @db.Text
+  rating       Int?
+  employeeName String?   @map("employee_name")
+  status       String    @default("NEW")
+  reviewedAt   DateTime? @map("reviewed_at")
+  reviewedById Int?      @map("reviewed_by_id")
+  reviewedBy   User?     @relation("FeedbackReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNote   String?   @map("review_note") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("store_feedback")
 }
 
 enum OrderStatus {

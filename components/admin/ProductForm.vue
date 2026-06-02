@@ -83,6 +83,26 @@
 
     <div class="border-t border-zinc-200" />
 
+    <!-- Store Location -->
+    <div class="space-y-4">
+      <div>
+        <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Store Location</h3>
+        <p class="text-xs text-zinc-400 mt-1">Shown to customers on the "Find a Product in Store" page.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="label">Aisle <span class="text-zinc-400 font-normal">(optional)</span></label>
+          <input v-model="form.aisle" type="text" class="input" placeholder="e.g. A3, Aisle 5" />
+        </div>
+        <div>
+          <label class="label">Shelf <span class="text-zinc-400 font-normal">(optional)</span></label>
+          <input v-model="form.shelf" type="text" class="input" placeholder="e.g. Top, Row 2" />
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-zinc-200" />
+
     <!-- Admin Only -->
     <div class="space-y-4">
       <div class="flex items-center gap-2">
@@ -263,6 +283,8 @@ const form = reactive({
   costPrice: props.initial?.costPrice ?? '',
   lowStockThreshold: props.initial?.lowStockThreshold ?? 10,
   isFeatured: props.initial?.isFeatured ?? false,
+  aisle: props.initial?.aisle ?? '',
+  shelf: props.initial?.shelf ?? '',
   reason: '',
 })
 
@@ -342,6 +364,8 @@ async function handleSubmit() {
       costPrice: form.costPrice ? Number(form.costPrice) : null,
       lowStockThreshold: Number(form.lowStockThreshold),
       isFeatured: form.isFeatured,
+      aisle: form.aisle || null,
+      shelf: form.shelf || null,
       ...(props.isEdit && form.reason ? { reason: form.reason } : {}),
     })
   } catch (e) {
