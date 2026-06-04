@@ -117,15 +117,121 @@
           {{ saving ? 'Saving…' : 'Save Settings' }}
         </button>
       </div>
+      <!-- Danger Zone — admin only -->
+      <div v-if="adminStore.user?.role === 'admin'" class="card border-red-200 p-5 sm:p-6 space-y-4">
+        <div>
+          <h3 class="text-sm font-semibold text-red-700">Danger Zone</h3>
+          <p class="text-xs text-zinc-500 mt-0.5">Irreversible actions. Proceed with extreme caution.</p>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3 space-y-1">
+          <p class="text-xs font-semibold text-red-700">Wipe all data</p>
+          <p class="text-xs text-red-600">Permanently deletes all products, categories, orders, messages, feedback, promotions, audit logs and all images from Cloudinary. This cannot be undone.</p>
+        </div>
+        <button class="w-full flex items-center justify-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl px-4 py-3 transition-colors" @click="wipeModal = true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Wipe All Data
+        </button>
+      </div>
     </template>
   </div>
+
+  <!-- Wipe confirmation modal -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="wipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeWipeModal" />
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
+          <!-- Header -->
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-zinc-900">Wipe all data?</h3>
+              <p class="text-xs text-zinc-500 mt-0.5">This action is permanent and cannot be undone.</p>
+            </div>
+          </div>
+
+          <!-- Warning list -->
+          <ul class="text-xs text-zinc-600 space-y-1.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" /> All products and categories</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" /> All orders and order history</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" /> All messages and conversations</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" /> All feedback, reviews and special requests</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" /> All promotions and audit logs</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" /> All product and category images on Cloudinary</li>
+          </ul>
+
+          <!-- Confirmation input -->
+          <div class="space-y-2">
+            <p class="text-xs text-zinc-600">Type <span class="font-mono font-bold text-red-600">WIPE EVERYTHING</span> to confirm:</p>
+            <input
+              v-model="wipeConfirmText"
+              type="text"
+              class="input font-mono"
+              placeholder="WIPE EVERYTHING"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+
+          <p v-if="wipeError" class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">{{ wipeError }}</p>
+
+          <div class="flex gap-3">
+            <button class="flex-1 btn-secondary" :disabled="wiping" @click="closeWipeModal">Cancel</button>
+            <button
+              class="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+              :disabled="wipeConfirmText !== 'WIPE EVERYTHING' || wiping"
+              @click="doWipe"
+            >
+              {{ wiping ? 'Wiping…' : 'Yes, wipe everything' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
 definePageMeta({ middleware: ['admin'], layout: 'admin', ssr: false })
 
 const { adminFetch } = useAdminFetch()
+const adminStore = useAdminStore()
 const config = useRuntimeConfig()
+
+// Wipe state
+const wipeModal = ref(false)
+const wipeConfirmText = ref('')
+const wiping = ref(false)
+const wipeError = ref('')
+
+function closeWipeModal() {
+  wipeModal.value = false
+  wipeConfirmText.value = ''
+  wipeError.value = ''
+}
+
+async function doWipe() {
+  wiping.value = true
+  wipeError.value = ''
+  try {
+    await adminFetch('/api/admin/wipe', {
+      method: 'POST',
+      body: { confirm: wipeConfirmText.value },
+    })
+    closeWipeModal()
+    alert('All data has been wiped successfully.')
+  } catch (e) {
+    wipeError.value = e?.data?.statusMessage ?? 'Wipe failed. Please try again.'
+  } finally {
+    wiping.value = false
+  }
+}
 
 const loading = ref(true)
 const saving = ref(false)
@@ -226,3 +332,8 @@ async function handleSave() {
 
 useHead({ title: 'Settings — Admin' })
 </script>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+</style>

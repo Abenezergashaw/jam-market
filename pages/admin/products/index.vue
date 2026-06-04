@@ -110,35 +110,52 @@
           </div>
 
           <!-- Hover actions overlay -->
-          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-4 gap-2">
-            <!-- Photo upload button -->
-            <label class="inline-flex items-center gap-1.5 bg-white text-zinc-900 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-brand-500 hover:text-white transition-colors shadow-sm cursor-pointer">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Photo
-              <input type="file" accept="image/*" class="hidden" @change="uploadImage(product, $event)" />
-            </label>
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3 px-3">
+            <div class="grid grid-cols-2 gap-1.5 w-full">
+              <!-- Add images -->
+              <label class="inline-flex items-center justify-center gap-1.5 bg-white text-zinc-900 text-xs font-semibold px-2 py-1.5 rounded-lg hover:bg-brand-500 hover:text-white transition-colors shadow-sm cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Images
+                <input type="file" accept="image/*" multiple class="hidden" @change="uploadImage(product, $event)" />
+              </label>
 
-            <NuxtLink
-              :to="`/admin/products/${product.id}`"
-              class="inline-flex items-center gap-1.5 bg-white text-zinc-900 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-brand-500 hover:text-white transition-colors shadow-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit
-            </NuxtLink>
-            <button
-              class="inline-flex items-center gap-1.5 bg-white text-zinc-900 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"
-              @click.stop="deleteProduct(product)"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Delete
-            </button>
+              <!-- Set primary -->
+              <button
+                class="inline-flex items-center justify-center gap-1.5 bg-white text-zinc-900 text-xs font-semibold px-2 py-1.5 rounded-lg hover:bg-brand-500 hover:text-white transition-colors shadow-sm disabled:opacity-40"
+                :disabled="!product.imageUrl"
+                @click.prevent="openImageEditor(product)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                Set Primary
+              </button>
+
+              <!-- Edit product -->
+              <NuxtLink
+                :to="`/admin/products/${product.id}`"
+                class="inline-flex items-center justify-center gap-1.5 bg-white text-zinc-900 text-xs font-semibold px-2 py-1.5 rounded-lg hover:bg-brand-500 hover:text-white transition-colors shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </NuxtLink>
+
+              <!-- Delete -->
+              <button
+                class="inline-flex items-center justify-center gap-1.5 bg-white text-zinc-900 text-xs font-semibold px-2 py-1.5 rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm"
+                @click.stop="deleteProduct(product)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
+            </div>
           </div>
         </div>
 
@@ -244,6 +261,53 @@
       </div>
     </Transition>
   </Teleport>
+
+  <!-- Image editor modal -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="imgEditorProduct" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="imgEditorProduct = null">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="imgEditorProduct = null" />
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-zinc-900 text-sm">Edit Images</p>
+              <p class="text-xs text-zinc-400 mt-0.5">Click an image to set it as primary</p>
+            </div>
+            <button class="p-1.5 text-zinc-400 hover:text-zinc-700 transition-colors" @click="imgEditorProduct = null">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div
+              v-for="(url, idx) in imgEditorAllImages(imgEditorProduct)"
+              :key="url"
+              class="relative aspect-square rounded-xl overflow-hidden border-2 group cursor-pointer transition-all"
+              :class="idx === 0 ? 'border-brand-500 ring-2 ring-brand-200' : 'border-zinc-200 hover:border-brand-300'"
+              @click="setImagePrimary(imgEditorProduct, url)"
+            >
+              <img :src="url" class="w-full h-full object-cover" />
+              <div v-if="idx === 0" class="absolute top-1 left-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">Primary</div>
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                <span v-if="idx !== 0" class="text-[10px] text-white font-semibold">Set primary</span>
+                <button
+                  type="button"
+                  class="absolute bottom-1.5 right-1.5 p-1 bg-red-500 rounded-lg"
+                  @click.stop="removeImageFromProduct(imgEditorProduct, url)"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
@@ -259,6 +323,42 @@ const totalPages = ref(1)
 
 const categories = ref([])
 const imgUploading = ref(null)
+const imgEditorProduct = ref(null)
+
+function openImageEditor(product) {
+  imgEditorProduct.value = product
+}
+
+function imgEditorAllImages(product) {
+  return [
+    ...(product.imageUrl ? [product.imageUrl] : []),
+    ...(product.images ?? []).map((i) => i.url),
+  ]
+}
+
+async function setImagePrimary(product, url) {
+  const all = imgEditorAllImages(product)
+  const rest = all.filter((u) => u !== url)
+  await adminFetch(`/api/products/${product.id}`, {
+    method: 'PUT',
+    body: { imageUrl: url, images: rest },
+  })
+  product.imageUrl = url
+  if (!product.images) product.images = []
+  product.images = rest.map((u, i) => ({ url: u, position: i }))
+}
+
+async function removeImageFromProduct(product, url) {
+  const all = imgEditorAllImages(product).filter((u) => u !== url)
+  const [primary, ...rest] = all
+  await adminFetch(`/api/products/${product.id}`, {
+    method: 'PUT',
+    body: { imageUrl: primary || null, images: rest },
+  })
+  product.imageUrl = primary || null
+  product.images = rest.map((u, i) => ({ url: u, position: i }))
+  if (!product.imageUrl) imgEditorProduct.value = null
+}
 const catPickerProduct = ref(null)
 const catSaving = ref(false)
 const searchQuery = ref('')
@@ -320,26 +420,42 @@ async function setCategory(product, catId) {
 }
 
 async function uploadImage(product, event) {
-  const file = event.target.files?.[0]
-  if (!file) return
+  const files = [...(event.target.files ?? [])]
+  if (!files.length) return
   event.target.value = ''
   imgUploading.value = product.id
   try {
-    const formData = new FormData()
-    formData.append('image', file)
-    const result = await adminFetch('/api/upload/image?folder=products', { method: 'POST', body: formData })
+    // Upload all files
+    const uploaded = []
+    for (const file of files) {
+      const formData = new FormData()
+      formData.append('image', file)
+      const result = await adminFetch('/api/upload/image?folder=products', { method: 'POST', body: formData })
+      uploaded.push(result.url)
+    }
 
-    if (!product.imageUrl) {
-      // No primary image yet — set this as the primary
-      await adminFetch(`/api/products/${product.id}`, { method: 'PUT', body: { imageUrl: result.url } })
-      product.imageUrl = result.url
+    // First uploaded image becomes primary if no primary exists yet,
+    // or replaces primary if product has no imageUrl at all.
+    // If product already has a primary, first upload goes to gallery.
+    const hasPrimary = !!product.imageUrl
+    const existingExtras = (product.images ?? []).map((i) => i.url)
+
+    if (!hasPrimary) {
+      // First selected = primary, rest go to gallery
+      const [primary, ...rest] = uploaded
+      await adminFetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        body: { imageUrl: primary, images: [...existingExtras, ...rest] },
+      })
+      product.imageUrl = primary
+      if (!product.images) product.images = []
+      rest.forEach((url, i) => product.images.push({ url, position: existingExtras.length + i }))
     } else {
-      // Already has a primary image — append to additional images
-      const existingUrls = (product.images ?? []).map((i) => i.url)
-      const updatedImages = [...existingUrls, result.url]
+      // Append all to gallery
+      const updatedImages = [...existingExtras, ...uploaded]
       await adminFetch(`/api/products/${product.id}`, { method: 'PUT', body: { images: updatedImages } })
       if (!product.images) product.images = []
-      product.images.push({ url: result.url, position: product.images.length })
+      uploaded.forEach((url, i) => product.images.push({ url, position: existingExtras.length + i }))
     }
   } catch (e) {
     alert(e?.data?.statusMessage ?? 'Image upload failed')

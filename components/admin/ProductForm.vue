@@ -151,85 +151,84 @@
 
     <div class="border-t border-zinc-200" />
 
-    <!-- Primary image -->
+    <!-- Images -->
     <div class="space-y-4">
-      <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Images</h3>
       <div>
-        <label class="label">Primary image <span class="text-zinc-400 font-normal">(shown in listings)</span></label>
-        <div class="flex items-start gap-4">
-          <div class="w-20 h-20 rounded-xl bg-zinc-100 overflow-hidden shrink-0 border border-zinc-200">
-            <img
-              v-if="primaryPreview"
-              :src="primaryPreview"
-              alt="Preview"
-              class="w-full h-full object-cover"
-              @error="primaryPreview = null"
-            />
-            <div v-else class="w-full h-full flex items-center justify-center text-zinc-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
+        <h3 class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Images</h3>
+        <p class="text-xs text-zinc-400 mt-1">First image is the primary (shown in listings). Click any image to set it as primary.</p>
+      </div>
+
+      <!-- Image grid -->
+      <div v-if="allImages.length" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        <div
+          v-for="(img, idx) in allImages"
+          :key="img"
+          class="relative aspect-square rounded-xl overflow-hidden bg-zinc-100 border-2 transition-all group cursor-pointer"
+          :class="idx === 0 ? 'border-brand-500 ring-2 ring-brand-300' : 'border-zinc-200'"
+          @click="setPrimary(idx)"
+        >
+          <ProductImage :src="img" class="w-full h-full object-cover" />
+
+          <!-- Primary badge -->
+          <div v-if="idx === 0" class="absolute top-1 left-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">
+            Primary
           </div>
-          <div class="flex-1 space-y-2">
-            <input
-              type="file"
-              accept="image/*"
-              class="block w-full text-sm text-zinc-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 cursor-pointer"
-              @change="handlePrimaryFile"
-            />
-            <p class="text-xs text-zinc-400">Or paste an image URL:</p>
-            <input v-model="form.imageUrl" type="text" class="input text-sm" placeholder="https://..." />
+
+          <!-- Actions overlay -->
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity">
+            <span v-if="idx !== 0" class="text-[10px] text-white font-semibold bg-brand-500 px-2 py-0.5 rounded-full">Set primary</span>
+            <button
+              type="button"
+              class="p-1.5 bg-white/20 hover:bg-red-500 rounded-lg transition-colors"
+              @click.stop="removeImage(idx)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Additional images gallery -->
-      <div>
-        <label class="label">
-          Additional images
-          <span class="text-zinc-400 font-normal">(shown in product gallery)</span>
-        </label>
+      <!-- Upload area -->
+      <div
+        class="relative border-2 border-dashed border-zinc-200 rounded-xl p-6 text-center hover:border-brand-300 hover:bg-brand-50/30 transition-colors cursor-pointer"
+        @click="fileInput?.click()"
+        @dragover.prevent
+        @drop.prevent="handleDrop"
+      >
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          multiple
+          class="hidden"
+          @change="handleFiles"
+        />
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-sm text-zinc-500 font-medium">Click to upload or drag & drop</p>
+        <p class="text-xs text-zinc-400 mt-1">Select multiple images at once · JPEG, PNG, WebP</p>
+        <div v-if="uploading" class="mt-3 flex items-center justify-center gap-2 text-xs text-brand-600">
+          <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Uploading {{ uploadProgress }}…
+        </div>
+      </div>
 
-        <div v-if="form.images.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
-          <div
-            v-for="(img, idx) in form.images"
-            :key="idx"
-            class="relative aspect-square rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200 group"
-          >
-            <ProductImage :src="img" class="w-full h-full object-cover" />
-            <button
-              type="button"
-              class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-              @click="removeExtraImage(idx)"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-            <div class="absolute bottom-1 left-1 text-[9px] text-white bg-black/40 px-1 rounded">{{ idx + 1 }}</div>
-          </div>
-        </div>
-
-        <div class="flex gap-2 items-start">
-          <input
-            v-model="newImageUrl"
-            type="text"
-            class="input text-sm flex-1"
-            placeholder="Paste image URL and press Add"
-            @keydown.enter.prevent="addExtraImageUrl"
-          />
-          <button type="button" class="btn-secondary text-sm py-2.5 shrink-0" @click="addExtraImageUrl">Add URL</button>
-        </div>
-        <div class="flex items-center gap-3 mt-2">
-          <input
-            type="file"
-            accept="image/*"
-            class="block text-sm text-zinc-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 cursor-pointer"
-            @change="handleExtraFile"
-          />
-          <p v-if="uploadingExtra" class="text-xs text-zinc-400">Uploading...</p>
-        </div>
+      <!-- Paste URL -->
+      <div class="flex gap-2">
+        <input
+          v-model="newImageUrl"
+          type="text"
+          class="input text-sm flex-1"
+          placeholder="Or paste an image URL…"
+          @keydown.enter.prevent="addImageUrl"
+        />
+        <button type="button" class="btn-secondary text-sm py-2.5 shrink-0" @click="addImageUrl">Add</button>
       </div>
     </div>
 
@@ -278,7 +277,6 @@ const form = reactive({
   imageUrl: props.initial?.imageUrl ?? '',
   stock: props.initial?.stock ?? 0,
   categoryId: props.initial?.categoryId ?? null,
-  images: props.initial?.images?.map((i) => i.url) ?? [],
   brand: props.initial?.brand ?? '',
   unit: props.initial?.unit ?? '',
   weight: props.initial?.weight ?? '',
@@ -293,15 +291,77 @@ const form = reactive({
   reason: '',
 })
 
-const primaryPreview = ref(props.initial?.imageUrl ?? null)
+// Unified image list — index 0 is always primary
+const allImages = ref([
+  ...(props.initial?.imageUrl ? [props.initial.imageUrl] : []),
+  ...(props.initial?.images?.map((i) => i.url) ?? []),
+])
+
 const newImageUrl = ref('')
+const fileInput = ref(null)
+const uploading = ref(false)
+const uploadProgress = ref('')
 const saving = ref(false)
-const uploadingExtra = ref(false)
 const error = ref('')
 
-watch(() => form.imageUrl, (val) => {
-  if (val) primaryPreview.value = val
-})
+function setPrimary(idx) {
+  if (idx === 0) return
+  const img = allImages.value.splice(idx, 1)[0]
+  allImages.value.unshift(img)
+}
+
+function removeImage(idx) {
+  allImages.value.splice(idx, 1)
+}
+
+function addImageUrl() {
+  const url = newImageUrl.value.trim()
+  if (!url) return
+  allImages.value.push(url)
+  newImageUrl.value = ''
+}
+
+async function uploadFile(file) {
+  const formData = new FormData()
+  formData.append('image', file)
+  const result = await adminFetch('/api/upload/image?folder=products', { method: 'POST', body: formData })
+  return result.url
+}
+
+async function handleFiles(e) {
+  const files = [...(e.target.files ?? [])]
+  if (!files.length) return
+  uploading.value = true
+  for (let i = 0; i < files.length; i++) {
+    uploadProgress.value = `${i + 1} / ${files.length}`
+    try {
+      const url = await uploadFile(files[i])
+      allImages.value.push(url)
+    } catch {
+      error.value = `Failed to upload ${files[i].name}`
+    }
+  }
+  uploading.value = false
+  uploadProgress.value = ''
+  e.target.value = ''
+}
+
+async function handleDrop(e) {
+  const files = [...(e.dataTransfer.files ?? [])].filter((f) => f.type.startsWith('image/'))
+  if (!files.length) return
+  uploading.value = true
+  for (let i = 0; i < files.length; i++) {
+    uploadProgress.value = `${i + 1} / ${files.length}`
+    try {
+      const url = await uploadFile(files[i])
+      allImages.value.push(url)
+    } catch {
+      error.value = `Failed to upload ${files[i].name}`
+    }
+  }
+  uploading.value = false
+  uploadProgress.value = ''
+}
 
 const { data: categories } = await useFetch('/api/categories')
 
@@ -330,47 +390,6 @@ async function loadStoresAndLocations() {
 
 onMounted(loadStoresAndLocations)
 
-async function handlePrimaryFile(e) {
-  const file = e.target.files?.[0]
-  if (!file) return
-  const formData = new FormData()
-  formData.append('image', file)
-  try {
-    const result = await adminFetch('/api/upload/image?folder=products', { method: 'POST', body: formData })
-    form.imageUrl = result.url
-    primaryPreview.value = result.url
-  } catch {
-    error.value = 'Primary image upload failed.'
-  }
-}
-
-async function handleExtraFile(e) {
-  const file = e.target.files?.[0]
-  if (!file) return
-  uploadingExtra.value = true
-  const formData = new FormData()
-  formData.append('image', file)
-  try {
-    const result = await adminFetch('/api/upload/image?folder=products', { method: 'POST', body: formData })
-    form.images.push(result.url)
-    e.target.value = ''
-  } catch {
-    error.value = 'Extra image upload failed.'
-  } finally {
-    uploadingExtra.value = false
-  }
-}
-
-function addExtraImageUrl() {
-  const url = newImageUrl.value.trim()
-  if (!url) return
-  form.images.push(url)
-  newImageUrl.value = ''
-}
-
-function removeExtraImage(idx) {
-  form.images.splice(idx, 1)
-}
 
 async function handleSubmit() {
   error.value = ''
@@ -381,10 +400,10 @@ async function handleSubmit() {
       sku: form.sku || null,
       description: form.description,
       price: Number(form.price),
-      imageUrl: form.imageUrl,
+      imageUrl: allImages.value[0] || null,
       stock: Number(form.stock),
       categoryId: form.categoryId ? Number(form.categoryId) : null,
-      images: form.images,
+      images: allImages.value.slice(1),
       brand: form.brand || null,
       unit: form.unit || null,
       weight: form.weight || null,
