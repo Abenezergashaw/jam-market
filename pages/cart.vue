@@ -98,46 +98,6 @@
           </button>
         </div>
 
-        <!-- Store selector -->
-        <div>
-          <label class="label">{{ $t('cart.orderFrom') }}</label>
-
-          <div v-if="storesLoading" class="text-xs text-zinc-400 italic py-2">{{ $t('cart.loadingStores') }}</div>
-
-          <div v-else-if="stores.length === 0" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-            {{ $t('cart.noStores') }}
-          </div>
-
-          <div v-else class="space-y-2 mt-1.5">
-            <button
-              v-for="store in stores"
-              :key="store.id"
-              type="button"
-              class="w-full text-left rounded-2xl border-2 px-4 py-3 transition-all"
-              :class="selectedStoreId === store.id
-                ? 'border-brand-500 bg-brand-50'
-                : 'border-zinc-200 bg-white hover:border-zinc-300'"
-              @click="selectedStoreId = store.id"
-            >
-              <div class="flex items-start gap-3">
-                <div
-                  class="w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors"
-                  :class="selectedStoreId === store.id ? 'border-brand-500' : 'border-zinc-300'"
-                >
-                  <div v-if="selectedStoreId === store.id" class="w-2 h-2 rounded-full bg-brand-500" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-zinc-900">{{ store.name }}</p>
-                  <p v-if="store.address" class="text-xs text-zinc-500 mt-0.5 truncate">{{ store.address }}</p>
-                  <p v-if="storeDeliveryEstimate(store)" class="text-xs text-zinc-400 mt-1">
-                    {{ storeDeliveryEstimate(store) }}
-                  </p>
-                </div>
-              </div>
-            </button>
-          </div>
-        </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="label">{{ $t('cart.fullName') }}</label>
@@ -340,7 +300,7 @@
             </div>
             <button
               class="btn-primary shrink-0 px-6"
-              :disabled="placing || !form.customerName || !form.phone || !location.address || !selectedStoreId || belowMinOrder || (selectedOnlineMethod && !receiptUrl && !referenceVerified)"
+              :disabled="placing || !form.customerName || !form.phone || !location.address || belowMinOrder || (selectedOnlineMethod && !receiptUrl && !referenceVerified)"
               @click="placeOrder"
             >
               {{ placing ? $t('cart.placing') : $t('cart.placeOrder') }}
@@ -348,9 +308,6 @@
           </div>
         </div>
 
-        <p v-if="!selectedStoreId && stores.length > 0" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-          {{ $t('cart.selectStore') }}
-        </p>
         <p v-if="!location.address" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
           {{ $t('cart.setLocation') }}
         </p>
@@ -400,8 +357,6 @@ const orderError = ref('')
 const placedOrder = ref(null)
 const settings = ref(null)
 const stores = ref([])
-const storesLoading = ref(true)
-const selectedStoreId = ref(null)
 const paymentMethod = ref('CASH')
 const receiptUrl = ref('')
 const uploadingReceipt = ref(false)
@@ -440,7 +395,7 @@ function haversineKm(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-const selectedStore = computed(() => stores.value.find(s => s.id === selectedStoreId.value) ?? null)
+const defaultStore = computed(() => stores.value[0] ?? null)
 
 const activePromos = ref([])
 
@@ -466,7 +421,7 @@ function bestPromo(subtotal, deliveryFee, distanceFee) {
 const feeBreakdown = computed(() => {
   const subtotal = cartStore.totalPrice
   const s = settings.value
-  const store = selectedStore.value
+  const store = defaultStore.value
 
   if (!store || store.lat == null || store.lng == null || location.lat == null || location.lng == null) {
     const { discount, promo } = bestPromo(subtotal, 0, 0)
@@ -508,15 +463,6 @@ watch(paymentMethod, () => {
   receiptUrl.value = ''
 })
 
-function storeDeliveryEstimate(store) {
-  if (!location.lat || !location.lng || store.lat == null || store.lng == null) return null
-  const s = settings.value
-  const effectiveCostPerKm = store.costPerKm != null ? Number(store.costPerKm) : Number(s?.costPerKm ?? 0)
-  const distKm = haversineKm(Number(store.lat), Number(store.lng), location.lat, location.lng)
-  const fee = distKm * effectiveCostPerKm
-  return `~${distKm.toFixed(1)} km · ETB ${fee.toFixed(2)} delivery`
-}
-
 function savedPrefsKey() {
   return customerStore.user?.id ? `jam_prefs_${customerStore.user.id}` : null
 }
@@ -533,7 +479,6 @@ function loadSavedPrefs() {
       location.lng = saved.lng ?? null
       location.address = saved.address
     }
-    if (saved.storeId) selectedStoreId.value = saved.storeId
   } catch {}
 }
 
@@ -545,7 +490,6 @@ function savePrefs() {
     address: location.address,
     lat: location.lat,
     lng: location.lng,
-    storeId: selectedStoreId.value,
   }))
 }
 
@@ -567,11 +511,6 @@ onMounted(async () => {
   settings.value = fetchedSettings
   stores.value = fetchedStores
   activePromos.value = fetchedPromos
-  storesLoading.value = false
-
-  if (fetchedStores.length === 1 && !selectedStoreId.value) {
-    selectedStoreId.value = fetchedStores[0].id
-  }
 })
 
 async function verifyReferenceCode() {
@@ -633,7 +572,6 @@ async function placeOrder() {
         notes: form.notes,
         lat: location.lat,
         lng: location.lng,
-        storeId: selectedStoreId.value ?? null,
         paymentMethod: paymentMethod.value,
         receiptImageUrl: receiptUrl.value || undefined,
         paymentReferenceCode: referenceVerified.value ? referenceCode.value : undefined,

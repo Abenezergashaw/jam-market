@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Code Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen m-0">
+    <div
+      class="bg-white p-8 shadow-md flex flex-col items-center justify-center"
+    >
+      <div id="qrcode" class="p-3 bg-white"></div>
+    </div>
+
+    <script>
+      // Target your specific URL
+      const targetUrl = "https://www.jamsupermarket.com/info/1";
+      const qrContainer = document.getElementById("qrcode");
+
+      // Initialize the QR Code generator
+      new QRCode(qrContainer, {
+        text: targetUrl,
+        width: 256, // Clean square width
+        height: 256, // Clean square height
+        colorDark: "#000000", // High contrast black
+        colorLight: "#ffffff", // Crisp white background
+        correctLevel: QRCode.CorrectLevel.H, // High error correction level for easy scanning
+      });
+    </script>
+  </body>
+</html>

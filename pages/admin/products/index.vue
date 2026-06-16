@@ -8,6 +8,15 @@
         <p class="text-xs text-zinc-400 mt-0.5">{{ $t('common.items', { n: total }) }}</p>
       </div>
       <div class="flex items-center gap-2">
+        <button
+          class="btn-secondary inline-flex items-center gap-1.5 text-sm !text-red-600 !border-red-200 hover:!bg-red-50"
+          @click="stockOutModal = true"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+          Stock All Out
+        </button>
         <NuxtLink to="/admin/products/import" class="btn-secondary inline-flex items-center gap-1.5 text-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -262,6 +271,48 @@
     </Transition>
   </Teleport>
 
+  <!-- Stock All Out confirmation modal -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="stockOutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="stockOutModal = false">
+        <div class="absolute inset-0 bg-black/50" @click="stockOutModal = false" />
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="font-bold text-zinc-900 text-sm">Set All Stock to Zero?</p>
+              <p class="text-xs text-zinc-500 mt-0.5">This will mark every product as out of stock. This cannot be undone.</p>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button
+              class="flex-1 btn-secondary text-sm"
+              :disabled="stockOutLoading"
+              @click="stockOutModal = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="flex-1 inline-flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+              :disabled="stockOutLoading"
+              @click="confirmStockOut"
+            >
+              <svg v-if="stockOutLoading" class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              {{ stockOutLoading ? 'Processing…' : 'Yes, Zero All Stock' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
   <!-- Image editor modal -->
   <Teleport to="body">
     <Transition name="fade">
@@ -359,6 +410,22 @@ async function removeImageFromProduct(product, url) {
   product.images = rest.map((u, i) => ({ url: u, position: i }))
   if (!product.imageUrl) imgEditorProduct.value = null
 }
+const stockOutModal = ref(false)
+const stockOutLoading = ref(false)
+
+async function confirmStockOut() {
+  stockOutLoading.value = true
+  try {
+    await adminFetch('/api/admin/products/stock-out', { method: 'POST' })
+    products.value.forEach((p) => { p.stock = 0 })
+    stockOutModal.value = false
+  } catch (e) {
+    alert(e?.data?.statusMessage ?? 'Could not zero stock')
+  } finally {
+    stockOutLoading.value = false
+  }
+}
+
 const catPickerProduct = ref(null)
 const catSaving = ref(false)
 const searchQuery = ref('')

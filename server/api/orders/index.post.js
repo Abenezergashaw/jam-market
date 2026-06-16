@@ -11,7 +11,6 @@ const schema = z.object({
   notes:          z.string().optional().default(''),
   lat:            z.number().optional().nullable(),
   lng:            z.number().optional().nullable(),
-  storeId:        z.number().int().positive().optional().nullable(),
   paymentMethod:        z.enum(['CASH', 'TELEBIRR', 'CBE', 'BOA']).default('CASH'),
   receiptImageUrl:      z.string().url().optional(),
   paymentReferenceCode: z.string().max(100).optional(),
@@ -29,7 +28,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: parsed.error.errors[0]?.message ?? 'Invalid order data' })
   }
 
-  const { phone, lat, lng, storeId, items, paymentMethod, receiptImageUrl, paymentReferenceCode } = parsed.data
+  const { phone, lat, lng, items, paymentMethod, receiptImageUrl, paymentReferenceCode } = parsed.data
   const customerName = stripHtml(parsed.data.customerName)
   const address = stripHtml(parsed.data.address)
   const notes = stripHtml(parsed.data.notes)
@@ -56,24 +55,26 @@ export default defineEventHandler(async (event) => {
     return sum + Number(product.price) * item.quantity
   }, 0)
 
-  const settings = await prisma.storeSettings.findFirst()
+  const [settings, defaultStore] = await Promise.all([
+    prisma.storeSettings.findFirst(),
+    prisma.store.findFirst({ orderBy: { id: 'asc' } }),
+  ])
+
+  const storeId = defaultStore?.id ?? null
   let deliveryFee = 0
   let distanceFee = 0
   let distKm = null
 
-  if (storeId != null && lat != null && lng != null) {
-    const store = await prisma.store.findUnique({ where: { id: storeId } })
-    if (store && store.lat != null && store.lng != null) {
-      const effectiveCostPerKm = store.costPerKm != null
-        ? Number(store.costPerKm)
-        : Number(settings?.costPerKm ?? 0)
-      const effectiveServiceChargePct = store.serviceChargePct != null
-        ? Number(store.serviceChargePct)
-        : Number(settings?.serviceChargePct ?? 0)
-      distKm = haversineKm(Number(store.lat), Number(store.lng), lat, lng)
-      distanceFee = distKm * effectiveCostPerKm
-      deliveryFee = distanceFee + totalPrice * effectiveServiceChargePct / 100
-    }
+  if (defaultStore && lat != null && lng != null && defaultStore.lat != null && defaultStore.lng != null) {
+    const effectiveCostPerKm = defaultStore.costPerKm != null
+      ? Number(defaultStore.costPerKm)
+      : Number(settings?.costPerKm ?? 0)
+    const effectiveServiceChargePct = defaultStore.serviceChargePct != null
+      ? Number(defaultStore.serviceChargePct)
+      : Number(settings?.serviceChargePct ?? 0)
+    distKm = haversineKm(Number(defaultStore.lat), Number(defaultStore.lng), lat, lng)
+    distanceFee = distKm * effectiveCostPerKm
+    deliveryFee = distanceFee + totalPrice * effectiveServiceChargePct / 100
   }
 
   if (paymentMethod === 'CASH' && distKm !== null && distKm > 15) {
