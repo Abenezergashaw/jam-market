@@ -11,11 +11,6 @@ export default defineEventHandler(async (event) => {
     api_secret: config.cloudinaryApiSecret,
   })
 
-  const contentLength = parseInt(getRequestHeader(event, 'content-length') || '0')
-  if (contentLength > 5 * 1024 * 1024) {
-    throw createError({ statusCode: 413, statusMessage: 'File too large. Maximum size is 5MB' })
-  }
-
   const parts = await readMultipartFormData(event)
   if (!parts?.length) {
     throw createError({ statusCode: 400, statusMessage: 'No file provided' })

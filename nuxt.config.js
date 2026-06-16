@@ -54,6 +54,8 @@ export default defineNuxtConfig({
   nitro: {
     routeRules: {
       '/api/products/import': { bodySize: '20mb' },
+      '/api/upload/image': { bodySize: '10mb' },
+      '/api/upload/receipt': { bodySize: '10mb' },
     },
     externals: {
       inline: ['xlsx'],

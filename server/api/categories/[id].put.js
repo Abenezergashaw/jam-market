@@ -3,7 +3,7 @@ import { z } from 'zod'
 const schema = z.object({
   name: z.string().min(1).optional(),
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
-  imageUrl: z.string().min(1).optional(),
+  imageUrl: z.string().optional().nullable(),
   isTrending: z.boolean().optional(),
   reason: z.string().max(300).optional(),
 })
