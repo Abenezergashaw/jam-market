@@ -11,23 +11,46 @@
       <div class="card p-5 sm:p-6 space-y-5">
 
         <!-- Store open/closed toggle -->
-        <div class="flex items-center justify-between gap-4">
-          <div>
-            <p class="text-sm font-semibold text-zinc-700">Store status</p>
-            <p class="text-xs text-zinc-400 mt-0.5">Customers cannot order while closed.</p>
+        <div
+          class="flex items-center justify-between gap-4 rounded-2xl px-4 py-4 border transition-colors duration-300"
+          :class="form.storeIsOpen ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <div
+              class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-300"
+              :class="form.storeIsOpen ? 'bg-emerald-100' : 'bg-red-100'"
+            >
+              <svg v-if="form.storeIsOpen" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-bold" :class="form.storeIsOpen ? 'text-emerald-800' : 'text-red-700'">
+                {{ form.storeIsOpen ? 'Store is Open' : 'Store is Closed' }}
+              </p>
+              <p class="text-xs mt-0.5" :class="form.storeIsOpen ? 'text-emerald-600' : 'text-red-500'">
+                <span v-if="togglingStore">Saving…</span>
+                <span v-else>{{ form.storeIsOpen ? 'Accepting orders from customers' : 'Orders paused — banner shown to customers' }}</span>
+              </p>
+            </div>
           </div>
           <button
             type="button"
-            class="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none"
-            :class="form.storeIsOpen ? 'bg-brand-500' : 'bg-zinc-200'"
-            @click="form.storeIsOpen = !form.storeIsOpen"
+            class="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none shrink-0 disabled:opacity-60"
+            :class="form.storeIsOpen ? 'bg-emerald-500' : 'bg-red-400'"
+            :disabled="togglingStore"
+            @click="toggleStoreStatus"
           >
             <span
-              class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
-              :class="form.storeIsOpen ? 'translate-x-5' : 'translate-x-0'"
+              class="absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300"
+              :class="form.storeIsOpen ? 'translate-x-7' : 'translate-x-0'"
             />
           </button>
         </div>
+
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -237,6 +260,23 @@ const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
 const error = ref('')
+const togglingStore = ref(false)
+
+async function toggleStoreStatus() {
+  togglingStore.value = true
+  const newValue = !form.storeIsOpen
+  try {
+    await adminFetch('/api/admin/settings', {
+      method: 'PUT',
+      body: { storeIsOpen: newValue },
+    })
+    form.storeIsOpen = newValue
+  } catch (e) {
+    error.value = e?.data?.statusMessage ?? 'Failed to update store status'
+  } finally {
+    togglingStore.value = false
+  }
+}
 
 const botUsername = config.public.telegramBotUsername || 'jamsupermarketbot'
 const webhookSiteUrl = ref('')

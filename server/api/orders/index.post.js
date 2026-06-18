@@ -56,9 +56,13 @@ export default defineEventHandler(async (event) => {
   }, 0)
 
   const [settings, defaultStore] = await Promise.all([
-    prisma.storeSettings.findFirst(),
+    prisma.$queryRaw`SELECT store_is_open, min_order_amount, cost_per_km, service_charge_pct FROM store_settings LIMIT 1`.then(r => r[0] ?? null),
     prisma.store.findFirst({ orderBy: { id: 'asc' } }),
   ])
+
+  if (settings && settings.store_is_open === false) {
+    throw createError({ statusCode: 503, statusMessage: 'We are not accepting orders at the moment. Please check back soon.' })
+  }
 
   const storeId = defaultStore?.id ?? null
   let deliveryFee = 0
@@ -68,10 +72,10 @@ export default defineEventHandler(async (event) => {
   if (defaultStore && lat != null && lng != null && defaultStore.lat != null && defaultStore.lng != null) {
     const effectiveCostPerKm = defaultStore.costPerKm != null
       ? Number(defaultStore.costPerKm)
-      : Number(settings?.costPerKm ?? 0)
+      : Number(settings?.cost_per_km ?? 0)
     const effectiveServiceChargePct = defaultStore.serviceChargePct != null
       ? Number(defaultStore.serviceChargePct)
-      : Number(settings?.serviceChargePct ?? 0)
+      : Number(settings?.service_charge_pct ?? 0)
     distKm = haversineKm(Number(defaultStore.lat), Number(defaultStore.lng), lat, lng)
     distanceFee = distKm * effectiveCostPerKm
     deliveryFee = distanceFee + totalPrice * effectiveServiceChargePct / 100

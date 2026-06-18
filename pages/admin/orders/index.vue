@@ -42,7 +42,9 @@
       :key="order.id"
       :order="order"
       :loading="updatingId === order.id"
+      :is-admin="adminStore.user?.role === 'admin'"
       @change-status="updateStatus"
+      @delete="deleteOrder"
     />
 
     <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
@@ -69,6 +71,7 @@
 definePageMeta({ middleware: ['admin'], layout: 'admin', ssr: false })
 
 const { adminFetch } = useAdminFetch()
+const adminStore = useAdminStore()
 
 const orders = ref([])
 const loading = ref(true)
@@ -109,6 +112,17 @@ watch([statusFilter, paymentFilter], () => {
   page.value = 1
   fetchOrders()
 })
+
+async function deleteOrder(id) {
+  if (!confirm(`Permanently delete order #${id}? This cannot be undone.`)) return
+  try {
+    await adminFetch(`/api/admin/orders/${id}`, { method: 'DELETE' })
+    orders.value = orders.value.filter((o) => o.id !== id)
+    total.value = Math.max(0, total.value - 1)
+  } catch (e) {
+    alert(e?.data?.statusMessage ?? 'Could not delete order')
+  }
+}
 
 async function updateStatus(id, status) {
   updatingId.value = id

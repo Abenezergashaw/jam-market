@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { sendPushToAllCustomers } from '~/server/utils/webpush'
 
 const schema = z.object({
   minOrderAmount:           z.number().min(0).optional(),
@@ -14,6 +15,18 @@ const schema = z.object({
   boaAccountName:           z.string().max(100).optional(),
 })
 
+async function getSettings() {
+  const rows = await prisma.$queryRaw`
+    SELECT id, min_order_amount, cost_per_km, service_charge_pct,
+           estimated_delivery_minutes, store_is_open,
+           telebirr_account_number, telebirr_account_name,
+           cbe_account_number, cbe_account_name,
+           boa_account_number, boa_account_name
+    FROM store_settings LIMIT 1
+  `
+  return rows[0] ?? null
+}
+
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
@@ -23,28 +36,55 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid settings data' })
   }
 
-  let settings = await prisma.storeSettings.findFirst()
+  const d = parsed.data
 
-  if (!settings) {
-    settings = await prisma.storeSettings.create({ data: parsed.data })
-  } else {
-    settings = await prisma.storeSettings.update({
-      where: { id: settings.id },
-      data: parsed.data,
+  let existing = await getSettings()
+
+  if (!existing) {
+    await prisma.$executeRaw`INSERT INTO store_settings DEFAULT VALUES`
+    existing = await getSettings()
+  }
+
+  const wasClosed = existing.store_is_open === false
+
+  await prisma.$executeRaw`
+    UPDATE store_settings SET
+      store_is_open              = ${d.storeIsOpen              ?? existing.store_is_open},
+      min_order_amount           = ${d.minOrderAmount           ?? Number(existing.min_order_amount)},
+      cost_per_km                = ${d.costPerKm                ?? Number(existing.cost_per_km)},
+      service_charge_pct         = ${d.serviceChargePct         ?? Number(existing.service_charge_pct)},
+      estimated_delivery_minutes = ${d.estimatedDeliveryMinutes ?? existing.estimated_delivery_minutes},
+      telebirr_account_number    = ${d.telebirrAccountNumber    ?? existing.telebirr_account_number ?? ''},
+      telebirr_account_name      = ${d.telebirrAccountName      ?? existing.telebirr_account_name  ?? ''},
+      cbe_account_number         = ${d.cbeAccountNumber         ?? existing.cbe_account_number     ?? ''},
+      cbe_account_name           = ${d.cbeAccountName           ?? existing.cbe_account_name       ?? ''},
+      boa_account_number         = ${d.boaAccountNumber         ?? existing.boa_account_number     ?? ''},
+      boa_account_name           = ${d.boaAccountName           ?? existing.boa_account_name       ?? ''}
+    WHERE id = ${existing.id}
+  `
+
+  const updated = await getSettings()
+
+  if (wasClosed && updated.store_is_open === true) {
+    sendPushToAllCustomers({
+      title: '🛒 Jam Supermarket is back!',
+      body: 'We are now accepting orders again. Come shop with us!',
+      url: '/',
+      tag: 'orders-open',
     })
   }
 
   return {
-    minOrderAmount:           settings.minOrderAmount.toString(),
-    costPerKm:                settings.costPerKm.toString(),
-    serviceChargePct:         settings.serviceChargePct.toString(),
-    estimatedDeliveryMinutes: settings.estimatedDeliveryMinutes,
-    storeIsOpen:              settings.storeIsOpen,
-    telebirrAccountNumber:    settings.telebirrAccountNumber ?? '',
-    telebirrAccountName:      settings.telebirrAccountName ?? '',
-    cbeAccountNumber:         settings.cbeAccountNumber ?? '',
-    cbeAccountName:           settings.cbeAccountName ?? '',
-    boaAccountNumber:         settings.boaAccountNumber ?? '',
-    boaAccountName:           settings.boaAccountName ?? '',
+    minOrderAmount:           updated.min_order_amount.toString(),
+    costPerKm:                updated.cost_per_km.toString(),
+    serviceChargePct:         updated.service_charge_pct.toString(),
+    estimatedDeliveryMinutes: Number(updated.estimated_delivery_minutes),
+    storeIsOpen:              updated.store_is_open,
+    telebirrAccountNumber:    updated.telebirr_account_number ?? '',
+    telebirrAccountName:      updated.telebirr_account_name  ?? '',
+    cbeAccountNumber:         updated.cbe_account_number     ?? '',
+    cbeAccountName:           updated.cbe_account_name       ?? '',
+    boaAccountNumber:         updated.boa_account_number     ?? '',
+    boaAccountName:           updated.boa_account_name       ?? '',
   }
 })

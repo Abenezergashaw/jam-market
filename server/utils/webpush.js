@@ -47,3 +47,8 @@ export async function sendPushToRole(roles, payload) {
   const subs = await prisma.pushSubscription.findMany({ where: { role: { in: roles } } })
   for (const sub of subs) sendPush(sub, payload)
 }
+
+export async function sendPushToAllCustomers(payload) {
+  const subs = await prisma.pushSubscription.findMany({ where: { customerId: { not: null } } })
+  for (const sub of subs) sendPush(sub, payload)
+}

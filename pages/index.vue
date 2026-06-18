@@ -187,6 +187,19 @@
       </div>
     </div>
 
+    <!-- Orders paused banner -->
+    <div v-if="storeSettings && storeSettings.storeIsOpen === false" class="bg-amber-50 border-y border-amber-200 px-4 py-4">
+      <div class="max-w-6xl mx-auto flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+        <div>
+          <p class="text-sm font-semibold text-amber-800">Orders are not available right now</p>
+          <p class="text-xs text-amber-700 mt-0.5">Feel free to browse until we're open again. We'll notify you as soon as we start accepting orders.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Main content -->
     <div class="max-w-6xl mx-auto px-4 pt-8 pb-14 space-y-12 sm:space-y-14">
       <!-- Loading skeleton -->
@@ -515,6 +528,7 @@ onUnmounted(() => {
   if (timer) clearInterval(timer);
 });
 
+const { data: storeSettings } = await useFetch("/api/settings");
 const { data: categories, pending, error } = await useFetch("/api/categories");
 const { data: featuredProducts } = await useFetch(
   "/api/products?featured=true",

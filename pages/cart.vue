@@ -14,7 +14,18 @@
       <NuxtLink to="/" class="btn-primary">{{ $t('cart.browseProducts') }}</NuxtLink>
     </div>
 
-    <template v-else>
+    <!-- Orders paused banner -->
+    <div v-if="settings && settings.storeIsOpen === false" class="mb-6 rounded-2xl bg-amber-50 border border-amber-200 px-5 py-4 flex items-start gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      </svg>
+      <div>
+        <p class="text-sm font-semibold text-amber-800">Orders are not available right now</p>
+        <p class="text-xs text-amber-700 mt-0.5">Feel free to browse until we're open again. We'll notify you as soon as we start accepting orders.</p>
+      </div>
+    </div>
+
+    <template v-if="!cartStore.isEmpty">
       <!-- Items -->
       <ul class="space-y-2 mb-8">
         <li v-for="item in cartStore.items" :key="item.id" class="card p-3 flex items-center gap-3 hover:border-zinc-300 hover:shadow-sm transition-all">
@@ -300,7 +311,7 @@
             </div>
             <button
               class="btn-primary shrink-0 px-6"
-              :disabled="placing || !form.customerName || !form.phone || !location.address || belowMinOrder || (selectedOnlineMethod && !receiptUrl && !referenceVerified)"
+              :disabled="placing || !form.customerName || !form.phone || !location.address || belowMinOrder || (selectedOnlineMethod && !receiptUrl && !referenceVerified) || (settings && settings.storeIsOpen === false)"
               @click="placeOrder"
             >
               {{ placing ? $t('cart.placing') : $t('cart.placeOrder') }}
