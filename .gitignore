@@ -26,3 +26,6 @@ Thumbs.db
 # Uploads (keep directory, ignore files)
 public/uploads/*
 !public/uploads/.gitkeep
+
+.vercel
+.env*

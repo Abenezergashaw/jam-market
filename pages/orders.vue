@@ -424,14 +424,24 @@ function formatDate(iso) {
 
 let pollInterval = null
 
+function onVisibilityChange() {
+  if (!document.hidden && customerStore.isAuthenticated) {
+    myOrdersStore.fetchFromServer()
+  }
+}
+
 onMounted(() => {
   myOrdersStore.hydrate()
   if (customerStore.isAuthenticated) {
-    pollInterval = setInterval(() => myOrdersStore.fetchFromServer(), 30_000)
+    pollInterval = setInterval(() => myOrdersStore.fetchFromServer(), 10_000)
+    document.addEventListener('visibilitychange', onVisibilityChange)
   }
 })
 
-onUnmounted(() => clearInterval(pollInterval))
+onUnmounted(() => {
+  clearInterval(pollInterval)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
+})
 
 useHead({ title: 'My Orders — Jam Store' })
 </script>
