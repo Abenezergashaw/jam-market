@@ -41,9 +41,7 @@
       v-for="order in orders"
       :key="order.id"
       :order="order"
-      :loading="updatingId === order.id"
       :is-admin="adminStore.user?.role === 'admin'"
-      @change-status="updateStatus"
       @delete="deleteOrder"
     />
 
@@ -76,7 +74,6 @@ const adminStore = useAdminStore()
 const orders = ref([])
 const loading = ref(true)
 const refreshing = ref(false)
-const updatingId = ref(null)
 const statusFilter = ref('')
 const paymentFilter = ref('')
 const page = ref(1)
@@ -124,21 +121,6 @@ async function deleteOrder(id) {
   }
 }
 
-async function updateStatus(id, status) {
-  updatingId.value = id
-  try {
-    const updated = await adminFetch(`/api/orders/${id}/status`, {
-      method: 'PATCH',
-      body: { status },
-    })
-    const idx = orders.value.findIndex((o) => o.id === id)
-    if (idx !== -1) orders.value[idx] = updated
-  } catch {
-    // handle error silently for now
-  } finally {
-    updatingId.value = null
-  }
-}
 
 onMounted(() => {
   fetchOrders()

@@ -51,18 +51,8 @@
             {{ $t('admin.view') }}
           </NuxtLink>
           <button
-            v-for="tr in availableTransitions"
-            :key="tr.to"
-            :class="[tr.style === 'primary' ? 'btn-primary' : tr.style === 'danger' ? 'btn-danger' : 'btn-secondary', 'text-xs px-3 py-1.5']"
-            :disabled="loading"
-            @click="$emit('change-status', order.id, tr.to)"
-          >
-            {{ tr.label }}
-          </button>
-          <button
             v-if="isAdmin"
             class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl font-semibold bg-red-50 text-red-600 hover:bg-red-500 hover:text-white border border-red-200 hover:border-red-500 transition-colors"
-            :disabled="loading"
             @click="$emit('delete', order.id)"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -79,11 +69,10 @@
 <script setup>
 const props = defineProps({
   order: { type: Object, required: true },
-  loading: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
 })
 
-defineEmits(['change-status', 'delete'])
+defineEmits(['delete'])
 
 const { t } = useLocale()
 
@@ -97,30 +86,6 @@ const statusMap = computed(() => ({
   CANCELLED: { label: t('status.cancelled'), cls: 'badge-red' },
 }))
 
-const TRANSITIONS = computed(() => ({
-  PENDING: [
-    { to: 'CONFIRMED', label: t('admin.confirm'), style: 'primary' },
-    { to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' },
-  ],
-  CONFIRMED: [
-    { to: 'OUT_FOR_DELIVERY', label: t('admin.dispatch'), style: 'primary' },
-    { to: 'PENDING', label: t('admin.revert'), style: 'secondary' },
-    { to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' },
-  ],
-  OUT_FOR_DELIVERY: [
-    { to: 'DELIVERED', label: t('admin.deliver'), style: 'primary' },
-    { to: 'CONFIRMED', label: t('admin.return'), style: 'secondary' },
-    { to: 'CANCELLED', label: t('admin.cancel'), style: 'danger' },
-  ],
-  DELIVERED: [
-    { to: 'OUT_FOR_DELIVERY', label: t('admin.undo'), style: 'secondary' },
-  ],
-  CANCELLED: [
-    { to: 'PENDING', label: t('admin.reopen'), style: 'secondary' },
-  ],
-}))
-
-const availableTransitions = computed(() => TRANSITIONS.value[props.order.status] ?? [])
 const statusClass = computed(() => ['badge', statusMap.value[props.order.status]?.cls ?? ''].join(' '))
 const statusLabel = computed(() => statusMap.value[props.order.status]?.label ?? props.order.status)
 
